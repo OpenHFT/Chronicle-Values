@@ -18,7 +18,6 @@
 
 package net.openhft.chronicle.values;
 
-
 import net.openhft.chronicle.core.ClassLoading;
 
 import java.lang.reflect.Method;
