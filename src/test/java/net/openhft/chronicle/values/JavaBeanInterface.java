@@ -26,51 +26,51 @@ import java.time.LocalTime;
  * Created by peter.lawrey on 03/03/2015.
  */
 public interface JavaBeanInterface {
-    public byte getS8();
+    byte getS8();
 
-    public void setS8(byte s8);
+    void setS8(byte s8);
 
-    public char getU16();
+    char getU16();
 
-    public void setU16(char u16);
+    void setU16(char u16);
 
-    public short getS16();
+    short getS16();
 
-    public void setS16(short s16);
+    void setS16(short s16);
 
-    public int getS32();
+    int getS32();
 
-    public void setS32(int s32);
+    void setS32(int s32);
 
-    public long getS64();
+    long getS64();
 
-    public void setS64(long s64);
+    void setS64(long s64);
 
-    public float getF32();
+    float getF32();
 
-    public void setF32(float f32);
+    void setF32(float f32);
 
-    public double getF64();
+    double getF64();
 
-    public void setF64(double f64);
+    void setF64(double f64);
 
-    public BuySell getBuySell();
+    BuySell getBuySell();
 
-    public void setBuySell(BuySell buySell);
+    void setBuySell(BuySell buySell);
 
-    public String getText();
+    String getText();
 
-    public void setText(String text);
+    void setText(String text);
 
-    public LocalDate getDate();
+    LocalDate getDate();
 
-    public void setDate(LocalDate date);
+    void setDate(LocalDate date);
 
-    public LocalTime getTime();
+    LocalTime getTime();
 
-    public void setTime(LocalTime time);
+    void setTime(LocalTime time);
 
-    public LocalDateTime getDateTime();
+    LocalDateTime getDateTime();
 
-    public void setDateTime(LocalDateTime dateTime);
+    void setDateTime(LocalDateTime dateTime);
 }
