@@ -18,51 +18,18 @@ package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.values.constraints.MaxSize;
 
-public interface JavaBeanInterface {
+/**
+ */
+public interface NestedArrayInterface {
+    String getText();
 
-    void setFlag(boolean flag);
+    void setText(String text);
 
-    boolean getFlag();
+    int getIntAt(int index);
 
-    void setByte(byte b);
+    void setIntAt(@MaxSize(16) int index, int value);
 
-    byte getByte();
+    JavaBeanInterface getJBIAt(@MaxSize(32) int index);
 
-    void setShort(short s);
-
-    short getShort();
-
-    void setChar(char ch);
-
-    char getChar();
-
-    void setInt(int i);
-
-    int getVolatileInt();
-
-    void setOrderedInt(int i);
-
-    int getInt();
-
-    void setFloat(float f);
-
-    float getFloat();
-
-    void setLong(long l);
-
-    long getLong();
-
-    long addAtomicLong(long toAdd);
-
-    void setDouble(double d);
-
-    double getDouble();
-
-    double addAtomicDouble(double toAdd);
-
-    void setString(@MaxSize(8) String s);
-
-    String getString();
-
-    StringBuilder getUsingString(StringBuilder b);
+    void setJBIAt(int index, JavaBeanInterface jbi);
 }

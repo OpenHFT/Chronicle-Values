@@ -16,53 +16,45 @@
 
 package net.openhft.chronicle.values;
 
-import net.openhft.chronicle.values.constraints.MaxSize;
 
-public interface JavaBeanInterface {
+import net.openhft.chronicle.bytes.Byteable;
+import net.openhft.chronicle.bytes.BytesMarshallable;
 
-    void setFlag(boolean flag);
+/**
+ * User: peter.lawrey
+ * Date: 06/10/13
+ * Time: 16:59
+ */
+public interface MinimalInterface extends BytesMarshallable, Copyable<MinimalInterface>, Byteable {
+    void flag(boolean flag);
 
-    boolean getFlag();
+    boolean flag();
 
-    void setByte(byte b);
+    void byte$(byte b);
 
-    byte getByte();
+    byte byte$();
 
-    void setShort(short s);
+    void short$(short s);
 
-    short getShort();
+    short short$();
 
-    void setChar(char ch);
+    void char$(char ch);
 
-    char getChar();
+    char char$();
 
-    void setInt(int i);
+    void int$(int i);
 
-    int getVolatileInt();
+    int int$();
 
-    void setOrderedInt(int i);
+    void float$(float f);
 
-    int getInt();
+    float float$();
 
-    void setFloat(float f);
+    void long$(long l);
 
-    float getFloat();
+    long long$();
 
-    void setLong(long l);
+    void double$(double d);
 
-    long getLong();
-
-    long addAtomicLong(long toAdd);
-
-    void setDouble(double d);
-
-    double getDouble();
-
-    double addAtomicDouble(double toAdd);
-
-    void setString(@MaxSize(8) String s);
-
-    String getString();
-
-    StringBuilder getUsingString(StringBuilder b);
+    double double$();
 }

@@ -18,51 +18,19 @@ package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.values.constraints.MaxSize;
 
-public interface JavaBeanInterface {
+/**
+ * User: peter.lawrey Date: 08/10/13 Time: 09:09
+ */
+public interface GetUsingStringInterface {
 
-    void setFlag(boolean flag);
+    void setSomeStringField(@MaxSize(64) String s);
 
-    boolean getFlag();
+    void setAnotherStringField(@MaxSize(64) String s);
 
-    void setByte(byte b);
+    String getSomeStringField();
 
-    byte getByte();
+    void getUsingSomeStringField(StringBuilder builder);
 
-    void setShort(short s);
-
-    short getShort();
-
-    void setChar(char ch);
-
-    char getChar();
-
-    void setInt(int i);
-
-    int getVolatileInt();
-
-    void setOrderedInt(int i);
-
-    int getInt();
-
-    void setFloat(float f);
-
-    float getFloat();
-
-    void setLong(long l);
-
-    long getLong();
-
-    long addAtomicLong(long toAdd);
-
-    void setDouble(double d);
-
-    double getDouble();
-
-    double addAtomicDouble(double toAdd);
-
-    void setString(@MaxSize(8) String s);
-
-    String getString();
-
-    StringBuilder getUsingString(StringBuilder b);
+    StringBuilder getUsingAnotherStringField(StringBuilder builder);
 }
+

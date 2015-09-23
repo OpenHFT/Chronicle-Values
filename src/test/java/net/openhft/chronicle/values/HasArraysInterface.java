@@ -16,63 +16,42 @@
 
 package net.openhft.chronicle.values;
 
-import net.openhft.chronicle.values.constraints.Group;
 import net.openhft.chronicle.values.constraints.MaxSize;
-import net.openhft.chronicle.values.constraints.Range;
 
-import java.lang.reflect.Method;
+public interface HasArraysInterface {
+    void setFlagAt(@MaxSize(4) int idx, boolean flag);
 
-/**
- * User: peter.lawrey
- * Date: 06/10/13
- * Time: 18:22
- */
-public interface FieldModel<T> {
-    String name();
+    boolean getFlagAt(int idx);
 
-    Method getter();
+    void setByteAt(@MaxSize(4) int idx, byte b);
 
-    Method setter();
+    byte getByteAt(int idx);
 
-    Method indexedGetter();
+    void setShortAt(@MaxSize(4) int idx, short s);
 
-    Method indexedSetter();
+    short getShortAt(int idx);
 
-    Method volatileGetter();
+    void setCharAt(@MaxSize(4) int idx, char ch);
 
-    Method orderedSetter();
+    char getCharAt(int idx);
 
-    Method volatileIndexedGetter();
+    void setIntAt(@MaxSize(4) int idx, int i);
 
-    Method orderedIndexedSetter();
+    int getIntAt(int idx);
 
-    Method getUsing();
+    void setFloatAt(@MaxSize(4) int idx, float f);
 
-    Method adder();
+    float getFloatAt(int idx);
 
-    Method atomicAdder();
+    void setLongAt(@MaxSize(4) int idx, long l);
 
-    Method cas();
+    long getLongAt(int idx);
 
-    Method sizeOf();
+    void setDoubleAt(@MaxSize(4) int idx, double d);
 
-    Class<T> type();
+    double getDoubleAt(int idx);
 
-    int heapSize();
+    void setStringAt(@MaxSize(4) int idx, @MaxSize(8) String s);
 
-    int nativeSize();
-
-    Range range();
-
-    MaxSize size();
-
-    MaxSize indexSize();
-
-    boolean isArray();
-
-    boolean isVolatile();
-
-    void setVolatile(boolean isVolatile);
-
-    Group group();
+    String getStringAt(int idx);
 }

@@ -16,53 +16,17 @@
 
 package net.openhft.chronicle.values;
 
-import net.openhft.chronicle.values.constraints.MaxSize;
+/**
+ * User: peter.lawrey
+ * Date: 08/10/13
+ * Time: 10:24
+ */
+public interface NestedB {
+    void bid(double bid);
 
-public interface JavaBeanInterface {
+    double bid();
 
-    void setFlag(boolean flag);
+    void ask(double ask);
 
-    boolean getFlag();
-
-    void setByte(byte b);
-
-    byte getByte();
-
-    void setShort(short s);
-
-    short getShort();
-
-    void setChar(char ch);
-
-    char getChar();
-
-    void setInt(int i);
-
-    int getVolatileInt();
-
-    void setOrderedInt(int i);
-
-    int getInt();
-
-    void setFloat(float f);
-
-    float getFloat();
-
-    void setLong(long l);
-
-    long getLong();
-
-    long addAtomicLong(long toAdd);
-
-    void setDouble(double d);
-
-    double getDouble();
-
-    double addAtomicDouble(double toAdd);
-
-    void setString(@MaxSize(8) String s);
-
-    String getString();
-
-    StringBuilder getUsingString(StringBuilder b);
+    double ask();
 }
