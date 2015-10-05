@@ -16,63 +16,23 @@
 
 package net.openhft.chronicle.values;
 
-import net.openhft.chronicle.values.constraints.Group;
 import net.openhft.chronicle.values.constraints.MaxSize;
-import net.openhft.chronicle.values.constraints.Range;
-
-import java.lang.reflect.Method;
 
 /**
  * User: peter.lawrey
- * Date: 06/10/13
- * Time: 18:22
+ * Date: 08/10/13
+ * Time: 10:11
  */
-public interface FieldModel<T> {
-    String name();
+public interface NestedA {
+    void key(@MaxSize String key);
 
-    Method getter();
+    String key();
 
-    Method setter();
+    void one(NestedB one);
 
-    Method indexedGetter();
+    NestedB one();
 
-    Method indexedSetter();
+    void two(NestedB one);
 
-    Method volatileGetter();
-
-    Method orderedSetter();
-
-    Method volatileIndexedGetter();
-
-    Method orderedIndexedSetter();
-
-    Method getUsing();
-
-    Method adder();
-
-    Method atomicAdder();
-
-    Method cas();
-
-    Method sizeOf();
-
-    Class<T> type();
-
-    int heapSize();
-
-    int nativeSize();
-
-    Range range();
-
-    MaxSize size();
-
-    MaxSize indexSize();
-
-    boolean isArray();
-
-    boolean isVolatile();
-
-    void setVolatile(boolean isVolatile);
-
-    Group group();
+    NestedB two();
 }
