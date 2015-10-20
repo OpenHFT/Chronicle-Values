@@ -20,11 +20,11 @@ import net.openhft.chronicle.bytes.Byteable;
 import net.openhft.chronicle.bytes.Bytes;
 import net.openhft.chronicle.bytes.BytesStore;
 import net.openhft.compiler.CachedCompiler;
-import net.openhft.chronicle.values.constraints.MaxSize;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
 
+import static net.openhft.chronicle.values.Values.newHeapInstance;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -34,8 +34,6 @@ import static org.junit.Assert.assertFalse;
 public class VolatileTest {
     @Test
     public void testGenerateJavaCode() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        ValueGenerator dvg = new ValueGenerator();
-       // dvg.setDumpCode(true);
 
    /*     try{
             BadInterface1 jbi = dvg.heapInstance(BadInterface1.class);
@@ -53,7 +51,7 @@ public class VolatileTest {
 */
         //Test the heap interface
         try{
-            GoodInterface jbi = dvg.heapInstance(GoodInterface.class);
+            GoodInterface jbi = newHeapInstance(GoodInterface.class);
 
             jbi.setOrderedY(5);
             assertEquals(5, jbi.getVolatileY());
@@ -73,7 +71,8 @@ public class VolatileTest {
 
         //Test the native interface
         try{
-            String actual = new ValueGenerator().generateNativeObject(GoodInterface.class);
+            String actual = Generators.generateNativeClass(ValueModel.acquire(GoodInterface.class),
+                    GoodInterface.class.getName() + "$$Native");
             System.out.println(actual);
             CachedCompiler cc = new CachedCompiler(null, null);
             Class aClass = cc.loadFromJava(GoodInterface.class.getName() + "$$Native", actual);
@@ -123,7 +122,7 @@ public class VolatileTest {
 
         void setY(int y);
 
-        void setOrderedIntAt(@MaxSize(4) int idx, int i);
+        void setOrderedIntAt(@MaxUtf8Length(4) int idx, int i);
         int getVolatileIntAt(int idx);
     }
 }

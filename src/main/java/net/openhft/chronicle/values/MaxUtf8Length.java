@@ -14,17 +14,22 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.openhft.chronicle.values.constraints;
+package net.openhft.chronicle.values;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import static java.lang.annotation.ElementType.*;
-import static java.lang.annotation.RetentionPolicy.CLASS;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+/**
+ * The maximum length of a CharSequence/String/StringBuilder field in a Chronicle Value, in UTF-8
+ * encoding.
+ */
+@Target(PARAMETER)
+@Retention(RUNTIME)
 @Documented
-@Retention(CLASS)
-@Target({METHOD, FIELD, PARAMETER, LOCAL_VARIABLE})
-public @interface Nullable {
+public @interface MaxUtf8Length {
+    int value();
 }

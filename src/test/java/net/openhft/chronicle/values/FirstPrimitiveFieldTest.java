@@ -16,36 +16,37 @@
 
 package net.openhft.chronicle.values;
 
-import net.openhft.chronicle.values.constraints.MaxSize;
 import net.openhft.chronicle.core.values.IntValue;
 import net.openhft.chronicle.core.values.LongValue;
-import org.junit.Assert;
 import org.junit.Test;
 
-import static net.openhft.chronicle.values.ValueGenerator.firstPrimitiveFieldType;
 import static org.junit.Assert.assertEquals;
 
 public class FirstPrimitiveFieldTest {
 
     @Test
     public void firstPrimitiveFieldTest() {
-        assertEquals(int.class, firstPrimitiveFieldType(IntValue.class));
-        assertEquals(long.class, firstPrimitiveFieldType(LongValue.class));
+        assertEquals(int.class, ValueModel.acquire(IntValue.class).firstPrimitiveFieldType());
+        assertEquals(long.class, ValueModel.acquire(LongValue.class).firstPrimitiveFieldType());
         assertEquals(long.class,
-                firstPrimitiveFieldType(Values.directClassFor(LongValue.class)));
-        assertEquals(long.class, firstPrimitiveFieldType(FiveLongValues.class));
-        assertEquals(boolean.class, firstPrimitiveFieldType(FiveBooleanValues.class));
-        assertEquals(long.class, firstPrimitiveFieldType(FiveLongAndBooleanValues.class));
+                ValueModel.acquire(Values.nativeClassFor(LongValue.class))
+                        .firstPrimitiveFieldType());
+        assertEquals(long.class,
+                ValueModel.acquire(FiveLongValues.class).firstPrimitiveFieldType());
+        assertEquals(boolean.class,
+                ValueModel.acquire(FiveBooleanValues.class).firstPrimitiveFieldType());
+        assertEquals(long.class,
+                ValueModel.acquire(FiveLongAndBooleanValues.class).firstPrimitiveFieldType());
     }
 }
 
 interface FiveLongValues {
-    void setValueAt(@MaxSize(5) int i, long v);
+    void setValueAt(@MaxUtf8Length(5) int i, long v);
     long getValueAt(int i);
 }
 
 interface FiveBooleanValues {
-    void setValueAt(@MaxSize(5) int i, boolean v);
+    void setValueAt(@MaxUtf8Length(5) int i, boolean v);
     boolean getValueAt(int i);
 }
 

@@ -16,16 +16,14 @@
 
 package net.openhft.chronicle.values;
 
-import net.openhft.chronicle.values.constraints.MaxSize;
-
 /**
  * User: peter.lawrey Date: 08/10/13 Time: 09:09
  */
 public interface GetUsingStringInterface {
 
-    void setSomeStringField(@MaxSize(64) String s);
+    void setSomeStringField(@MaxUtf8Length(64) String s);
 
-    void setAnotherStringField(@MaxSize(64) String s);
+    void setAnotherStringField(@MaxUtf8Length(64) String s);
 
     String getSomeStringField();
 

@@ -22,7 +22,8 @@ import java.util.EnumSet;
 
 public final class Enums {
 
-    static final Method getUniverse;
+    private static final Method getUniverse;
+
     static {
         try {
             getUniverse = EnumSet.class.getDeclaredMethod("getUniverse", Class.class);
@@ -34,12 +35,15 @@ public final class Enums {
 
     public static <E extends Enum<E>> E[] getUniverse(Class<E> enumType) {
         try {
+            //noinspection unchecked
             return (E[]) getUniverse.invoke(null, enumType);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } catch (InvocationTargetException e) {
+        } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static <E extends Enum<E>> int numberOfConstants(Class<E> enumType) {
+        return getUniverse(enumType).length;
     }
 
     private Enums() {}

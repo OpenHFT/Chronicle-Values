@@ -16,8 +16,6 @@
 
 package net.openhft.chronicle.values;
 
-import net.openhft.chronicle.values.constraints.MaxSize;
-
 /**
  */
 public interface NestedArrayInterface {
@@ -27,9 +25,9 @@ public interface NestedArrayInterface {
 
     int getIntAt(int index);
 
-    void setIntAt(@MaxSize(16) int index, int value);
+    void setIntAt(@MaxUtf8Length(16) int index, int value);
 
-    JavaBeanInterface getJBIAt(@MaxSize(32) int index);
+    JavaBeanInterface getJBIAt(@MaxUtf8Length(32) int index);
 
     void setJBIAt(int index, JavaBeanInterface jbi);
 }

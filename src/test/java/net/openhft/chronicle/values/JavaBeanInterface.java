@@ -1,68 +1,76 @@
 /*
- *     Copyright (C) 2015  higherfrequencytrading.com
+ * Copyright 2015 Higher Frequency Trading
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published by
- *     the Free Software Foundation, either version 3 of the License.
+ * http://www.higherfrequencytrading.com
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package net.openhft.chronicle.values;
 
-import net.openhft.chronicle.values.constraints.MaxSize;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
+/**
+ * Created by peter.lawrey on 03/03/2015.
+ */
 public interface JavaBeanInterface {
+    byte getS8();
 
-    void setFlag(boolean flag);
+    void setS8(byte s8);
 
-    boolean getFlag();
+    char getU16();
 
-    void setByte(byte b);
+    void setU16(char u16);
 
-    byte getByte();
+    short getS16();
 
-    void setShort(short s);
+    void setS16(short s16);
 
-    short getShort();
+    int getS32();
 
-    void setChar(char ch);
+    void setS32(int s32);
 
-    char getChar();
+    long getS64();
 
-    void setInt(int i);
+    void setS64(long s64);
 
-    int getVolatileInt();
+    float getF32();
 
-    void setOrderedInt(int i);
+    void setF32(float f32);
 
-    int getInt();
+    double getF64();
 
-    void setFloat(float f);
+    void setF64(double f64);
 
-    float getFloat();
+    BuySell getBuySell();
 
-    void setLong(long l);
+    void setBuySell(BuySell buySell);
 
-    long getLong();
+    String getText();
 
-    long addAtomicLong(long toAdd);
+    void setText(String text);
 
-    void setDouble(double d);
+    LocalDate getDate();
 
-    double getDouble();
+    void setDate(LocalDate date);
 
-    double addAtomicDouble(double toAdd);
+    LocalTime getTime();
 
-    void setString(@MaxSize(8) String s);
+    void setTime(LocalTime time);
 
-    String getString();
+    LocalDateTime getDateTime();
 
-    StringBuilder getUsingString(StringBuilder b);
+    void setDateTime(LocalDateTime dateTime);
 }

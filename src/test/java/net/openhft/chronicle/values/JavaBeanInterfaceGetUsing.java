@@ -16,14 +16,12 @@
 
 package net.openhft.chronicle.values;
 
-import net.openhft.chronicle.values.constraints.MaxSize;
-
 /**
  * User: peter.lawrey Date: 06/10/13 Time: 16:59
  */
 public interface JavaBeanInterfaceGetUsing {
 
-    void setString(@MaxSize(8) String s);
+    void setString(@MaxUtf8Length(8) String s);
 
     StringBuilder getUsingString(StringBuilder b);
 }

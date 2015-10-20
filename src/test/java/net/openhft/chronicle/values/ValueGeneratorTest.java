@@ -25,6 +25,9 @@ import org.junit.Test;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
+import static net.openhft.chronicle.values.Generators.generateNativeClass;
+import static net.openhft.chronicle.values.Values.newHeapInstance;
+import static net.openhft.chronicle.values.Values.newNativeReference;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -34,32 +37,29 @@ import static org.junit.Assert.assertTrue;
 public class ValueGeneratorTest {
     @Test
     public void testGenerateJavaCode()   {
-        ValueGenerator dvg = new ValueGenerator();
-        //dvg.setDumpCode(true);
-        JavaBeanInterface jbi = dvg.heapInstance(JavaBeanInterface.class);
-        jbi.setByte((byte) 1);
-        jbi.setChar('2');
-        jbi.setShort((short) 3);
-        jbi.setInt(4);
-        jbi.setFloat(5);
-        jbi.setLong(6);
-        jbi.setDouble(7);
-        jbi.setFlag(true);
-
-        assertEquals(1, jbi.getByte());
-        assertEquals('2', jbi.getChar());
-        assertEquals(3, jbi.getShort());
-        assertEquals(4, jbi.getInt());
-        assertEquals(5.0, jbi.getFloat(), 0);
-        assertEquals(6, jbi.getLong());
-        assertEquals(7.0, jbi.getDouble(), 0.0);
-        assertTrue(jbi.getFlag());
+//        JavaBeanInterface jbi = Values.newHeapInstance(JavaBeanInterface.class);
+//        jbi.setByte((byte) 1);
+//        jbi.setChar('2');
+//        jbi.setShort((short) 3);
+//        jbi.setInt(4);
+//        jbi.setFloat(5);
+//        jbi.setLong(6);
+//        jbi.setDouble(7);
+//        jbi.setFlag(true);
+//
+//        assertEquals(1, jbi.getByte());
+//        assertEquals('2', jbi.getChar());
+//        assertEquals(3, jbi.getShort());
+//        assertEquals(4, jbi.getInt());
+//        assertEquals(5.0, jbi.getFloat(), 0);
+//        assertEquals(6, jbi.getLong());
+//        assertEquals(7.0, jbi.getDouble(), 0.0);
+//        assertTrue(jbi.getFlag());
     }
 
     @Test
     public void testGenerateJavaCode2()   {
-        ValueGenerator dvg = new ValueGenerator();
-        MinimalInterface mi = dvg.heapInstance(MinimalInterface.class);
+        MinimalInterface mi = newHeapInstance(MinimalInterface.class);
 
         mi.byte$((byte) 1);
         mi.char$('2');
@@ -83,7 +83,7 @@ public class ValueGeneratorTest {
         mi.writeMarshallable(bbb);
         System.out.println("size: " + bbb.writePosition());
 
-        MinimalInterface mi2 = dvg.heapInstance(MinimalInterface.class);
+        MinimalInterface mi2 = newHeapInstance(MinimalInterface.class);
         bbb.readPosition(0);
         mi2.readMarshallable(bbb);
 
@@ -99,7 +99,8 @@ public class ValueGeneratorTest {
 
     @Test
     public void testGenerateNativeWithGetUsing() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        String actual = new ValueGenerator().generateNativeObject(JavaBeanInterfaceGetUsing.class);
+        String actual = generateNativeClass(ValueModel.acquire(JavaBeanInterfaceGetUsing.class),
+                JavaBeanInterfaceGetUsing.class.getName() + "$$Native");
         System.out.println(actual);
         CachedCompiler cc = new CachedCompiler(null, null);
         Class aClass = cc.loadFromJava(JavaBeanInterfaceGetUsing.class.getName() + "$$Native", actual);
@@ -114,7 +115,8 @@ public class ValueGeneratorTest {
 
     @Test
     public void testGenerateNativeWithHasArrays() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        String actual = new ValueGenerator().generateNativeObject(HasArraysInterface.class);
+        String actual = generateNativeClass(ValueModel.acquire(HasArraysInterface.class),
+                HasArraysInterface.class.getName() + "$$Native");
         System.out.println(actual);
         CachedCompiler cc = new CachedCompiler(null, null);
         Class aClass = cc.loadFromJava(HasArraysInterface.class.getName() + "$$Native", actual);
@@ -129,8 +131,7 @@ public class ValueGeneratorTest {
 
     @Test
     public void testGenerateNativeWithGetUsingHeapInstance() {
-        ValueGenerator dvg = new ValueGenerator();
-        JavaBeanInterfaceGetUsingHeap si = dvg.heapInstance(JavaBeanInterfaceGetUsingHeap.class);
+        JavaBeanInterfaceGetUsingHeap si = newHeapInstance(JavaBeanInterfaceGetUsingHeap.class);
 
         si.setString("G'day");
 
@@ -139,12 +140,11 @@ public class ValueGeneratorTest {
 
     @Test
     public void testStringFields() {
-        ValueGenerator dvg = new ValueGenerator();
-        StringInterface si = dvg.heapInstance(StringInterface.class);
+        StringInterface si = newHeapInstance(StringInterface.class);
         si.setString("Hello world");
         assertEquals("Hello world", si.getString());
 
-        StringInterface si2 = dvg.nativeInstance(StringInterface.class);
+        StringInterface si2 = newNativeReference(StringInterface.class);
         Bytes bytes = BytesStore.wrap(ByteBuffer.allocate(192));
         ((Byteable) si2).bytesStore(bytes, 0L, ((Byteable) si2).maxSize());
         si2.setString("Hello world £€");
@@ -155,8 +155,7 @@ public class ValueGeneratorTest {
 
     @Test
     public void testGetUsingStringFieldsWithStringBuilderHeapInstance() {
-        ValueGenerator dvg = new ValueGenerator();
-        GetUsingStringInterface si = dvg.heapInstance(GetUsingStringInterface.class);
+        GetUsingStringInterface si = newHeapInstance(GetUsingStringInterface.class);
         si.setSomeStringField("Hello world");
         si.setAnotherStringField("Hello world 2");
         assertEquals("Hello world", si.getSomeStringField());
@@ -174,17 +173,14 @@ public class ValueGeneratorTest {
 
     @Test
     public void testNested() {
-        ValueGenerator dvg = new ValueGenerator();
-//        dvg.setDumpCode(true);
-        NestedB nestedB1 = dvg.heapInstance(NestedB.class);
+        NestedB nestedB1 = newHeapInstance(NestedB.class);
         nestedB1.ask(100);
         nestedB1.bid(100);
-        NestedB nestedB2 = dvg.heapInstance(NestedB.class);
+        NestedB nestedB2 = newHeapInstance(NestedB.class);
         nestedB2.ask(91);
         nestedB2.bid(92);
 
-//        dvg.setDumpCode(true);
-        NestedA nestedA = dvg.nativeInstance(NestedA.class);
+        NestedA nestedA = newNativeReference(NestedA.class);
         Bytes bytes = BytesStore.wrap(ByteBuffer.allocate(192));
         ((Byteable) nestedA).bytesStore(bytes, 0L, ((Byteable) nestedA).maxSize());
         nestedA.key("key");
@@ -203,17 +199,13 @@ public class ValueGeneratorTest {
 
     @Test
     public void testGenerateInterfaceWithEnumOnHeap()   {
-        ValueGenerator dvg = new ValueGenerator();
-        //dvg.setDumpCode(true);
-        JavaBeanInterfaceGetMyEnum jbie = dvg.heapInstance(JavaBeanInterfaceGetMyEnum.class);
+        JavaBeanInterfaceGetMyEnum jbie = newHeapInstance(JavaBeanInterfaceGetMyEnum.class);
         jbie.setMyEnum(MyEnum.B);
     }
 
     @Test
     public void testGenerateInterfaceWithEnumNativeInstance()   {
-        ValueGenerator dvg = new ValueGenerator();
-        //dvg.setDumpCode(true);
-        JavaBeanInterfaceGetMyEnum jbie = dvg.nativeInstance(JavaBeanInterfaceGetMyEnum.class);
+        JavaBeanInterfaceGetMyEnum jbie = newNativeReference(JavaBeanInterfaceGetMyEnum.class);
         Bytes bytes = BytesStore.wrap(ByteBuffer.allocate(64));
         ((Byteable) jbie).bytesStore(bytes, 0L, ((Byteable) jbie).maxSize());
         jbie.setMyEnum(MyEnum.C);
@@ -221,17 +213,15 @@ public class ValueGeneratorTest {
 
     @Test
     public void testGenerateInterfaceWithDateOnHeap()   {
-        ValueGenerator dvg = new ValueGenerator();
         //dvg.setDumpCode(true);
-        JavaBeanInterfaceGetDate jbid = dvg.heapInstance(JavaBeanInterfaceGetDate.class);
+        JavaBeanInterfaceGetDate jbid = newHeapInstance(JavaBeanInterfaceGetDate.class);
         jbid.setDate(new Date());
     }
 
     @Test
     public void testGenerateInterfaceWithDateNativeInstace()   {
-        ValueGenerator dvg = new ValueGenerator();
         //dvg.setDumpCode(true);
-        JavaBeanInterfaceGetDate jbid = dvg.nativeInstance(JavaBeanInterfaceGetDate.class);
+        JavaBeanInterfaceGetDate jbid = newNativeReference(JavaBeanInterfaceGetDate.class);
         Bytes bytes = BytesStore.wrap(ByteBuffer.allocate(64));
         ((Byteable) jbid).bytesStore(bytes, 0L, ((Byteable) jbid).maxSize());
         jbid.setDate(new Date());

@@ -16,15 +16,13 @@
 
 package net.openhft.chronicle.values;
 
-import net.openhft.chronicle.values.constraints.MaxSize;
-
 /**
  * User: peter.lawrey
  * Date: 08/10/13
  * Time: 10:11
  */
 public interface NestedA {
-    void key(@MaxSize String key);
+    void key(@MaxUtf8Length String key);
 
     String key();
 
