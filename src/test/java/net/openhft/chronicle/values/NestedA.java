@@ -22,7 +22,7 @@ package net.openhft.chronicle.values;
  * Time: 10:11
  */
 public interface NestedA {
-    void key(@MaxUtf8Length String key);
+    void key(@MaxUtf8Length(64) String key);
 
     String key();
 

@@ -16,5 +16,5 @@
 
 package net.openhft.chronicle.values;
 
-public abstract class ScalarFieldModel extends FieldModel {
+abstract class ScalarFieldModel extends FieldModel {
 }

@@ -46,4 +46,17 @@ final class RangeImpl implements Range {
     public Class<? extends Annotation> annotationType() {
         return Range.class;
     }
+
+    @Override
+    public int hashCode() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Range))
+            return false;
+        Range other = (Range) obj;
+        return other.min() == min && other.max() == max;
+    }
 }

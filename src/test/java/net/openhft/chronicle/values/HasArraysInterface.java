@@ -17,39 +17,48 @@
 package net.openhft.chronicle.values;
 
 public interface HasArraysInterface {
-    void setFlagAt(@MaxUtf8Length(4) int idx, boolean flag);
+    @Array(length = 4)
+    void setFlagAt(int idx, boolean flag);
 
     boolean getFlagAt(int idx);
 
-    void setByteAt(@MaxUtf8Length(4) int idx, byte b);
+    @Array(length = 4)
+    void setByteAt(int idx, byte b);
 
     byte getByteAt(int idx);
 
-    void setShortAt(@MaxUtf8Length(4) int idx, short s);
+    @Array(length = 4)
+    void setShortAt(int idx, short s);
 
     short getShortAt(int idx);
 
-    void setCharAt(@MaxUtf8Length(4) int idx, char ch);
+    @Array(length = 4)
+    void setCharAt(int idx, char ch);
 
     char getCharAt(int idx);
 
-    void setIntAt(@MaxUtf8Length(4) int idx, int i);
+    @Array(length = 4)
+    void setIntAt(int idx, int i);
 
     int getIntAt(int idx);
 
-    void setFloatAt(@MaxUtf8Length(4) int idx, float f);
+    @Array(length = 4)
+    void setFloatAt(int idx, float f);
 
     float getFloatAt(int idx);
 
-    void setLongAt(@MaxUtf8Length(4) int idx, long l);
+    @Array(length = 4)
+    void setLongAt(int idx, long l);
 
     long getLongAt(int idx);
 
-    void setDoubleAt(@MaxUtf8Length(4) int idx, double d);
+    @Array(length = 4)
+    void setDoubleAt(int idx, double d);
 
     double getDoubleAt(int idx);
 
-    void setStringAt(@MaxUtf8Length(4) int idx, @MaxUtf8Length(8) String s);
+    @Array(length = 4)
+    void setStringAt(int idx, @MaxUtf8Length(8) String s);
 
     String getStringAt(int idx);
 }

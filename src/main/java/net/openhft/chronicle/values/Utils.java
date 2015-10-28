@@ -22,5 +22,9 @@ final class Utils {
         return ((divident + divisor - 1) / divisor) * divisor;
     }
 
+    static String capitalize(String s) {
+        return s.substring(0, 1).toUpperCase() + s.substring(1);
+    }
+
     private Utils() {}
 }

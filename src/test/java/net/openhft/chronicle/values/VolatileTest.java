@@ -77,7 +77,7 @@ public class VolatileTest {
             CachedCompiler cc = new CachedCompiler(null, null);
             Class aClass = cc.loadFromJava(GoodInterface.class.getName() + "$$Native", actual);
             GoodInterface jbi = (GoodInterface) aClass.asSubclass(GoodInterface.class).newInstance();
-            Bytes bytes = BytesStore.wrap(ByteBuffer.allocate(64));
+            BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
             ((Byteable) jbi).bytesStore(bytes, 0L, ((Byteable) jbi).maxSize());
 
             jbi.setOrderedY(5);

@@ -16,15 +16,47 @@
 
 package net.openhft.chronicle.values;
 
+import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.TypeSpec;
+import net.openhft.chronicle.core.Jvm;
+import sun.misc.Unsafe;
 
-public class ValueBuilder {
+import java.lang.reflect.Field;
+
+import static javax.lang.model.element.Modifier.FINAL;
+import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.STATIC;
+
+class ValueBuilder {
 
     final ValueModel model;
+    final String className;
     final TypeSpec.Builder typeBuilder;
+    private FieldSpec unsafe;
 
-    public ValueBuilder(ValueModel model, TypeSpec.Builder typeBuilder) {
+    public ValueBuilder(ValueModel model, String className, TypeSpec.Builder typeBuilder) {
         this.model = model;
+        this.className = className;
         this.typeBuilder = typeBuilder;
+    }
+
+    FieldSpec unsafe() {
+        if (unsafe == null) {
+            unsafe = FieldSpec.builder(Unsafe.class, "UNSAFE", PRIVATE, STATIC, FINAL).build();
+            typeBuilder.addField(unsafe);
+
+            CodeBlock staticBlock = CodeBlock.builder()
+                    .beginControlFlow("try")
+                    .addStatement("$T theUnsafe = $T.getField($T.class, $S)",
+                            Field.class, Jvm.class, Unsafe.class, "theUnsafe")
+                    .addStatement("$N = ($T) theUnsafe.get(null)", unsafe, Unsafe.class)
+                    .nextControlFlow("catch ($T e)", IllegalAccessException.class)
+                    .addStatement("throw new $T(e)", AssertionError.class)
+                    .endControlFlow()
+                    .build();
+            typeBuilder.addStaticBlock(staticBlock);
+        }
+        return unsafe;
     }
 }

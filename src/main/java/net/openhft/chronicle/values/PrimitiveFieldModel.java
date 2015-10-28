@@ -22,21 +22,16 @@ import java.lang.reflect.Method;
 
 import static net.openhft.chronicle.values.Primitives.widthInBits;
 
-public class PrimitiveFieldModel extends ScalarFieldModel {
-
-    boolean volatilePut = false;
-    boolean orderedPut = false;
+abstract class PrimitiveFieldModel extends ScalarFieldModel {
 
     @Override
     public void addTypeInfo(Method m, MethodTemplate template) {
         super.addTypeInfo(m, template);
+        addVolatileInfo(template);
+    }
+
+    void addVolatileInfo(MethodTemplate template) {
         String regex = template.regex;
-        if (regex.startsWith("set")) {
-            if (regex.contains("Volatile"))
-                volatilePut = true;
-            if (regex.contains("Ordered"))
-                orderedPut = true;
-        }
         if (regex.contains("Volatile") || regex.contains("Ordered") ||
                 regex.contains("Atomic") || regex.contains("compareAndSwap")) {
             if (!alignmentSpecifiedExplicitly)
@@ -51,8 +46,9 @@ public class PrimitiveFieldModel extends ScalarFieldModel {
      * field from wider byte/short/int/long word, => must be alone in the word.
      */
     int sizeInBitsConsideringVolatileOrOrderedPuts(int rawSizeInBits) {
-        int minBits = orderedPut ? 32 : 8;
-        return volatilePut || orderedPut ? Maths.nextPower2(rawSizeInBits, minBits) : rawSizeInBits;
+        int minBits = setOrdered != null ? 32 : 8;
+        return setVolatile != null || setOrdered != null ?
+                Maths.nextPower2(rawSizeInBits, minBits) : rawSizeInBits;
     }
 
     @Override

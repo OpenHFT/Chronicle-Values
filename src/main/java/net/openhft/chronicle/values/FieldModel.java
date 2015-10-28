@@ -21,11 +21,15 @@ package net.openhft.chronicle.values;
 import com.squareup.javapoet.MethodSpec;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.BiConsumer;
 
 import static net.openhft.chronicle.values.Generators.methodBuilder;
+import static net.openhft.chronicle.values.Utils.capitalize;
 
-public abstract class FieldModel {
+abstract class FieldModel {
     String name;
     /**
      * The field type if this is a {@link ScalarFieldModel},
@@ -93,6 +97,12 @@ public abstract class FieldModel {
 
     abstract int sizeInBits();
 
+    final int sizeInBytes() {
+        int sizeInBits = sizeInBits();
+        assert sizeInBits % 8 == 0;
+        return sizeInBits / 8;
+    }
+
     abstract int offsetAlignmentInBytes();
 
     int dontCrossAlignmentInBytes() {
@@ -114,8 +124,7 @@ public abstract class FieldModel {
     }
 
     final int dontCrossAlignmentInBits() {
-        int dontCross = dontCrossAlignmentInBytes();
-        return dontCross > 0 ? dontCross * 8 : 1;
+        return dontCrossAlignmentInBytes() * 8;
     }
 
     /**
@@ -140,19 +149,27 @@ public abstract class FieldModel {
     }
 
     void checkDontCrossSmallerThanSize() {
-        int dontCross = dontCrossAlignmentInBytes();
-        if (dontCross != Align.NO_ALIGNMENT && dontCross * 8 < sizeInBits()) {
+        int dontCross = dontCrossAlignmentInBits();
+        if (dontCross != Align.NO_ALIGNMENT && dontCross < sizeInBits()) {
             throw new IllegalStateException("dontCross alignment should be wider than the field " +
                     name + " itself");
         }
     }
 
-    ValueMemberGenerator nativeGenerator() {
-        throw new UnsupportedOperationException();
+    MemberGenerator nativeGenerator() {
+        throw new UnsupportedOperationException(getClass() + "");
     }
 
-    ValueMemberGenerator heapGenerator() {
-        throw new UnsupportedOperationException();
+    MemberGenerator createHeapGenerator() {
+        throw new UnsupportedOperationException(getClass() + "");
+    }
+
+    private MemberGenerator heapGenerator;
+
+    MemberGenerator heapGenerator() {
+        if (heapGenerator == null)
+            heapGenerator = createHeapGenerator();
+        return heapGenerator;
     }
 
     void generateNativeMembers(ValueBuilder valueBuilder) {
@@ -163,24 +180,53 @@ public abstract class FieldModel {
         generateMembers(heapGenerator(), valueBuilder);
     }
 
-    void generateMembers(ValueMemberGenerator generator, ValueBuilder valueBuilder) {
+    void generateMembers(MemberGenerator generator, ValueBuilder valueBuilder) {
         generator.generateFields(valueBuilder);
         generateMethod(valueBuilder, get, generator::generateGet);
         generateMethod(valueBuilder, getVolatile, generator::generateGetVolatile);
-        generateMethod(valueBuilder, getUsing, generator::generateGetUsing);
-        generateMethod(valueBuilder, set, generator::generateSet);
-        generateMethod(valueBuilder, setVolatile, generator::generateSetVolatile);
-        generateMethod(valueBuilder, setOrdered, generator::generateSetOrdered);
-        generateMethod(valueBuilder, add, generator::generateAdd);
-        generateMethod(valueBuilder, addAtomic, generator::generateAddAtomic);
-        generateMethod(valueBuilder, compareAndSwap, generator::generateCompareAndSwap);
+        generateMethod(valueBuilder, getUsing, generator::generateGetUsing, usingName());
+        generateMethod(valueBuilder, set, generator::generateSet, varName());
+        generateMethod(valueBuilder, setVolatile, generator::generateSetVolatile, varName());
+        generateMethod(valueBuilder, setOrdered, generator::generateSetOrdered, varName());
+        generateMethod(valueBuilder, add, generator::generateAdd, "addition");
+        generateMethod(valueBuilder, addAtomic, generator::generateAddAtomic, "addition");
+        generateMethod(valueBuilder, compareAndSwap, generator::generateCompareAndSwap,
+                oldName(), newName());
+    }
+
+    /**
+     * Field name as variable name. Not equal to field name, because it could clash with Java
+     * keyword or type name, e. g. getInt()/setInt()
+     */
+    String varName() {
+        return "_" + name;
+    }
+
+    String usingName() {
+        return "using" + capitalize(name);
+    }
+
+    String oldName() {
+        return "old" + capitalize(name);
+    }
+
+    String newName() {
+        return "new" + capitalize(name);
     }
 
     private void generateMethod(ValueBuilder valueBuilder, Method m,
-                                BiConsumer<ValueBuilder, MethodSpec.Builder> generate) {
-        MethodSpec.Builder methodBuilder = methodBuilder(m);
-        generate.accept(valueBuilder, methodBuilder);
-        valueBuilder.typeBuilder.addMethod(methodBuilder.build());
+                                BiConsumer<ValueBuilder, MethodSpec.Builder> generate,
+                                String... parameterNames) {
+        if (m != null) {
+            List<String> paramNames = new ArrayList<>();
+            if (this instanceof ArrayFieldModel)
+                paramNames.add("index");
+            paramNames.addAll(Arrays.asList(parameterNames));
+
+            MethodSpec.Builder methodBuilder = methodBuilder(m, paramNames);
+            generate.accept(valueBuilder, methodBuilder);
+            valueBuilder.typeBuilder.addMethod(methodBuilder.build());
+        }
     }
 
     void setGet(Method get) {
@@ -254,5 +300,35 @@ public abstract class FieldModel {
                     name + ": " + this.compareAndSwap.getName() + ", " + compareAndSwap.getName());
         }
         this.compareAndSwap = compareAndSwap;
+    }
+
+    int verifiedByteOffset(ValueBuilder valueBuilder) {
+        int bitOffset = valueBuilder.model.fieldBitOffset(this);
+        assert bitOffset % 8 == 0 :
+                getClass().getSimpleName() + " " + name + " should be byte-aligned";
+        return bitOffset / 8;
+    }
+
+    void checkArgumentNotNull(MethodSpec.Builder builder) {
+        builder.beginControlFlow("if ($N == null)", varName());
+        builder.addStatement("throw new $T($S)",
+                IllegalArgumentException.class, name + " shouldn't be null");
+        builder.endControlFlow();
+    }
+
+    static void genVerifiedElementOffset(
+            ArrayFieldModel arrayField, MethodSpec.Builder methodBuilder) {
+        int elemBitExtent = arrayField.elemBitExtent();
+        assert elemBitExtent % 8 == 0;
+        int elemByteExtent = elemBitExtent / 8;
+        methodBuilder.addStatement("long elementOffset = index * $LL", elemByteExtent);
+    }
+
+    Method getOrGetVolatile() {
+        if (get != null)
+            return get;
+        if (getVolatile != null)
+            return getVolatile;
+        throw new IllegalStateException("get or getVolatile expected for field " + name);
     }
 }

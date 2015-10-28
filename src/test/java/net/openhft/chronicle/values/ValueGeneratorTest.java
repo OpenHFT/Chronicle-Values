@@ -79,7 +79,7 @@ public class ValueGeneratorTest {
         assertEquals(7.0, mi.double$(), 0.0);
         assertTrue(mi.flag());
 
-        Bytes bbb = BytesStore.wrap(ByteBuffer.allocate(64));
+        Bytes bbb = Bytes.wrapForWrite(ByteBuffer.allocate(64));
         mi.writeMarshallable(bbb);
         System.out.println("size: " + bbb.writePosition());
 
@@ -100,13 +100,13 @@ public class ValueGeneratorTest {
     @Test
     public void testGenerateNativeWithGetUsing() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         String actual = generateNativeClass(ValueModel.acquire(JavaBeanInterfaceGetUsing.class),
-                JavaBeanInterfaceGetUsing.class.getName() + "$$Native");
+                ValueModel.simpleName(JavaBeanInterfaceGetUsing.class) + "$$Native");
         System.out.println(actual);
         CachedCompiler cc = new CachedCompiler(null, null);
         Class aClass = cc.loadFromJava(JavaBeanInterfaceGetUsing.class.getName() + "$$Native", actual);
         JavaBeanInterfaceGetUsing jbi = (JavaBeanInterfaceGetUsing) aClass.asSubclass(JavaBeanInterfaceGetUsing.class).newInstance();
-        Bytes bytes = BytesStore.wrap(ByteBuffer.allocate(64));
-        ((Byteable) jbi).bytesStore(bytes, 0L, ((Byteable) jbi).maxSize());
+        BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
+                ((Byteable) jbi).bytesStore(bytes, 0L, ((Byteable) jbi).maxSize());
 
         jbi.setString("G'day");
 
@@ -121,7 +121,7 @@ public class ValueGeneratorTest {
         CachedCompiler cc = new CachedCompiler(null, null);
         Class aClass = cc.loadFromJava(HasArraysInterface.class.getName() + "$$Native", actual);
         HasArraysInterface hai = (HasArraysInterface) aClass.asSubclass(HasArraysInterface.class).newInstance();
-        Bytes bytes = BytesStore.wrap(ByteBuffer.allocate(152));
+        BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(152));
         ((Byteable) hai).bytesStore(bytes, 0L, ((Byteable) hai).maxSize());
 
         hai.setStringAt(0, "G'day");
@@ -145,7 +145,7 @@ public class ValueGeneratorTest {
         assertEquals("Hello world", si.getString());
 
         StringInterface si2 = newNativeReference(StringInterface.class);
-        Bytes bytes = BytesStore.wrap(ByteBuffer.allocate(192));
+        BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(192));
         ((Byteable) si2).bytesStore(bytes, 0L, ((Byteable) si2).maxSize());
         si2.setString("Hello world £€");
         si2.setText("Hello world £€");
@@ -181,7 +181,7 @@ public class ValueGeneratorTest {
         nestedB2.bid(92);
 
         NestedA nestedA = newNativeReference(NestedA.class);
-        Bytes bytes = BytesStore.wrap(ByteBuffer.allocate(192));
+        BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(192));
         ((Byteable) nestedA).bytesStore(bytes, 0L, ((Byteable) nestedA).maxSize());
         nestedA.key("key");
         nestedA.one(nestedB1);
@@ -206,7 +206,7 @@ public class ValueGeneratorTest {
     @Test
     public void testGenerateInterfaceWithEnumNativeInstance()   {
         JavaBeanInterfaceGetMyEnum jbie = newNativeReference(JavaBeanInterfaceGetMyEnum.class);
-        Bytes bytes = BytesStore.wrap(ByteBuffer.allocate(64));
+        BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
         ((Byteable) jbie).bytesStore(bytes, 0L, ((Byteable) jbie).maxSize());
         jbie.setMyEnum(MyEnum.C);
     }
@@ -222,7 +222,7 @@ public class ValueGeneratorTest {
     public void testGenerateInterfaceWithDateNativeInstace()   {
         //dvg.setDumpCode(true);
         JavaBeanInterfaceGetDate jbid = newNativeReference(JavaBeanInterfaceGetDate.class);
-        Bytes bytes = BytesStore.wrap(ByteBuffer.allocate(64));
+        BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
         ((Byteable) jbid).bytesStore(bytes, 0L, ((Byteable) jbid).maxSize());
         jbid.setDate(new Date());
         assertEquals(new Date(), jbid.getDate());

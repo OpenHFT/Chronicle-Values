@@ -51,20 +51,25 @@ final class CodeTemplate {
                             .thenComparing(k -> k.regex));
 
     static {
-        addReadPatterns("get(\\w+)", 0, FieldModel::setGet);
-        addReadPatterns("is(\\w+)", 0, FieldModel::setGet);
-        addReadPatterns("getVolatile(\\w+)", 0, FieldModel::setGetVolatile);
-        addReadPatterns("getUsing(\\w+)", 1, FieldModel::setGetUsing);
-        addWritePattern("set(\\w+)", 1, FieldModel::setSet);
-        addWritePattern("setVolatile(\\w+)", 1, FieldModel::setSetVolatile);
-        addWritePattern("set(\\w+)Ordered", 1, FieldModel::setSetOrdered);
-        addWritePattern("add(\\w+)", 1, FieldModel::setAdd);
-        addWritePattern("addAtomic(\\w+)", 1, FieldModel::setAddAtomic);
-        addWritePattern("compareAndSwap(\\w+)", 2, FieldModel::setCompareAndSwap);
+        addReadPatterns("get", 0, FieldModel::setGet);
+        addReadPatterns("", 0, FieldModel::setGet);
+        addReadPatterns("is", 0, FieldModel::setGet);
+        addReadPatterns("getVolatile", 0, FieldModel::setGetVolatile);
+        addReadPatterns("getUsing", 1, FieldModel::setGetUsing);
+        addWritePattern("set", 1, FieldModel::setSet);
+        addWritePattern("", 1, FieldModel::setSet);
+        addWritePattern("setVolatile", 1, FieldModel::setSetVolatile);
+        addWritePattern("setOrdered", 1, FieldModel::setSetOrdered);
+        addWritePattern("add", 1, FieldModel::setAdd);
+        addWritePattern("addAtomic", 1, FieldModel::setAddAtomic);
+        addWritePattern("compareAndSwap", 2, FieldModel::setCompareAndSwap);
     }
+
+    private static final String JAVA_ID = "([a-zA-Z_$][a-zA-Z\\d_$]*)";
 
     private static void addReadPatterns(
             String regex, int arguments, BiConsumer<FieldModel, Method> addMethodToModel) {
+        regex += JAVA_ID;
         add(regex, arguments, SCALAR, Method::getReturnType, NO_ANNOTATED_PARAM, addMethodToModel);
         add(regex + "At", arguments + 1, ARRAY, Method::getReturnType, NO_ANNOTATED_PARAM,
                 addMethodToModel);
@@ -72,6 +77,7 @@ final class CodeTemplate {
 
     public static void addWritePattern(
             String regex, int arguments, BiConsumer<FieldModel, Method> addMethodToModel) {
+        regex += JAVA_ID;
         add(regex, arguments, SCALAR,
                 m -> m.getParameterTypes()[arguments - 1],
                 m -> m.getParameters()[arguments - 1],

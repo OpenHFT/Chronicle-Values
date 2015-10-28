@@ -41,12 +41,14 @@ public class FirstPrimitiveFieldTest {
 }
 
 interface FiveLongValues {
-    void setValueAt(@MaxUtf8Length(5) int i, long v);
+    @Array(length = 5)
+    void setValueAt(int i, long v);
     long getValueAt(int i);
 }
 
 interface FiveBooleanValues {
-    void setValueAt(@MaxUtf8Length(5) int i, boolean v);
+    @Array(length = 5)
+    void setValueAt(int i, boolean v);
     boolean getValueAt(int i);
 }
 

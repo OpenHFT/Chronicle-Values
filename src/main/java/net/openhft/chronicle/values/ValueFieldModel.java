@@ -16,7 +16,13 @@
 
 package net.openhft.chronicle.values;
 
-public class ValueFieldModel extends ScalarFieldModel {
+import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.MethodSpec;
+
+import static javax.lang.model.element.Modifier.FINAL;
+import static javax.lang.model.element.Modifier.PRIVATE;
+
+class ValueFieldModel extends ScalarFieldModel {
     ValueModel valueModel;
 
     ValueModel valueModel() {
@@ -36,5 +42,149 @@ public class ValueFieldModel extends ScalarFieldModel {
             return valueModel.fields().mapToInt(FieldModel::maxAlignmentInBytes).max().getAsInt();
         // Value fields should be aligned at least to a byte boundary
         return Math.max(1, offsetAlignment);
+    }
+
+    final MemberGenerator nativeGenerator = new MemberGenerator(this) {
+
+        private Class nativeType;
+        private FieldSpec cachedValue;
+
+        @Override
+        public void generateFields(ValueBuilder valueBuilder) {
+            nativeType = Values.nativeClassFor(type);
+            cachedValue = FieldSpec
+                    .builder(nativeType, name + "CachedValue", PRIVATE, FINAL)
+                    .initializer("new $T()", nativeType)
+                    .build();
+            valueBuilder.typeBuilder.addField(cachedValue);
+        }
+
+        @Override
+        public void generateArrayElementFields(ValueBuilder valueBuilder) {
+            generateFields(valueBuilder);
+        }
+
+        private void initCachedValue(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            methodBuilder.addStatement("$T $N = this.$N", nativeType, cachedValue, cachedValue);
+            int byteOffset = verifiedByteOffset(valueBuilder);
+            methodBuilder.addStatement("$N.bytesStore(bs, offset + $L)", cachedValue, byteOffset);
+        }
+
+        @Override
+        public void generateGet(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            initCachedValue(valueBuilder, methodBuilder);
+            methodBuilder.addStatement("return $N", cachedValue);
+        }
+
+        @Override
+        public void generateArrayElementGet(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            initArrayElementCachedValue(arrayFieldModel, valueBuilder, methodBuilder);
+            methodBuilder.addStatement("return $N", cachedValue);
+        }
+
+        private void initArrayElementCachedValue(
+                ArrayFieldModel arrayField, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            methodBuilder.addStatement("$T $N = this.$N", nativeType, cachedValue, cachedValue);
+            int arrayByteOffset = arrayField.verifiedByteOffset(valueBuilder);
+            genVerifiedElementOffset(arrayField, methodBuilder);
+            methodBuilder.addStatement("$N.bytesStore(bs, offset + $L + elementOffset)",
+                    cachedValue, arrayByteOffset);
+        }
+
+        @Override
+        public void generateGetUsing(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            //TODO if both are Byteable, should do a shallow ("pointer") copy or memcpy?
+            methodBuilder.beginControlFlow("if ($N instanceof $T)", varName(), nativeType);
+            int byteOffset = verifiedByteOffset(valueBuilder);
+            methodBuilder.addStatement("$N.bytesStore(bs, offset + $L)", varName(), byteOffset);
+            methodBuilder.nextControlFlow("else");
+            initCachedValue(valueBuilder, methodBuilder);
+            methodBuilder.addStatement("(($T) $N).copyFrom($N)",
+                    Copyable.class, varName(), cachedValue);
+            methodBuilder.endControlFlow();
+            methodBuilder.addStatement("return $N", varName());
+        }
+
+        @Override
+        public void generateArrayElementGetUsing(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            methodBuilder.beginControlFlow("if ($N instanceof $T)", varName(), nativeType);
+            genVerifiedElementOffset(arrayFieldModel, methodBuilder);
+            int arrayByteOffset = arrayFieldModel.verifiedByteOffset(valueBuilder);
+            methodBuilder.addStatement("$N.bytesStore(bs, offset + $L + elementOffset)",
+                    varName(), arrayByteOffset);
+            methodBuilder.nextControlFlow("else");
+            initArrayElementCachedValue(arrayFieldModel, valueBuilder, methodBuilder);
+            methodBuilder.addStatement(
+                    "(($T) $N).copyFrom($N)", Copyable.class, varName(), cachedValue);
+            methodBuilder.endControlFlow();
+            methodBuilder.addStatement("return $N", varName());
+        }
+
+        @Override
+        public void generateSet(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            methodBuilder.beginControlFlow("if ($N instanceof $T)", varName(), nativeType);
+            int byteOffset = verifiedByteOffset(valueBuilder);
+            methodBuilder.addStatement(
+                    "bs.write(offset + $L, $N.bytesStore(), $N.offset(), $L)",
+                    byteOffset, varName(), valueModel().sizeInBytes());
+            methodBuilder.nextControlFlow("else");
+            initCachedValue(valueBuilder, methodBuilder);
+            methodBuilder.addStatement("$N.copyFrom($N)", cachedValue, varName());
+            methodBuilder.endControlFlow();
+        }
+
+        @Override
+        public void generateArrayElementSet(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            methodBuilder.beginControlFlow("if ($N instanceof $T)", varName(), nativeType);
+            genVerifiedElementOffset(arrayFieldModel, methodBuilder);
+            int arrayByteOffset = arrayFieldModel.verifiedByteOffset(valueBuilder);
+            methodBuilder.addStatement(
+                    "bs.write(offset + $L + elementOffset, $N.bytesStore(), $N.offset(), $L)",
+                    arrayByteOffset, varName(), valueModel().sizeInBytes());
+            methodBuilder.nextControlFlow("else");
+            initArrayElementCachedValue(arrayFieldModel, valueBuilder, methodBuilder);
+            methodBuilder.addStatement("$N.copyFrom($N)", cachedValue, varName());
+            methodBuilder.endControlFlow();
+        }
+
+        @Override
+        public void generateCopyFrom(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            initCachedValue(valueBuilder, methodBuilder);
+            if (getUsing != null) {
+                methodBuilder.addStatement("from.$N($N)", getUsing.getName(), cachedValue);
+            } else {
+                methodBuilder.addStatement("$N.copyFrom(from.$N())", cachedValue, get.getName());
+            }
+        }
+
+        @Override
+        public void generateArrayElementCopyFrom(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            initArrayElementCachedValue(arrayFieldModel, valueBuilder, methodBuilder);
+            if (getUsing != null) {
+                methodBuilder.addStatement("from.$N(index, $N)", getUsing.getName(), cachedValue);
+            } else {
+                methodBuilder.addStatement("$N.copyFrom(from.$N(index))",
+                        cachedValue, get.getName());
+            }
+        }
+    };
+
+    @Override
+    MemberGenerator nativeGenerator() {
+        return nativeGenerator;
+    }
+
+    @Override
+    MemberGenerator createHeapGenerator() {
+        return new ObjectHeapMemberGenerator(this);
     }
 }

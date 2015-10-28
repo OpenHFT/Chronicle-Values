@@ -16,28 +16,10 @@
 
 package net.openhft.chronicle.values;
 
-class BooleanFieldModel extends PrimitiveFieldModel {
-
-    @Override
-    int offsetAlignmentInBytes() {
-        if (offsetAlignment == Align.DEFAULT) {
-            throw new IllegalStateException("Default offset alignment doesn't make sense for " +
-                    "boolean field " + name);
-        }
-        return offsetAlignment;
-    }
-
-    @Override
-    int dontCrossAlignmentInBytes() {
-        if (dontCrossAlignment == Align.DEFAULT) {
-            throw new IllegalStateException("Default dontCross alignment doesn't make sense for " +
-                    "boolean field " + name);
-        }
-        return dontCrossAlignment;
-    }
+class FloatingFieldModel extends PrimitiveFieldModel {
 
     @Override
     MemberGenerator createHeapGenerator() {
-        return new PrimitiveHeapMemberGenerator(this);
+        return new NumberHeapMemberGenerator(this);
     }
 }

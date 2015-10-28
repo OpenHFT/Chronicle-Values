@@ -26,7 +26,7 @@ public interface StringInterface {
 
     String getString();
 
-    void setText(@MaxUtf8Length String s);
+    void setText(@MaxUtf8Length(64) String s);
 
     String getText();
 }

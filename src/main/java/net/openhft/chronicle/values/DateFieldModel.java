@@ -16,10 +16,40 @@
 
 package net.openhft.chronicle.values;
 
-public class DateFieldModel extends PrimitiveFieldModel {
+import com.squareup.javapoet.MethodSpec;
+
+import java.util.Date;
+
+import static java.lang.String.format;
+
+class DateFieldModel extends IntegerBackedFieldModel {
 
     @Override
-    int sizeInBits() {
-        return 64;
+    void postProcess() {
+        super.postProcess();
+        backend.type = long.class;
+        backend.range = RangeImpl.DEFAULT_LONG_RANGE;
+    }
+
+    final MemberGenerator nativeGenerator = new IntegerBackedMemberGenerator(this, backend) {
+        @Override
+        protected void finishGet(MethodSpec.Builder methodBuilder, String value) {
+            methodBuilder.addStatement(format("return new $T(%s)", value), Date.class);
+        }
+
+        @Override
+        protected String startSet(MethodSpec.Builder methodBuilder) {
+            return varName() + ".getTime()";
+        }
+    };
+
+    @Override
+    MemberGenerator nativeGenerator() {
+        return nativeGenerator;
+    }
+
+    @Override
+    MemberGenerator createHeapGenerator() {
+        return new ObjectHeapMemberGenerator(this);
     }
 }

@@ -18,6 +18,7 @@ package net.openhft.chronicle.values;
 
 import com.squareup.javapoet.MethodSpec;
 import net.openhft.chronicle.core.Maths;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -29,11 +30,25 @@ import static java.util.function.Function.identity;
 import static net.openhft.chronicle.values.Primitives.widthInBits;
 import static net.openhft.chronicle.values.RangeImpl.*;
 
-public class IntegerFieldModel extends PrimitiveFieldModel {
+class IntegerFieldModel extends PrimitiveFieldModel {
 
-    private static Function<String, String> VOLATILE_ACCESS_TYPE = s -> "Volatile" + s;
-    private static Function<String, String> ORDERED_ACCESS_TYPE = s -> s + "Ordered";
-    private static Function<String, String> NORMAL_ACCESS_TYPE = identity();
+    static final Function<String, String> VOLATILE_ACCESS_TYPE = s -> "Volatile" + s;
+    static final Function<String, String> ORDERED_ACCESS_TYPE = s -> "Ordered" + s;
+    static final Function<String, String> NORMAL_ACCESS_TYPE = identity();
+
+    /**
+     * {@code IntegerFieldModel} is used as back-end, so to query bitOffset and extent from {@link
+     * ValueModel} it should know the outer model.
+     */
+    final FieldModel outerModel;
+
+    IntegerFieldModel() {
+        outerModel = this;
+    }
+
+    IntegerFieldModel(FieldModel outerModel) {
+        this.outerModel = outerModel;
+    }
 
     Range range;
 
@@ -99,10 +114,9 @@ public class IntegerFieldModel extends PrimitiveFieldModel {
         return Maths.intLog2(options - 1) + 1;
     }
 
-    private static String read(int byteOffset, int bitsToRead,
-                               Function<String, String> accessType) {
-        return format("bs.read%s(offset + %d)",
-                accessType.apply(integerBytesMethodSuffix(bitsToRead)), byteOffset);
+    private static String read(String offset, int bitsToRead, Function<String, String> accessType) {
+        return format("bs.read%s(%s)",
+                accessType.apply(integerBytesMethodSuffix(bitsToRead)), offset);
     }
 
     private static String integerBytesMethodSuffix(int bitsToRead) {
@@ -115,66 +129,129 @@ public class IntegerFieldModel extends PrimitiveFieldModel {
         }
     }
 
-    private final ValueMemberGenerator nativeGenerator = new ValueMemberGenerator() {
+    final MemberGenerator nativeGenerator = new IntegerBackedMemberGenerator(this, this) {
+
         @Override
-        public void generateGet(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-            methodBuilder.addStatement("return " + genNormalGet(valueBuilder));
+        protected void finishGet(MethodSpec.Builder methodBuilder, String value) {
+            methodBuilder.addStatement("return " + value);
         }
 
         @Override
-        public void generateGetVolatile(
+        protected String startSet(MethodSpec.Builder methodBuilder) {
+            String value = varName(); // parameter name
+            Range range = range();
+            String checkCondition = checkCondition(value, range);
+            if (!checkCondition.isEmpty()) {
+                methodBuilder.beginControlFlow(format("if (%s)", checkCondition));
+                methodBuilder.addStatement("throw new $T($S + $N + $S)",
+                        IllegalArgumentException.class,
+                        value + format(" should be in [%d, %d] range, ", range.min(), range.max()),
+                        value, " is given");
+                methodBuilder.endControlFlow();
+            }
+            return value;
+        }
+
+        @NotNull
+        private String checkCondition(String value, Range range) {
+            Range defaultRange = defaultRange();
+            String cond = "|| ";
+            if (range.min() != defaultRange.min())
+                cond += value + " < " + range.min();
+            if (range.max() != defaultRange.max())
+                cond += "|| " + value + " > " + range.max();
+            return cond.substring(3);
+        }
+
+        @Override
+        public void generateAdd(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            // TODO use addAndGetXxxNotAtomic from BytesStore interface when possible
+            String value = genGet(valueBuilder, NORMAL_ACCESS_TYPE);
+            methodBuilder.addStatement("$T $N = " + value, type, oldName());
+            methodBuilder.addStatement("$T $N = $N + $N", type, newName(), oldName(), "addition");
+            Range range = range();
+            String checkCondition = checkCondition(newName(), range);
+            if (!checkCondition.isEmpty()) {
+                methodBuilder.beginControlFlow(format("if (%s)", checkCondition));
+                methodBuilder.addStatement("throw new $T($S + $N + $S + $N + $S + $N + $S)",
+                        IllegalStateException.class,
+                        value + format(" should be in [%d, %d] range, the value was ",
+                                range.min(), range.max()),
+                        oldName(), ", + ", "addition", " = ", newName(), " out of the range");
+                methodBuilder.endControlFlow();
+            }
+            genSet(valueBuilder, methodBuilder, newName(), NORMAL_ACCESS_TYPE);
+            methodBuilder.addStatement("return $N", newName());
+        }
+
+        @Override
+        public void generateAddAtomic(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            int bitOffset = valueBuilder.model.fieldBitOffset(outerModel);
+            if (bitOffset % 8 == 0) {
+                Range range = range();
+                int byteOffset = bitOffset / 8;
+                if (DEFAULT_INT_RANGE.equals(range) && type == int.class) {
+                    methodBuilder.addStatement("return bs.addAndGetInt(offset + $L, addition)",
+                            byteOffset);
+                } else if (DEFAULT_LONG_RANGE.equals(range)) {
+                    methodBuilder.addStatement("return bs.addAndGetLong(offset + $L, addition)",
+                            byteOffset);
+                } else {
+                    throw new UnsupportedOperationException("not implemented yet");
+                }
+            } else {
+                throw new UnsupportedOperationException("not implemented yet");
+            }
+        }
+
+        @Override
+        public void generateCompareAndSwap(
                 ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-            methodBuilder.addStatement("return " + genVolatileGet(valueBuilder));
-        }
-
-        @Override
-        public void generateSet(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-            String valueToWrite = name; // parameter name
-            genNormalSet(valueBuilder, methodBuilder, valueToWrite);
-        }
-
-        @Override
-        public void generateSetVolatile(
-                ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-            String valueToWrite = name; // parameter name
-            genVolatileSet(valueBuilder, methodBuilder, valueToWrite);
-        }
-
-        @Override
-        public void generateSetOrdered(
-                ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-            String valueToWrite = name; // parameter name
-            genSetOrdered(valueBuilder, methodBuilder, valueToWrite);
+            int bitOffset = valueBuilder.model.fieldBitOffset(outerModel);
+            if (bitOffset % 8 == 0) {
+                Range range = range();
+                int byteOffset = bitOffset / 8;
+                if (DEFAULT_INT_RANGE.equals(range) && type == int.class) {
+                    methodBuilder.addStatement("return bs.compareAndSwapInt(offset + $L, $N, $N)",
+                            byteOffset, oldName(), newName());
+                } else if (DEFAULT_LONG_RANGE.equals(range)) {
+                    methodBuilder.addStatement("return bs.compareAndSwapLong(offset + $L, $N, $N)",
+                            byteOffset, oldName(), newName());
+                } else {
+                    throw new UnsupportedOperationException("not implemented yet");
+                }
+            } else {
+                throw new UnsupportedOperationException("not implemented yet");
+            }
         }
     };
 
     // The methods below are named with "gen" prefix instead of "generate" to avoid confusion
-    // and possible bugs when called from ValueMemberGenerator methods, that have the same names
+    // and possible bugs when called from MemberGenerator methods, that have the same names
 
-    String genNormalGet(ValueBuilder valueBuilder) {
-        return genGet(valueBuilder, NORMAL_ACCESS_TYPE);
-    }
-
-    String genVolatileGet(ValueBuilder valueBuilder) {
-        return genGet(valueBuilder, VOLATILE_ACCESS_TYPE);
-    }
-
-    private String genGet(ValueBuilder valueBuilder, Function<String, String> accessType) {
-        int bitOffset = valueBuilder.model.fieldBitOffset(IntegerFieldModel.this);
+    String genGet(ValueBuilder valueBuilder, Function<String, String> accessType) {
+        int bitOffset = valueBuilder.model.fieldBitOffset(outerModel);
         int byteOffset = bitOffset / 8;
+        int bitExtent = valueBuilder.model.fieldBitExtent(outerModel);
+        String readOffset = "offset + " + byteOffset;
         int lowMaskBits = bitOffset - (byteOffset * 8);
+        return genGet(lowMaskBits, bitExtent, readOffset, accessType);
+    }
+
+    private String genGet(
+            int lowMaskBits, int bitExtent, String readOffset,
+            Function<String, String> accessType) {
         int leastBitsToRead = lowMaskBits + sizeInBits();
         int bitsToRead = Maths.nextPower2(leastBitsToRead, 8);
-        int bitExtent = valueBuilder.model.fieldBitExtent(IntegerFieldModel.this);
         int highMaskBits = Math.max(bitsToRead - bitExtent, 0);
 
-        String read = read(byteOffset, bitsToRead, accessType);
+        String read = read(readOffset, bitsToRead, accessType);
         long readMin = (-1L) << (bitsToRead - 1);
         long readMax = -(readMin + 1);
         Range range = range();
 
         // No read value translation
-        if (readMin == range.min() && readMax == range.max())
+        if (readMin <= range.min() && readMax >= range.max())
             return read;
 
         // "Unsigned" value. This is a special case of the next next block, but treated
@@ -221,59 +298,90 @@ public class IntegerFieldModel extends PrimitiveFieldModel {
         return masked;
     }
 
-    void genNormalSet(
-            ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder, String valueToWrite) {
-        genSet(valueBuilder, methodBuilder, valueToWrite, NORMAL_ACCESS_TYPE);
+    String genArrayElementGet(
+            ArrayFieldModel arrayField, ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder,
+            Function<String, String> accessType) {
+        int arrayBitOffset = valueBuilder.model.fieldBitOffset(arrayField);
+        if (arrayBitOffset % 8 != 0)
+            throw new UnsupportedOperationException("not implemented yet");
+        int arrayByteOffset = arrayBitOffset / 8;
+        int elemBitExtent = arrayField.elemBitExtent();
+        if (elemBitExtent % 8 == 0) {
+            genVerifiedElementOffset(arrayField, methodBuilder);
+            String readOffset = format("offset + %d + elementOffset", arrayByteOffset);
+            return genGet(0, elemBitExtent, readOffset, accessType);
+        } else {
+            throw new UnsupportedOperationException("not implemented yet");
+        }
     }
 
-    void genVolatileSet(
-            ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder, String valueToWrite) {
-        genSet(valueBuilder, methodBuilder, valueToWrite, VOLATILE_ACCESS_TYPE);
-    }
-
-    void genSetOrdered(
-            ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder, String valueToWrite) {
-        genSet(valueBuilder, methodBuilder, valueToWrite, ORDERED_ACCESS_TYPE);
+    void genSet(
+            ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder,
+            String valueToWrite, Function<String, String> accessType) {
+        int bitOffset = valueBuilder.model.fieldBitOffset(outerModel);
+        int byteOffset = bitOffset / 8;
+        String ioOffset = "offset + " + byteOffset;
+        int lowMaskBits = bitOffset - (byteOffset * 8);
+        int bitExtent = valueBuilder.model.fieldBitExtent(outerModel);
+        genSet(methodBuilder, lowMaskBits, bitExtent, ioOffset, accessType, valueToWrite);
     }
 
     private void genSet(
-            ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder,
-            String valueToWrite, Function<String, String> accessType) {
-        int bitOffset = valueBuilder.model.fieldBitOffset(IntegerFieldModel.this);
-        int byteOffset = bitOffset / 8;
-        int lowMaskBits = bitOffset - (byteOffset * 8);
+            MethodSpec.Builder methodBuilder, int lowMaskBits, int bitExtent, String ioOffset,
+            Function<String, String> accessType, String valueToWrite) {
         int leastBitsToWrite = lowMaskBits + sizeInBits();
         int bitsToWrite = Maths.nextPower2(leastBitsToWrite, 8);
-        int bitExtent = valueBuilder.model.fieldBitExtent(IntegerFieldModel.this);
         int highMaskBits = Math.max(bitsToWrite - bitExtent, 0);
 
         long writeMin = (-1L) << (bitsToWrite - 1);
         long writeMax = -(writeMin + 1);
         Range range = range();
 
-
-        if (writeMin != range.min() || writeMax != range.max()) {
+        if (lowMaskBits > 0 || highMaskBits > 0) {
             assert accessType == NORMAL_ACCESS_TYPE :
                     "volatile/ordered fields shouldn't have masking";
             int fieldBits = bitsToWrite - lowMaskBits - highMaskBits;
             String mask = "0b" + repeat('1', highMaskBits) + repeat('0', fieldBits) +
                     repeat('1', lowMaskBits);
-            String read = read(byteOffset, bitsToWrite, NORMAL_ACCESS_TYPE);
-            valueToWrite = format(
-                    "(%s & %s) | (%s << %s)", read, mask, valueToWrite, lowMaskBits);
+            String read = read(ioOffset, bitsToWrite, NORMAL_ACCESS_TYPE);
+            if (lowMaskBits > 0)
+                valueToWrite = format("(%s << %s)", valueToWrite, lowMaskBits);
+            valueToWrite = format("(%s & %s) | %s", read, mask, valueToWrite);
         }
 
         String writeMethod = "write" + accessType.apply(integerBytesMethodSuffix(bitsToWrite));
-        String write = format("bs.%s(offset + %d, %s)", writeMethod, byteOffset, valueToWrite);
+        String write = format("bs.%s(%s, %s)", writeMethod, ioOffset, valueToWrite);
         methodBuilder.addStatement(write);
     }
 
+    void genArrayElementSet(
+            ArrayFieldModel arrayField, ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder,
+            Function<String, String> accessType, String valueToWrite) {
+        int arrayBitOffset = valueBuilder.model.fieldBitOffset(arrayField);
+        if (arrayBitOffset % 8 != 0)
+            throw new UnsupportedOperationException("not implemented yet");
+        int arrayByteOffset = arrayBitOffset / 8;
+        int elemBitExtent = arrayField.elemBitExtent();
+        if (elemBitExtent % 8 == 0) {
+            genVerifiedElementOffset(arrayField, methodBuilder);
+            String ioOffset = format("offset + %d + elementOffset", arrayByteOffset);
+            genSet(methodBuilder, 0, elemBitExtent, ioOffset, accessType, valueToWrite);
+        } else {
+            throw new UnsupportedOperationException("not implemented yet");
+        }
+    }
+
     @Override
-    ValueMemberGenerator nativeGenerator() {
+    MemberGenerator nativeGenerator() {
         return nativeGenerator;
     }
 
-    private String repeat(char c, int n) {
+    @Override
+    MemberGenerator createHeapGenerator() {
+        return new NumberHeapMemberGenerator(this);
+    }
+
+    private static String repeat(char c, int n) {
         char[] chars = new char[n];
         Arrays.fill(chars, c);
         return new String(chars);

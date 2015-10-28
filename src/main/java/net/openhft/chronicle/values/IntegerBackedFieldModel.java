@@ -18,18 +18,14 @@ package net.openhft.chronicle.values;
 
 import java.lang.reflect.Method;
 
-public class IntegerBackedFieldModel extends PrimitiveFieldModel {
+class IntegerBackedFieldModel extends PrimitiveFieldModel {
 
-    final IntegerFieldModel backend = new IntegerFieldModel();
+    final IntegerFieldModel backend = new IntegerFieldModel(this);
 
     @Override
     public void addTypeInfo(Method m, MethodTemplate template) {
         super.addTypeInfo(m, template);
-        backend.addTypeInfo(m, template);
-        if (backend.range != null) {
-            throw new IllegalStateException(name + " field couldn't have " +
-                    backend.range + " annotation");
-        }
+        backend.addVolatileInfo(template);
     }
 
     @Override
@@ -45,5 +41,11 @@ public class IntegerBackedFieldModel extends PrimitiveFieldModel {
     @Override
     int dontCrossAlignmentInBytes() {
         return backend.dontCrossAlignmentInBytes();
+    }
+
+    @Override
+    void checkState() {
+        super.checkState();
+        backend.checkState();
     }
 }

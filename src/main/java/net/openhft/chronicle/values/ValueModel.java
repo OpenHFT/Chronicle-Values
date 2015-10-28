@@ -25,6 +25,7 @@ import java.util.stream.Stream;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
+import static net.openhft.chronicle.values.Align.NO_ALIGNMENT;
 import static net.openhft.chronicle.values.Utils.roundUp;
 import static net.openhft.compiler.CompilerUtils.CACHED_COMPILER;
 
@@ -158,6 +159,7 @@ public class ValueModel {
                 // Update watermark
                 int fieldStart = roundUp(watermark, fieldOffsetAlignment);
                 if (!dontCross(fieldStart, fieldSize, fieldDontCrossAlignment)) {
+                    assert fieldDontCrossAlignment != NO_ALIGNMENT;
                     fieldStart = roundUp(watermark, fieldDontCrossAlignment);
                     assert dontCross(fieldStart, fieldSize, fieldDontCrossAlignment);
                 }
@@ -188,7 +190,7 @@ public class ValueModel {
     }
 
     private static boolean dontCross(int from, int size, int alignment) {
-        return from / alignment == (from + size - 1) / alignment;
+        return alignment == NO_ALIGNMENT || from / alignment == (from + size - 1) / alignment;
     }
 
     Stream<FieldModel> fields() {
@@ -249,20 +251,21 @@ public class ValueModel {
         return createClass(simpleName(valueType) + $$HEAP, Generators::generateHeapClass);
     }
 
-    private static String simpleName(Class<?> type) {
+    static String simpleName(Class<?> type) {
         String name = type.getName();
         return name.substring(name.lastIndexOf('.') + 1);
     }
 
     private Class createClass(
             String className, BiFunction<ValueModel, String, String> generateClass) {
+        String classNameWithPackage = valueType.getPackage().getName() + "." + className;
         ClassLoader cl = valueType.getClassLoader();
         try {
-            return cl.loadClass(className);
+            return cl.loadClass(classNameWithPackage);
         } catch (ClassNotFoundException ignored) {
             String javaCode = generateClass.apply(this, className);
             try {
-                return CACHED_COMPILER.loadFromJava(cl, className, javaCode);
+                return CACHED_COMPILER.loadFromJava(cl, classNameWithPackage, javaCode);
             } catch (ClassNotFoundException e) {
                 throw new AssertionError(e);
             }

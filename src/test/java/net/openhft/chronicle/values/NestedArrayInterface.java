@@ -27,7 +27,8 @@ public interface NestedArrayInterface {
 
     void setIntAt(@MaxUtf8Length(16) int index, int value);
 
-    JavaBeanInterface getJBIAt(@MaxUtf8Length(32) int index);
+    @Array(length = 32)
+    JavaBeanInterface getJBIAt( int index);
 
     void setJBIAt(int index, JavaBeanInterface jbi);
 }
