@@ -21,7 +21,7 @@ package net.openhft.chronicle.values;
  */
 public interface GetUsingStringInterface {
 
-    void setSomeStringField(@MaxUtf8Length(64) String s);
+    void setSomeStringField(@MaxUtf8Length(64) @NotNull String s);
 
     void setAnotherStringField(@MaxUtf8Length(64) String s);
 

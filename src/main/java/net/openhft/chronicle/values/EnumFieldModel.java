@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 
 import static java.lang.String.format;
 import static javax.lang.model.element.Modifier.*;
+import static net.openhft.chronicle.values.IntegerFieldModel.NORMAL_ACCESS_TYPE;
 import static net.openhft.chronicle.values.Nullability.NULLABLE;
 
 class EnumFieldModel extends IntegerBackedFieldModel {
@@ -33,7 +34,7 @@ class EnumFieldModel extends IntegerBackedFieldModel {
     @Override
     public void addTypeInfo(Method m, MethodTemplate template) {
         super.addTypeInfo(m, template);
-        nullability.addTemplate(m, template);
+        nullability.addInfo(m, template);
     }
 
     @Override
@@ -55,40 +56,93 @@ class EnumFieldModel extends IntegerBackedFieldModel {
 
     final MemberGenerator nativeGenerator = new IntegerBackedMemberGenerator(this, backend) {
 
-        private String universeName() {
-            return name + "Universe";
+        @Override
+        public void generateFields(ValueBuilder valueBuilder) {
+            addUniverseField(valueBuilder);
         }
 
         @Override
-        public void generateFields(ValueBuilder valueBuilder) {
-            FieldSpec universe = FieldSpec
-                    .builder(ArrayTypeName.of(type), universeName())
-                    .addModifiers(PRIVATE, STATIC, FINAL)
-                    .initializer("$T.getUniverse($T.class)", Enums.class, type)
-                    .build();
-            valueBuilder.typeBuilder.addField(universe);
+        void generateArrayElementFields(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder) {
+            addUniverseField(valueBuilder);
         }
 
         @Override
         protected void finishGet(MethodSpec.Builder methodBuilder, String value) {
-            if (nullable()) {
-                methodBuilder.addStatement("int ordinal = " + value);
-                methodBuilder.addStatement(
-                        format("return ordinal >= 0 ? %s[ordinal] : null", universeName()));
-            } else {
-                methodBuilder.addStatement(format("return %s[%s]", universeName(), value));
-            }
+            methodBuilder.addStatement("return " + fromOrdinalOrMinusOne(methodBuilder, value));
         }
 
         @Override
         protected String startSet(MethodSpec.Builder methodBuilder) {
-            if (nullable()) {
-                return format("(%s != null ? %s.ordinal() : -1)", varName(), varName());
-            } else {
-                return varName() + ".ordinal()";
-            }
+            return toOrdinalOrMinusOne(varName());
+        }
+
+        @Override
+        void generateEquals(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            String value = fromOrdinalOrMinusOne(methodBuilder,
+                    backingFieldModel.genGet(valueBuilder, NORMAL_ACCESS_TYPE));
+            methodBuilder.addCode("if (($N) != other.$N()) return false;\n",
+                    value, getOrGetVolatile().getName());
+        }
+
+        @Override
+        void generateArrayElementEquals(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            String value = fromOrdinalOrMinusOne(methodBuilder,
+                    backingFieldModel.genArrayElementGet(
+                            arrayFieldModel, valueBuilder, methodBuilder, NORMAL_ACCESS_TYPE));
+            methodBuilder.addCode("if (($N) != other.$N(index)) return false;\n",
+                    value, arrayFieldModel.getOrGetVolatile().getName());
+        }
+
+        @Override
+        String generateHashCode(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            String value = fromOrdinalOrMinusOne(methodBuilder,
+                    backingFieldModel.genGet(valueBuilder, NORMAL_ACCESS_TYPE));
+            return format("java.util.Objects.hashCode(%s)", value);
+        }
+
+        @Override
+        String generateArrayElementHashCode(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            String value = fromOrdinalOrMinusOne(methodBuilder,
+                    backingFieldModel.genArrayElementGet(
+                            arrayFieldModel, valueBuilder, methodBuilder, NORMAL_ACCESS_TYPE));
+            return format("java.util.Objects.hashCode(%s)", value);
         }
     };
+
+    private String universeName() {
+        return name + "Universe";
+    }
+
+    private void addUniverseField(ValueBuilder valueBuilder) {
+        FieldSpec universe = FieldSpec
+                .builder(ArrayTypeName.of(type), universeName())
+                .addModifiers(PRIVATE, STATIC, FINAL)
+                .initializer("$T.getUniverse($T.class)", Enums.class, type)
+                .build();
+        valueBuilder.typeBuilder.addField(universe);
+    }
+
+    private String toOrdinalOrMinusOne(String e) {
+        if (nullable()) {
+            return format("(%s != null ? %s.ordinal() : -1)", e, e);
+        } else {
+            return e + ".ordinal()";
+        }
+    }
+
+    private String fromOrdinalOrMinusOne(MethodSpec.Builder methodBuilder, String value) {
+        if (nullable()) {
+            methodBuilder.addStatement("int ordinal = " + value);
+            return format("ordinal >= 0 ? %s[ordinal] : null", universeName());
+        } else {
+            return format("%s[%s]", universeName(), value);
+        }
+    }
 
     @Override
     MemberGenerator nativeGenerator() {
@@ -97,6 +151,50 @@ class EnumFieldModel extends IntegerBackedFieldModel {
 
     @Override
     MemberGenerator createHeapGenerator() {
-        return new ObjectHeapMemberGenerator(this);
+        return new ObjectHeapMemberGenerator(this) {
+
+            @Override
+            public void generateFields(ValueBuilder valueBuilder) {
+                super.generateFields(valueBuilder);
+                addUniverseField(valueBuilder);
+            }
+
+            @Override
+            void generateArrayElementFields(
+                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder) {
+                super.generateArrayElementFields(arrayFieldModel, valueBuilder);
+                addUniverseField(valueBuilder);
+            }
+
+            @Override
+            void generateWriteMarshallable(
+                    ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("bytes.writeStopBit($N)",
+                        toOrdinalOrMinusOne(fieldName()));
+            }
+
+            @Override
+            void generateArrayElementWriteMarshallable(
+                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                    MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("bytes.writeStopBit($N))",
+                        toOrdinalOrMinusOne(fieldName() + "[index]"));
+            }
+
+            @Override
+            void generateReadMarshallable(
+                    ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("$N = $N", fieldName(),
+                        fromOrdinalOrMinusOne(methodBuilder, "(int) bytes.readStopBit()"));
+            }
+
+            @Override
+            void generateArrayElementReadMarshallable(
+                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                    MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("$N[index] = $N", fieldName(),
+                        fromOrdinalOrMinusOne(methodBuilder, "(int) bytes.readStopBit()"));
+            }
+        };
     }
 }

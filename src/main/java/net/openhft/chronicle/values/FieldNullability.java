@@ -41,7 +41,7 @@ final class FieldNullability {
         return nullability != null ? nullability : NULLABLE;
     }
 
-    public void addTemplate(Method m, MethodTemplate template) {
+    public void addInfo(Method m, MethodTemplate template) {
         Parameter annotatedParameter = template.annotatedParameter.apply(m);
         if (annotatedParameter == null)
             return;

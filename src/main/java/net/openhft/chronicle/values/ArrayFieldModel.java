@@ -56,7 +56,7 @@ class ArrayFieldModel extends FieldModel {
         super.addTypeInfo(m, template);
         if (elemModel == null) {
             elemModel = createScalarModel(type);
-            elemModel.name = "[element of " + name + "]";
+            elemModel.name = name;
         }
         elemModel.addTypeInfo(m, template);
     }
@@ -160,7 +160,7 @@ class ArrayFieldModel extends FieldModel {
 
         @Override
         public void generateFields(ValueBuilder valueBuilder) {
-            elemGenerator.generateArrayElementFields(valueBuilder);
+            elemGenerator.generateArrayElementFields(self(), valueBuilder);
         }
 
         @Override
@@ -214,10 +214,77 @@ class ArrayFieldModel extends FieldModel {
 
         @Override
         public void generateCopyFrom(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-            methodBuilder.beginControlFlow("for (int index = 0; index < $N; index++)",
-                    array.length());
+            beginLoop(methodBuilder);
             elemGenerator.generateArrayElementCopyFrom(self(), valueBuilder, methodBuilder);
             methodBuilder.endControlFlow();
+        }
+
+        private void beginLoop(MethodSpec.Builder methodBuilder) {
+            methodBuilder.beginControlFlow("for (int index = 0; index < $L; index++)",
+                    array.length());
+        }
+
+        @Override
+        void generateWriteMarshallable(
+                ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            beginLoop(methodBuilder);
+            elemGenerator.generateArrayElementWriteMarshallable(
+                    self(), valueBuilder, methodBuilder);
+            methodBuilder.endControlFlow();
+        }
+
+        @Override
+        void generateArrayElementWriteMarshallable(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        void generateReadMarshallable(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            beginLoop(methodBuilder);
+            elemGenerator.generateArrayElementReadMarshallable(self(), valueBuilder, methodBuilder);
+            methodBuilder.endControlFlow();
+        }
+
+        @Override
+        void generateEquals(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            beginLoop(methodBuilder);
+            elemGenerator.generateArrayElementEquals(self(), valueBuilder, methodBuilder);
+            methodBuilder.endControlFlow();
+        }
+
+        /**
+         * Copies google/auto value's strategy of hash code generation
+         */
+        @Override
+        String generateHashCode(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            String hashCodeVarName = varName() + "HashCode";
+            methodBuilder.addStatement("int $N = 1", hashCodeVarName);
+            beginLoop(methodBuilder);
+            methodBuilder.addStatement("$N *= 1000003", hashCodeVarName);
+            String elemHashCode = elemGenerator.generateArrayElementHashCode(
+                    self(), valueBuilder, methodBuilder);
+            methodBuilder.addStatement("$N ^= $N", hashCodeVarName, elemHashCode);
+            methodBuilder.endControlFlow();
+            return hashCodeVarName;
+        }
+
+        @Override
+        void generateToString(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            methodBuilder.addStatement("sb.append($S)", ", " + fieldModel.name + "=[");
+            beginLoop(methodBuilder);
+            elemGenerator.generateArrayElementToString(self(), valueBuilder, methodBuilder);
+            methodBuilder.endControlFlow();
+            methodBuilder.addStatement("sb.insert(sb.length() - 2, ']')");
+            methodBuilder.addStatement("sb.setLength(sb.length() - 1)");
+        }
+
+        @Override
+        void generateArrayElementToString(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            throw new UnsupportedOperationException();
         }
     }
 

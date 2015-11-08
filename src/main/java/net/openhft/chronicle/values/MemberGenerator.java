@@ -34,7 +34,7 @@ abstract class MemberGenerator {
         // do nothing by default
     }
 
-    void generateArrayElementFields(ValueBuilder valueBuilder) {
+    void generateArrayElementFields(ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder) {
         throw new UnsupportedOperationException(fieldModelClass() + "");
     }
 
@@ -137,5 +137,67 @@ abstract class MemberGenerator {
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
         throw new UnsupportedOperationException(fieldModelClass() + "");
+    }
+
+    void generateWriteMarshallable(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+        methodBuilder.addStatement("bytes.$N($N())",
+                fieldModel.writeMethod(), fieldModel.getOrGetVolatile().getName());
+    }
+
+    void generateArrayElementWriteMarshallable(
+            ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+            MethodSpec.Builder methodBuilder) {
+        methodBuilder.addStatement("bytes.$N($N(index))",
+                fieldModel.writeMethod(), arrayFieldModel.getOrGetVolatile().getName());
+    }
+
+    void generateReadMarshallable(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+        throw new UnsupportedOperationException(fieldModelClass() + "");
+    }
+
+    void generateArrayElementReadMarshallable(
+            ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+            MethodSpec.Builder methodBuilder) {
+        throw new UnsupportedOperationException(fieldModelClass() + "");
+    }
+
+    void generateEquals(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+        throw new UnsupportedOperationException(fieldModelClass() + "");
+    }
+
+    void generateArrayElementEquals(
+            ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+            MethodSpec.Builder methodBuilder) {
+        throw new UnsupportedOperationException(fieldModelClass() + "");
+    }
+
+    String generateHashCode(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+        throw new UnsupportedOperationException(fieldModelClass() + "");
+    }
+
+    String generateArrayElementHashCode(
+            ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+            MethodSpec.Builder methodBuilder) {
+        throw new UnsupportedOperationException(fieldModelClass() + "");
+    }
+
+    void generateToString(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+        genToString(methodBuilder, fieldModel.getOrGetVolatile().getName() + "()");
+    }
+
+    final void genToString(MethodSpec.Builder methodBuilder, String value) {
+        methodBuilder.addStatement("sb.append($S).append($N)",
+                ", " + fieldModel.name + "=", value);
+    }
+
+    void generateArrayElementToString(
+            ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+            MethodSpec.Builder methodBuilder) {
+        genArrayElementToString(methodBuilder,
+                arrayFieldModel.getOrGetVolatile().getName() + "(index)");
+    }
+
+    final void genArrayElementToString(MethodSpec.Builder methodBuilder, String value) {
+        methodBuilder.addStatement("sb.append($N).append(',').append(' ')", value);
     }
 }

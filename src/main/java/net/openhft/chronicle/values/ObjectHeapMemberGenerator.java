@@ -19,6 +19,10 @@ package net.openhft.chronicle.values;
 import com.squareup.javapoet.MethodSpec;
 import sun.misc.Unsafe;
 
+import java.util.Objects;
+
+import static java.lang.String.format;
+
 class ObjectHeapMemberGenerator extends HeapMemberGenerator {
     ObjectHeapMemberGenerator(FieldModel fieldModel) {
         super(fieldModel);
@@ -64,5 +68,31 @@ class ObjectHeapMemberGenerator extends HeapMemberGenerator {
                 "(long) $T.ARRAY_OBJECT_BASE_OFFSET + " +
                 "(index * (long) $T.ARRAY_OBJECT_INDEX_SCALE))",
                 fieldModel.type, valueBuilder.unsafe(), field, Unsafe.class, Unsafe.class);
+    }
+
+    @Override
+    void generateEquals(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+        methodBuilder.addCode("if (!$T.equals($N, other.$N())) return false;\n",
+                Objects.class, field, fieldModel.getOrGetVolatile().getName());
+    }
+
+    @Override
+    void generateArrayElementEquals(
+            ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+            MethodSpec.Builder methodBuilder) {
+        methodBuilder.addCode("if (!$T.equals($N[index], other.$N(index))) return false;\n",
+                Objects.class, field, arrayFieldModel.getOrGetVolatile().getName());
+    }
+
+    @Override
+    String generateHashCode(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+        return format("java.util.Objects.hashCode(%s)", field.name);
+    }
+
+    @Override
+    String generateArrayElementHashCode(
+            ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+            MethodSpec.Builder methodBuilder) {
+        return format("java.util.Objects.hashCode(%s[index])", field.name);
     }
 }

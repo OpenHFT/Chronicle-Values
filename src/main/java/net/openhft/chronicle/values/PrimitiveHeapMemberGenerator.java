@@ -20,6 +20,7 @@ import com.squareup.javapoet.MethodSpec;
 import sun.misc.Unsafe;
 
 import static java.lang.String.format;
+import static net.openhft.chronicle.values.Primitives.boxed;
 import static net.openhft.chronicle.values.Utils.capitalize;
 
 class PrimitiveHeapMemberGenerator extends HeapMemberGenerator {
@@ -118,5 +119,49 @@ class PrimitiveHeapMemberGenerator extends HeapMemberGenerator {
     String getCast() {
         return fieldType() == fieldModel.type ? "" :
                 format("(%s) ", fieldModel.type.getName());
+    }
+
+    @Override
+    void generateReadMarshallable(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+        String cast = fieldModel.type == char.class ? "(char) " : "";
+        methodBuilder.addStatement("$N = $Nbytes.$N()",
+                fieldModel.fieldName(), cast, fieldModel.readMethod());
+    }
+
+    @Override
+    void generateArrayElementReadMarshallable(
+            ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+            MethodSpec.Builder methodBuilder) {
+        String cast = fieldModel.type == char.class ? "(char) " : "";
+        methodBuilder.addStatement("$N[index] = $Nbytes.$N()",
+                fieldModel.fieldName(), cast, fieldModel.readMethod());
+    }
+
+    @Override
+    void generateEquals(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+        methodBuilder.addCode("if ($N() != other.$N()) return false;\n",
+                fieldModel.getOrGetVolatile().getName(), fieldModel.getOrGetVolatile().getName());
+    }
+
+    @Override
+    void generateArrayElementEquals(
+            ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+            MethodSpec.Builder methodBuilder) {
+        String get = arrayFieldModel.getOrGetVolatile().getName();
+        methodBuilder.addCode("if ($N(index) != other.$N(index)) return false;\n", get, get);
+    }
+
+    @Override
+    String generateHashCode(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+        return String.format("%s.hashCode(%s())",
+                boxed(fieldModel.type).getName(), fieldModel.getOrGetVolatile().getName());
+    }
+
+    @Override
+    String generateArrayElementHashCode(
+            ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+            MethodSpec.Builder methodBuilder) {
+        return String.format("%s.hashCode(%s(index))",
+                boxed(fieldModel.type).getName(), arrayFieldModel.getOrGetVolatile().getName());
     }
 }

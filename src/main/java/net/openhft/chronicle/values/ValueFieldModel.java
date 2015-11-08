@@ -19,6 +19,8 @@ package net.openhft.chronicle.values;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 
+import java.lang.reflect.Method;
+
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 
@@ -60,14 +62,16 @@ class ValueFieldModel extends ScalarFieldModel {
         }
 
         @Override
-        public void generateArrayElementFields(ValueBuilder valueBuilder) {
+        public void generateArrayElementFields(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder) {
             generateFields(valueBuilder);
         }
 
         private void initCachedValue(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
             methodBuilder.addStatement("$T $N = this.$N", nativeType, cachedValue, cachedValue);
             int byteOffset = verifiedByteOffset(valueBuilder);
-            methodBuilder.addStatement("$N.bytesStore(bs, offset + $L)", cachedValue, byteOffset);
+            methodBuilder.addStatement("$N.bytesStore(bs, offset + $L, $L)",
+                    cachedValue, byteOffset, valueModel.sizeInBytes());
         }
 
         @Override
@@ -90,8 +94,8 @@ class ValueFieldModel extends ScalarFieldModel {
             methodBuilder.addStatement("$T $N = this.$N", nativeType, cachedValue, cachedValue);
             int arrayByteOffset = arrayField.verifiedByteOffset(valueBuilder);
             genVerifiedElementOffset(arrayField, methodBuilder);
-            methodBuilder.addStatement("$N.bytesStore(bs, offset + $L + elementOffset)",
-                    cachedValue, arrayByteOffset);
+            methodBuilder.addStatement("$N.bytesStore(bs, offset + $L + elementOffset, $L)",
+                    cachedValue, arrayByteOffset, valueModel.sizeInBytes());
         }
 
         @Override
@@ -99,7 +103,8 @@ class ValueFieldModel extends ScalarFieldModel {
             //TODO if both are Byteable, should do a shallow ("pointer") copy or memcpy?
             methodBuilder.beginControlFlow("if ($N instanceof $T)", varName(), nativeType);
             int byteOffset = verifiedByteOffset(valueBuilder);
-            methodBuilder.addStatement("$N.bytesStore(bs, offset + $L)", varName(), byteOffset);
+            methodBuilder.addStatement("(($T) $N).bytesStore(bs, offset + $L, $L)",
+                    nativeType, varName(), byteOffset, valueModel.sizeInBytes());
             methodBuilder.nextControlFlow("else");
             initCachedValue(valueBuilder, methodBuilder);
             methodBuilder.addStatement("(($T) $N).copyFrom($N)",
@@ -115,8 +120,8 @@ class ValueFieldModel extends ScalarFieldModel {
             methodBuilder.beginControlFlow("if ($N instanceof $T)", varName(), nativeType);
             genVerifiedElementOffset(arrayFieldModel, methodBuilder);
             int arrayByteOffset = arrayFieldModel.verifiedByteOffset(valueBuilder);
-            methodBuilder.addStatement("$N.bytesStore(bs, offset + $L + elementOffset)",
-                    varName(), arrayByteOffset);
+            methodBuilder.addStatement("(($T) $N).bytesStore(bs, offset + $L + elementOffset, $L)",
+                    nativeType, varName(), arrayByteOffset, valueModel.sizeInBytes());
             methodBuilder.nextControlFlow("else");
             initArrayElementCachedValue(arrayFieldModel, valueBuilder, methodBuilder);
             methodBuilder.addStatement(
@@ -130,8 +135,9 @@ class ValueFieldModel extends ScalarFieldModel {
             methodBuilder.beginControlFlow("if ($N instanceof $T)", varName(), nativeType);
             int byteOffset = verifiedByteOffset(valueBuilder);
             methodBuilder.addStatement(
-                    "bs.write(offset + $L, $N.bytesStore(), $N.offset(), $L)",
-                    byteOffset, varName(), valueModel().sizeInBytes());
+                    "bs.write(offset + $L, (($T) $N).bytesStore(), (($T) $N).offset(), $L)",
+                    byteOffset, nativeType, varName(), nativeType, varName(),
+                    valueModel().sizeInBytes());
             methodBuilder.nextControlFlow("else");
             initCachedValue(valueBuilder, methodBuilder);
             methodBuilder.addStatement("$N.copyFrom($N)", cachedValue, varName());
@@ -146,8 +152,10 @@ class ValueFieldModel extends ScalarFieldModel {
             genVerifiedElementOffset(arrayFieldModel, methodBuilder);
             int arrayByteOffset = arrayFieldModel.verifiedByteOffset(valueBuilder);
             methodBuilder.addStatement(
-                    "bs.write(offset + $L + elementOffset, $N.bytesStore(), $N.offset(), $L)",
-                    arrayByteOffset, varName(), valueModel().sizeInBytes());
+                    "bs.write(offset + $L + elementOffset, " +
+                            "(($T) $N).bytesStore(), (($T) $N).offset(), $L)",
+                    arrayByteOffset, nativeType, varName(), nativeType, varName(),
+                    valueModel().sizeInBytes());
             methodBuilder.nextControlFlow("else");
             initArrayElementCachedValue(arrayFieldModel, valueBuilder, methodBuilder);
             methodBuilder.addStatement("$N.copyFrom($N)", cachedValue, varName());
@@ -169,12 +177,86 @@ class ValueFieldModel extends ScalarFieldModel {
                 ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
                 MethodSpec.Builder methodBuilder) {
             initArrayElementCachedValue(arrayFieldModel, valueBuilder, methodBuilder);
+            Method getUsing = arrayFieldModel.getUsing;
             if (getUsing != null) {
                 methodBuilder.addStatement("from.$N(index, $N)", getUsing.getName(), cachedValue);
             } else {
                 methodBuilder.addStatement("$N.copyFrom(from.$N(index))",
-                        cachedValue, get.getName());
+                        cachedValue, arrayFieldModel.get.getName());
             }
+        }
+
+        @Override
+        void generateWriteMarshallable(
+                ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            initCachedValue(valueBuilder, methodBuilder);
+            methodBuilder.addStatement("$N.writeMarshallable(bytes)", cachedValue);
+        }
+
+        @Override
+        void generateArrayElementWriteMarshallable(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            initArrayElementCachedValue(arrayFieldModel, valueBuilder, methodBuilder);
+            methodBuilder.addStatement("$N.writeMarshallable(bytes)", cachedValue);
+        }
+
+        @Override
+        void generateReadMarshallable(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            initCachedValue(valueBuilder, methodBuilder);
+            methodBuilder.addStatement("$N.readMarshallable(bytes)", cachedValue);
+        }
+
+        @Override
+        void generateArrayElementReadMarshallable(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            initArrayElementCachedValue(arrayFieldModel, valueBuilder, methodBuilder);
+            methodBuilder.addStatement("$N.readMarshallable(bytes)", cachedValue);
+        }
+
+        @Override
+        void generateEquals(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            initCachedValue(valueBuilder, methodBuilder);
+            methodBuilder.addCode("if (!$N.equals(other.$N())) return false;\n",
+                    cachedValue, get.getName());
+        }
+
+        @Override
+        void generateArrayElementEquals(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            initArrayElementCachedValue(arrayFieldModel, valueBuilder, methodBuilder);
+            methodBuilder.addCode("if (!$N.equals(other.$N(index))) return false;\n",
+                    cachedValue, arrayFieldModel.get.getName());
+        }
+
+        @Override
+        String generateHashCode(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            initCachedValue(valueBuilder, methodBuilder);
+            return cachedValue.name + ".hashCode()";
+        }
+
+        @Override
+        String generateArrayElementHashCode(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            initArrayElementCachedValue(arrayFieldModel, valueBuilder, methodBuilder);
+            return cachedValue.name + ".hashCode()";
+        }
+
+        @Override
+        void generateToString(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            initCachedValue(valueBuilder, methodBuilder);
+            genToString(methodBuilder, cachedValue.name);
+        }
+
+        @Override
+        void generateArrayElementToString(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            initArrayElementCachedValue(arrayFieldModel, valueBuilder, methodBuilder);
+            genArrayElementToString(methodBuilder, cachedValue.name);
         }
     };
 
@@ -185,6 +267,47 @@ class ValueFieldModel extends ScalarFieldModel {
 
     @Override
     MemberGenerator createHeapGenerator() {
-        return new ObjectHeapMemberGenerator(this);
+        return new ObjectHeapMemberGenerator(this) {
+            @Override
+            void generateWriteMarshallable(
+                    ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("$N.writeMarshallable(bytes)", fieldName());
+            }
+
+            @Override
+            void generateArrayElementWriteMarshallable(
+                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                    MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("$N[index].writeMarshallable(bytes)", fieldName());
+            }
+
+            @Override
+            void generateReadMarshallable(
+                    ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("$N = new $T()", fieldName(), valueModel.heapClass());
+                methodBuilder.addStatement("$N.readMarshallable(bytes)", fieldName());
+            }
+
+            @Override
+            void generateArrayElementReadMarshallable(
+                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                    MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("$N[index] = new $T()",
+                        fieldName(), valueModel.heapClass());
+                methodBuilder.addStatement("$N[index].readMarshallable(bytes)", fieldName());
+            }
+
+            @Override
+            String generateHashCode(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+                return field.name + ".hashCode()";
+            }
+
+            @Override
+            String generateArrayElementHashCode(
+                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                    MethodSpec.Builder methodBuilder) {
+                return field.name + "[index].hashCode()";
+            }
+        };
     }
 }

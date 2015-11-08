@@ -224,7 +224,8 @@ public class ValueGeneratorTest {
         JavaBeanInterfaceGetDate jbid = newNativeReference(JavaBeanInterfaceGetDate.class);
         BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
         ((Byteable) jbid).bytesStore(bytes, 0L, ((Byteable) jbid).maxSize());
-        jbid.setDate(new Date());
-        assertEquals(new Date(), jbid.getDate());
+        Date date = new Date();
+        jbid.setDate(date);
+        assertEquals(date, jbid.getDate());
     }
 }

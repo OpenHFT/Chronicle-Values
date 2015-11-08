@@ -202,6 +202,10 @@ abstract class FieldModel {
         return "_" + name;
     }
 
+    String fieldName() {
+        return "__field" + name;
+    }
+
     String usingName() {
         return "using" + capitalize(name);
     }
@@ -212,6 +216,26 @@ abstract class FieldModel {
 
     String newName() {
         return "new" + capitalize(name);
+    }
+
+    String capTypeName() {
+        return capitalize(type.getName());
+    }
+
+    String readMethod() {
+        if (type == char.class) {
+            return "readUnsignedShort";
+        } else {
+            return "read" + capTypeName();
+        }
+    }
+
+    String writeMethod() {
+        if (type == char.class) {
+            return "writeUnsignedShort";
+        } else {
+            return "write" + capTypeName();
+        }
     }
 
     private void generateMethod(ValueBuilder valueBuilder, Method m,

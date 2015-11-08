@@ -25,6 +25,7 @@ import org.junit.Test;
 import java.nio.ByteBuffer;
 
 import static net.openhft.chronicle.values.Values.newHeapInstance;
+import static net.openhft.chronicle.values.Values.newNativeReference;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -71,12 +72,7 @@ public class VolatileTest {
 
         //Test the native interface
         try{
-            String actual = Generators.generateNativeClass(ValueModel.acquire(GoodInterface.class),
-                    GoodInterface.class.getName() + "$$Native");
-            System.out.println(actual);
-            CachedCompiler cc = new CachedCompiler(null, null);
-            Class aClass = cc.loadFromJava(GoodInterface.class.getName() + "$$Native", actual);
-            GoodInterface jbi = (GoodInterface) aClass.asSubclass(GoodInterface.class).newInstance();
+            GoodInterface jbi = newNativeReference(GoodInterface.class);
             BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
             ((Byteable) jbi).bytesStore(bytes, 0L, ((Byteable) jbi).maxSize());
 
@@ -122,7 +118,8 @@ public class VolatileTest {
 
         void setY(int y);
 
-        void setOrderedIntAt(@MaxUtf8Length(4) int idx, int i);
+        @Array(length = 4)
+        void setOrderedIntAt(int idx, int i);
         int getVolatileIntAt(int idx);
     }
 }

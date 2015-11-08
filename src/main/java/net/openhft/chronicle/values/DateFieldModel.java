@@ -21,6 +21,7 @@ import com.squareup.javapoet.MethodSpec;
 import java.util.Date;
 
 import static java.lang.String.format;
+import static net.openhft.chronicle.values.IntegerFieldModel.NORMAL_ACCESS_TYPE;
 
 class DateFieldModel extends IntegerBackedFieldModel {
 
@@ -32,6 +33,13 @@ class DateFieldModel extends IntegerBackedFieldModel {
     }
 
     final MemberGenerator nativeGenerator = new IntegerBackedMemberGenerator(this, backend) {
+
+        @Override
+        void generateArrayElementFields(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder) {
+            // no fields
+        }
+
         @Override
         protected void finishGet(MethodSpec.Builder methodBuilder, String value) {
             methodBuilder.addStatement(format("return new $T(%s)", value), Date.class);
@@ -40,6 +48,38 @@ class DateFieldModel extends IntegerBackedFieldModel {
         @Override
         protected String startSet(MethodSpec.Builder methodBuilder) {
             return varName() + ".getTime()";
+        }
+
+        @Override
+        void generateEquals(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            String time = backingFieldModel.genGet(valueBuilder, NORMAL_ACCESS_TYPE);
+            methodBuilder.addStatement("if ($N != other.$N().getTime()) return false;\n",
+                    time, getOrGetVolatile().getName());
+        }
+
+        @Override
+        void generateArrayElementEquals(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            String time = backingFieldModel.genArrayElementGet(
+                    arrayFieldModel, valueBuilder, methodBuilder, NORMAL_ACCESS_TYPE);
+            methodBuilder.addStatement("if ($N != other.$N(index).getTime()) return false;\n",
+                    time, arrayFieldModel.getOrGetVolatile().getName());
+        }
+
+        @Override
+        String generateHashCode(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            String time = backingFieldModel.genGet(valueBuilder, NORMAL_ACCESS_TYPE);
+            return format("java.lang.Long.hashCode(%s)", time);
+        }
+
+        @Override
+        String generateArrayElementHashCode(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            String time = backingFieldModel.genArrayElementGet(
+                    arrayFieldModel, valueBuilder, methodBuilder, NORMAL_ACCESS_TYPE);
+            return format("java.lang.Long.hashCode(%s)", time);
         }
     };
 
@@ -50,6 +90,32 @@ class DateFieldModel extends IntegerBackedFieldModel {
 
     @Override
     MemberGenerator createHeapGenerator() {
-        return new ObjectHeapMemberGenerator(this);
+        return new ObjectHeapMemberGenerator(this) {
+            @Override
+            void generateWriteMarshallable(
+                    ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("bytes.writeLong($N.getTime())", fieldName());
+            }
+
+            @Override
+            void generateArrayElementWriteMarshallable(
+                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                    MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("bytes.writeLong($N[index].getTime())", fieldName());
+            }
+
+            @Override
+            void generateReadMarshallable(
+                    ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("$N = new Date(bytes.readLong())", fieldName());
+            }
+
+            @Override
+            void generateArrayElementReadMarshallable(
+                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                    MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("$N[index] = new Date(bytes.readLong())", fieldName());
+            }
+        };
     }
 }

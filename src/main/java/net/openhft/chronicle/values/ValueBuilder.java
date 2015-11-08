@@ -34,6 +34,7 @@ class ValueBuilder {
     final String className;
     final TypeSpec.Builder typeBuilder;
     private FieldSpec unsafe;
+    private CodeBlock.Builder staticBlockBuilder;
 
     public ValueBuilder(ValueModel model, String className, TypeSpec.Builder typeBuilder) {
         this.model = model;
@@ -46,17 +47,28 @@ class ValueBuilder {
             unsafe = FieldSpec.builder(Unsafe.class, "UNSAFE", PRIVATE, STATIC, FINAL).build();
             typeBuilder.addField(unsafe);
 
-            CodeBlock staticBlock = CodeBlock.builder()
+            staticBlockBuilder()
                     .beginControlFlow("try")
                     .addStatement("$T theUnsafe = $T.getField($T.class, $S)",
                             Field.class, Jvm.class, Unsafe.class, "theUnsafe")
-                    .addStatement("$N = ($T) theUnsafe.get(null)", unsafe, Unsafe.class)
-                    .nextControlFlow("catch ($T e)", IllegalAccessException.class)
-                    .addStatement("throw new $T(e)", AssertionError.class)
-                    .endControlFlow()
-                    .build();
-            typeBuilder.addStaticBlock(staticBlock);
+                    .addStatement("$N = ($T) theUnsafe.get(null)", unsafe, Unsafe.class);
         }
         return unsafe;
+    }
+
+    CodeBlock.Builder staticBlockBuilder() {
+        if (staticBlockBuilder == null) {
+            staticBlockBuilder = CodeBlock.builder();
+        }
+        return staticBlockBuilder;
+    }
+
+    void closeStaticInitializationBlock() {
+        if (staticBlockBuilder != null) {
+            staticBlockBuilder.nextControlFlow("catch ($T e)", IllegalAccessException.class);
+            staticBlockBuilder.addStatement("throw new $T(e)", AssertionError.class);
+            staticBlockBuilder.endControlFlow();
+            typeBuilder.addStaticBlock(staticBlockBuilder.build());
+        }
     }
 }

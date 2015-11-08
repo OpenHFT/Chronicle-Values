@@ -27,6 +27,7 @@ import java.util.function.Function;
 
 import static java.lang.String.format;
 import static java.util.function.Function.identity;
+import static net.openhft.chronicle.values.Primitives.boxed;
 import static net.openhft.chronicle.values.Primitives.widthInBits;
 import static net.openhft.chronicle.values.RangeImpl.*;
 
@@ -132,6 +133,11 @@ class IntegerFieldModel extends PrimitiveFieldModel {
     final MemberGenerator nativeGenerator = new IntegerBackedMemberGenerator(this, this) {
 
         @Override
+        void generateArrayElementFields(ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder) {
+            // no fields
+        }
+
+        @Override
         protected void finishGet(MethodSpec.Builder methodBuilder, String value) {
             methodBuilder.addStatement("return " + value);
         }
@@ -224,6 +230,35 @@ class IntegerFieldModel extends PrimitiveFieldModel {
                 throw new UnsupportedOperationException("not implemented yet");
             }
         }
+
+        @Override
+        void generateEquals(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            methodBuilder.addCode("if ($N() != other.$N()) return false;\n",
+                    getOrGetVolatile().getName(), getOrGetVolatile().getName());
+        }
+
+        @Override
+        void generateArrayElementEquals(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            String get = arrayFieldModel.getOrGetVolatile().getName();
+            methodBuilder.addCode("if ($N(index) != other.$N(index)) return false;\n", get, get);
+        }
+
+        @Override
+        String generateHashCode(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            String value = genGet(valueBuilder, NORMAL_ACCESS_TYPE);
+            return String.format("%s.hashCode(%s)", boxed(type).getName(), value);
+        }
+
+        @Override
+        String generateArrayElementHashCode(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            String value = genArrayElementGet(
+                    arrayFieldModel, valueBuilder, methodBuilder, NORMAL_ACCESS_TYPE);
+            return String.format("%s.hashCode(%s)", boxed(type).getName(), value);
+        }
     };
 
     // The methods below are named with "gen" prefix instead of "generate" to avoid confusion
@@ -299,15 +334,15 @@ class IntegerFieldModel extends PrimitiveFieldModel {
     }
 
     String genArrayElementGet(
-            ArrayFieldModel arrayField, ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder,
-            Function<String, String> accessType) {
-        int arrayBitOffset = valueBuilder.model.fieldBitOffset(arrayField);
+            ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+            MethodSpec.Builder methodBuilder, Function<String, String> accessType) {
+        int arrayBitOffset = valueBuilder.model.fieldBitOffset(arrayFieldModel);
         if (arrayBitOffset % 8 != 0)
             throw new UnsupportedOperationException("not implemented yet");
         int arrayByteOffset = arrayBitOffset / 8;
-        int elemBitExtent = arrayField.elemBitExtent();
+        int elemBitExtent = arrayFieldModel.elemBitExtent();
         if (elemBitExtent % 8 == 0) {
-            genVerifiedElementOffset(arrayField, methodBuilder);
+            genVerifiedElementOffset(arrayFieldModel, methodBuilder);
             String readOffset = format("offset + %d + elementOffset", arrayByteOffset);
             return genGet(0, elemBitExtent, readOffset, accessType);
         } else {
@@ -333,10 +368,6 @@ class IntegerFieldModel extends PrimitiveFieldModel {
         int bitsToWrite = Maths.nextPower2(leastBitsToWrite, 8);
         int highMaskBits = Math.max(bitsToWrite - bitExtent, 0);
 
-        long writeMin = (-1L) << (bitsToWrite - 1);
-        long writeMax = -(writeMin + 1);
-        Range range = range();
-
         if (lowMaskBits > 0 || highMaskBits > 0) {
             assert accessType == NORMAL_ACCESS_TYPE :
                     "volatile/ordered fields shouldn't have masking";
@@ -355,15 +386,16 @@ class IntegerFieldModel extends PrimitiveFieldModel {
     }
 
     void genArrayElementSet(
-            ArrayFieldModel arrayField, ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder,
-            Function<String, String> accessType, String valueToWrite) {
-        int arrayBitOffset = valueBuilder.model.fieldBitOffset(arrayField);
+            ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+            MethodSpec.Builder methodBuilder, Function<String, String> accessType,
+            String valueToWrite) {
+        int arrayBitOffset = valueBuilder.model.fieldBitOffset(arrayFieldModel);
         if (arrayBitOffset % 8 != 0)
             throw new UnsupportedOperationException("not implemented yet");
         int arrayByteOffset = arrayBitOffset / 8;
-        int elemBitExtent = arrayField.elemBitExtent();
+        int elemBitExtent = arrayFieldModel.elemBitExtent();
         if (elemBitExtent % 8 == 0) {
-            genVerifiedElementOffset(arrayField, methodBuilder);
+            genVerifiedElementOffset(arrayFieldModel, methodBuilder);
             String ioOffset = format("offset + %d + elementOffset", arrayByteOffset);
             genSet(methodBuilder, 0, elemBitExtent, ioOffset, accessType, valueToWrite);
         } else {

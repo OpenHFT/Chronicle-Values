@@ -18,13 +18,13 @@ package net.openhft.chronicle.values;
 
 import com.squareup.javapoet.MethodSpec;
 
-import static net.openhft.chronicle.values.IntegerFieldModel.NORMAL_ACCESS_TYPE;
-import static net.openhft.chronicle.values.IntegerFieldModel.ORDERED_ACCESS_TYPE;
-import static net.openhft.chronicle.values.IntegerFieldModel.VOLATILE_ACCESS_TYPE;
+import static java.lang.String.format;
+import static net.openhft.chronicle.values.IntegerFieldModel.*;
+import static net.openhft.chronicle.values.Primitives.boxed;
 
 abstract class IntegerBackedMemberGenerator extends MemberGenerator {
 
-    private final IntegerFieldModel backingFieldModel;
+    final IntegerFieldModel backingFieldModel;
 
     protected IntegerBackedMemberGenerator(
             FieldModel fieldModel, IntegerFieldModel backingFieldModel) {
@@ -131,13 +131,46 @@ abstract class IntegerBackedMemberGenerator extends MemberGenerator {
     void generateArrayElementCopyFrom(
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
-        if (fieldModel.set != null) {
+        if (arrayFieldModel.set != null) {
             methodBuilder.addStatement("$N(index, from.$N(index))",
-                    fieldModel.set.getName(), fieldModel.getOrGetVolatile().getName());
+                    arrayFieldModel.set.getName(), arrayFieldModel.getOrGetVolatile().getName());
         } else {
             methodBuilder.addStatement("$T $N = from.$N(index)",
-                    fieldModel.type, fieldModel.varName(), fieldModel.getOrGetVolatile().getName());
+                    fieldModel.type, fieldModel.varName(),
+                    arrayFieldModel.getOrGetVolatile().getName());
             generateArrayElementSet(arrayFieldModel, valueBuilder, methodBuilder);
         }
+    }
+
+    @Override
+    void generateWriteMarshallable(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+        methodBuilder.addStatement("bytes.write$N($N)", backingFieldModel.capTypeName(),
+                backingFieldModel.genGet(valueBuilder, NORMAL_ACCESS_TYPE));
+    }
+
+    @Override
+    void generateArrayElementWriteMarshallable(
+            ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+            MethodSpec.Builder methodBuilder) {
+        String value = backingFieldModel.genArrayElementGet(
+                arrayFieldModel, valueBuilder, methodBuilder, NORMAL_ACCESS_TYPE);
+        methodBuilder.addStatement("bytes.write$N($N)", backingFieldModel.capTypeName(), value);
+    }
+
+    @Override
+    void generateReadMarshallable(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+        backingFieldModel.genSet(valueBuilder, methodBuilder, readValue(), NORMAL_ACCESS_TYPE);
+    }
+
+    @Override
+    void generateArrayElementReadMarshallable(
+            ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+            MethodSpec.Builder methodBuilder) {
+        backingFieldModel.genArrayElementSet(arrayFieldModel, valueBuilder, methodBuilder,
+                NORMAL_ACCESS_TYPE, readValue());
+    }
+
+    private String readValue() {
+        return format("bytes.read%s()", backingFieldModel.capTypeName());
     }
 }

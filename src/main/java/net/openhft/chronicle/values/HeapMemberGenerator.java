@@ -22,8 +22,6 @@ import com.squareup.javapoet.MethodSpec;
 import net.openhft.chronicle.core.Jvm;
 import sun.misc.Unsafe;
 
-import java.lang.reflect.Method;
-
 import static javax.lang.model.element.Modifier.*;
 
 abstract class HeapMemberGenerator extends MemberGenerator {
@@ -49,10 +47,11 @@ abstract class HeapMemberGenerator extends MemberGenerator {
         if (fieldOffset == null) {
             fieldOffset = FieldSpec.builder(long.class, fieldModel.name + "Offset")
                     .addModifiers(PRIVATE, STATIC, FINAL)
-                    .initializer("$N.objectFieldOffset($T.getField($T.class, $S))",
-                            valueBuilder.unsafe(), Jvm.class, valueBuilder.className,
-                            field.name)
                     .build();
+            valueBuilder.staticBlockBuilder().addStatement(
+                    "$N = $N.objectFieldOffset($T.getField($N.class, $S))",
+                    fieldOffset, valueBuilder.unsafe(), Jvm.class, valueBuilder.className,
+                    field.name);
             valueBuilder.typeBuilder.addField(fieldOffset);
         }
         return fieldOffset;
@@ -63,14 +62,16 @@ abstract class HeapMemberGenerator extends MemberGenerator {
     }
 
     @Override
-    public void generateFields(ValueBuilder valueBuilder) {
-        field = FieldSpec.builder(fieldType(), fieldModel.varName(), PRIVATE).build();
+    void generateFields(ValueBuilder valueBuilder) {
+        field = FieldSpec.builder(fieldType(), fieldModel.fieldName(), PRIVATE).build();
         valueBuilder.typeBuilder.addField(field);
     }
 
     @Override
-    public void generateArrayElementFields(ValueBuilder valueBuilder) {
-        field = FieldSpec.builder(ArrayTypeName.of(fieldType()), fieldModel.varName(), PRIVATE)
+    void generateArrayElementFields(ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder) {
+        field = FieldSpec.builder(ArrayTypeName.of(fieldType()), fieldModel.fieldName())
+                .addModifiers(PRIVATE)
+                .initializer("new $T[$L]", fieldType(), arrayFieldModel.array.length())
                 .build();
         valueBuilder.typeBuilder.addField(field);
     }
@@ -162,6 +163,18 @@ abstract class HeapMemberGenerator extends MemberGenerator {
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
         methodBuilder.addStatement("this.$N[index] = from.$N(index)",
-                field, fieldModel.getOrGetVolatile().getName());
+                field, arrayFieldModel.getOrGetVolatile().getName());
+    }
+
+    @Override
+    void generateToString(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+        genToString(methodBuilder, field.name);
+    }
+
+    @Override
+    void generateArrayElementToString(
+            ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+            MethodSpec.Builder methodBuilder) {
+        genArrayElementToString(methodBuilder, field.name + "[index]");
     }
 }

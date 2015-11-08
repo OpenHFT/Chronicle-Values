@@ -65,11 +65,11 @@ final class CodeTemplate {
         addWritePattern("compareAndSwap", 2, FieldModel::setCompareAndSwap);
     }
 
-    private static final String JAVA_ID = "([a-zA-Z_$][a-zA-Z\\d_$]*)";
+    private static final String FIELD_NAME = "([a-zA-Z$][a-zA-Z\\d_$]*)";
 
     private static void addReadPatterns(
             String regex, int arguments, BiConsumer<FieldModel, Method> addMethodToModel) {
-        regex += JAVA_ID;
+        regex += FIELD_NAME;
         add(regex, arguments, SCALAR, Method::getReturnType, NO_ANNOTATED_PARAM, addMethodToModel);
         add(regex + "At", arguments + 1, ARRAY, Method::getReturnType, NO_ANNOTATED_PARAM,
                 addMethodToModel);
@@ -77,7 +77,7 @@ final class CodeTemplate {
 
     public static void addWritePattern(
             String regex, int arguments, BiConsumer<FieldModel, Method> addMethodToModel) {
-        regex += JAVA_ID;
+        regex += FIELD_NAME;
         add(regex, arguments, SCALAR,
                 m -> m.getParameterTypes()[arguments - 1],
                 m -> m.getParameters()[arguments - 1],
@@ -127,6 +127,14 @@ final class CodeTemplate {
         Stream.of(c.getMethods())
                 .filter(m -> (m.getModifiers() & Modifier.ABSTRACT) != 0)
                 .filter(m -> NON_MODEL_TYPES.stream().noneMatch(t -> hasMethod(t, m)))
+                // sorts methods in the order of ascending name lengths
+                // this forEachAbstractMethod() is called in createValueModel(), where FieldModel
+                // are created lazily from the field type info appearing in the first processed
+                // method. Char Sequence fields could have a method void getUsing() which doesn't
+                // contain actual field type info (String or CharSequence).
+                // When we sort methods, getFoo() or setFoo() is always processed before potential
+                // getUsing(), and the field could be created lazily like in general case
+                .sorted(comparing(m -> m.getName().length()))
                 .forEach(action);
     }
 

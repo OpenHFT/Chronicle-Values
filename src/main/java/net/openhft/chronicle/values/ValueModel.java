@@ -244,11 +244,15 @@ public class ValueModel {
     }
 
     Class createNativeClass() {
-        return createClass(simpleName(valueType) + $$NATIVE, Generators::generateNativeClass);
+        return createClass(simpleName() + $$NATIVE, Generators::generateNativeClass);
     }
 
     Class createHeapClass() {
-        return createClass(simpleName(valueType) + $$HEAP, Generators::generateHeapClass);
+        return createClass(simpleName() + $$HEAP, Generators::generateHeapClass);
+    }
+
+    String simpleName() {
+        return simpleName(valueType);
     }
 
     static String simpleName(Class<?> type) {

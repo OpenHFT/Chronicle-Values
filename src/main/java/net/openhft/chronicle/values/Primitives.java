@@ -42,4 +42,24 @@ final class Primitives {
             return 64;
         throw new AssertionError(type + " is not a primitive type");
     }
+
+    static Class boxed(Class type) {
+        if (type == boolean.class)
+            return Boolean.class;
+        if (type == byte.class)
+            return Byte.class;
+        if (type == char.class)
+            return Character.class;
+        if (type == short.class)
+            return Short.class;
+        if (type == int.class)
+            return Integer.class;
+        if (type == long.class)
+            return Long.class;
+        if (type == float.class)
+            return Float.class;
+        if (type == double.class)
+            return Double.class;
+        throw new AssertionError("Expected primitive type: " + type);
+    }
 }
