@@ -75,7 +75,7 @@ class CharSequenceFieldModel extends ScalarFieldModel {
         return varName() + "Builder";
     }
 
-    private String cachedBuilderToSettable() {
+    private String cachedBuilderToSettable(Method set) {
         if (set.getReturnType() == StringBuilder.class) {
             return format("new StringBuilder(%s)", cachedStringBuilder());
         } else {
@@ -121,6 +121,7 @@ class CharSequenceFieldModel extends ScalarFieldModel {
         public void generateArrayElementGet(
                 ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
                 MethodSpec.Builder methodBuilder) {
+            arrayFieldModel.checkBounds(methodBuilder);
             initArrayElementCachedStringBuilder(arrayFieldModel, valueBuilder, methodBuilder);
             finishGet(methodBuilder, arrayFieldModel.get);
         }
@@ -160,6 +161,7 @@ class CharSequenceFieldModel extends ScalarFieldModel {
         public void generateArrayElementGetUsing(
                 ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
                 MethodSpec.Builder methodBuilder) {
+            arrayFieldModel.checkBounds(methodBuilder);
             int arrayByteOffset = arrayFieldModel.verifiedByteOffset(valueBuilder);
             genVerifiedElementOffset(arrayFieldModel, methodBuilder);
             methodBuilder.beginControlFlow(
@@ -196,12 +198,19 @@ class CharSequenceFieldModel extends ScalarFieldModel {
                 MethodSpec.Builder methodBuilder) {
             if (!nullable())
                 checkArgumentNotNull(methodBuilder);
+            arrayFieldModel.checkBounds(methodBuilder);
+            genArrayElementSet(arrayFieldModel, valueBuilder, methodBuilder, varName());
+        }
+
+        private void genArrayElementSet(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder, Object toSet) {
             int arrayByteOffset = arrayFieldModel.verifiedByteOffset(valueBuilder);
             genVerifiedElementOffset(arrayFieldModel, methodBuilder);
             String endName = "__end" + name;
             methodBuilder.addStatement(
                     "long $N = bs.writeUtf8Limited(offset + $L + elementOffset, $N, $L)",
-                    endName, arrayByteOffset, varName(), maxUtf8Length.value());
+                    endName, arrayByteOffset, toSet, maxUtf8Length.value());
             methodBuilder.addStatement("bs.zeroOut($N, offset + $L + elementOffset + $L)",
                     endName, arrayByteOffset, sizeInBytes());
         }
@@ -232,15 +241,17 @@ class CharSequenceFieldModel extends ScalarFieldModel {
                 if (!nullable()) {
                     methodBuilder.addStatement("from.$N(index, $N)",
                             getUsing.getName(), cachedStringBuilder());
-                    genSet(valueBuilder, methodBuilder, cachedStringBuilder());
+                    genArrayElementSet(arrayFieldModel, valueBuilder, methodBuilder,
+                            cachedStringBuilder());
                 } else {
                     String getUsingResult = format("from.%s(index, %s)", getUsing.getName(),
                             cachedStringBuilder());
-                    genSet(valueBuilder, methodBuilder, getUsingResult);
+                    genArrayElementSet(arrayFieldModel, valueBuilder, methodBuilder,
+                            getUsingResult);
                 }
             } else {
-                genSet(valueBuilder, methodBuilder, format("from.%s(index)",
-                        arrayFieldModel.get.getName()));
+                genArrayElementSet(arrayFieldModel, valueBuilder, methodBuilder,
+                        format("from.%s(index)", arrayFieldModel.get.getName()));
             }
         }
 
@@ -269,7 +280,7 @@ class CharSequenceFieldModel extends ScalarFieldModel {
         @Override
         void generateReadMarshallable(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
             methodBuilder.addStatement("$N(bytes.readUtf8($N) ? $N : null)",
-                    set.getName(), cachedStringBuilder(), cachedBuilderToSettable());
+                    set.getName(), cachedStringBuilder(), cachedBuilderToSettable(set));
         }
 
         @Override
@@ -278,7 +289,7 @@ class CharSequenceFieldModel extends ScalarFieldModel {
                 MethodSpec.Builder methodBuilder) {
             methodBuilder.addStatement("$N(index, bytes.readUtf8($N) ? $N : null)",
                     arrayFieldModel.set.getName(), cachedStringBuilder(),
-                    cachedBuilderToSettable());
+                    cachedBuilderToSettable(arrayFieldModel.set));
         }
 
         @Override
@@ -478,7 +489,8 @@ class CharSequenceFieldModel extends ScalarFieldModel {
                 if (!nullable()) {
                     methodBuilder.addStatement("from.$N($N)", getUsing.getName(),
                             cachedStringBuilder());
-                    methodBuilder.addStatement("$N = $N", fieldName(), cachedBuilderToSettable());
+                    methodBuilder.addStatement("$N = $N", fieldName(),
+                            cachedBuilderToSettable(set));
                 } else {
                     String getUsingResult = format("from.%s(%s)", getUsing.getName(),
                             cachedStringBuilder());
@@ -507,7 +519,7 @@ class CharSequenceFieldModel extends ScalarFieldModel {
                     methodBuilder.addStatement("from.$N(index, $N)", getUsing.getName(),
                             cachedStringBuilder());
                     methodBuilder.addStatement("$N[index] = $N",
-                            fieldName(), cachedBuilderToSettable());
+                            fieldName(), cachedBuilderToSettable(arrayFieldModel.set));
                 } else {
                     String getUsingResult = format("from.%s(index, %s)", getUsing.getName(),
                             cachedStringBuilder());

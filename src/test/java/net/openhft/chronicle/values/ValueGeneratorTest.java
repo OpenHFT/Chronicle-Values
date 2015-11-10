@@ -115,12 +115,7 @@ public class ValueGeneratorTest {
 
     @Test
     public void testGenerateNativeWithHasArrays() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        String actual = generateNativeClass(ValueModel.acquire(HasArraysInterface.class),
-                HasArraysInterface.class.getName() + "$$Native");
-        System.out.println(actual);
-        CachedCompiler cc = new CachedCompiler(null, null);
-        Class aClass = cc.loadFromJava(HasArraysInterface.class.getName() + "$$Native", actual);
-        HasArraysInterface hai = (HasArraysInterface) aClass.asSubclass(HasArraysInterface.class).newInstance();
+        HasArraysInterface hai = Values.newNativeReference(HasArraysInterface.class);
         BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(152));
         ((Byteable) hai).bytesStore(bytes, 0L, ((Byteable) hai).maxSize());
 

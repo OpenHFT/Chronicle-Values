@@ -43,8 +43,8 @@ class PrimitiveHeapMemberGenerator extends HeapMemberGenerator {
         PrimitiveFieldModel fieldModel = (PrimitiveFieldModel) this.fieldModel;
         if (fieldModel.setOrdered != null || fieldModel.compareAndSwap != null ||
                 fieldModel.addAtomic != null) {
-            if (modelType == float.class || modelType == double.class)
-                throw new UnsupportedOperationException();
+            if (modelType == double.class)
+                return long.class;
             return int.class;
         }
         return modelType;
@@ -80,28 +80,38 @@ class PrimitiveHeapMemberGenerator extends HeapMemberGenerator {
     }
 
     @Override
-    public void generateGet(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-        if (fieldType() != fieldModel.type) {
-            methodBuilder.addStatement("return ($T) $N", fieldModel.type, field);
-        } else {
-            super.generateGet(valueBuilder, methodBuilder);
-        }
+    String wrap(String rawStoredValue) {
+        if (fieldType() == fieldModel.type)
+            return rawStoredValue;
+        if (fieldModel.type == float.class)
+            return "java.lang.Float.intBitsToFloat(" + rawStoredValue + ")";
+        if (fieldModel.type == double.class)
+            return "java.lang.Double.longBitsToDouble(" + rawStoredValue + ")";
+        if (fieldModel.type == boolean.class)
+            return "(" + rawStoredValue + " != 0)";
+        assert fieldModel.type == byte.class || fieldModel.type == short.class ||
+                fieldModel.type == char.class;
+        return "((" + fieldModel.type.getSimpleName() + ") " + rawStoredValue + ")";
     }
 
     @Override
-    public void generateArrayElementGet(
-            ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
-            MethodSpec.Builder methodBuilder) {
-        if (fieldType() != fieldModel.type) {
-            methodBuilder.addStatement("return ($T) $N[index]", fieldModel.type, field);
-        } else {
-            super.generateArrayElementGet(arrayFieldModel, valueBuilder, methodBuilder);
-        }
+    String unwrap(String inputValue) {
+        if (fieldType() == fieldModel.type)
+            return inputValue;
+        if (fieldModel.type == float.class)
+            return "java.lang.Float.floatToRawIntBits(" + inputValue + ")";
+        if (fieldModel.type == double.class)
+            return "java.lang.Double.doubleToRawLongBits(" + inputValue + ")";
+        if (fieldModel.type == boolean.class)
+            return "(" + inputValue + " ? 1 : 0)";
+        assert fieldModel.type == byte.class || fieldModel.type == short.class ||
+                fieldModel.type == char.class;
+        return inputValue; // byte, short, char -- auto widening, no explicit conversion needed
     }
 
     @Override
     public void generateGetVolatile(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-        methodBuilder.addStatement(format("return %s$N.$N(this, $N)", getCast()),
+        methodBuilder.addStatement("return " + wrap("$N.$N(this, $N)"),
                 valueBuilder.unsafe(), getVolatile(), fieldOffset(valueBuilder));
     }
 
@@ -111,7 +121,7 @@ class PrimitiveHeapMemberGenerator extends HeapMemberGenerator {
             MethodSpec.Builder methodBuilder) {
         arrayFieldModel.checkBounds(methodBuilder);
         methodBuilder.addStatement(
-                format("return %s$N.$N($N, (long) $T.$N + (index * (long) $T.$N))", getCast()),
+                "return " + wrap("$N.$N($N, (long) $T.$N + (index * (long) $T.$N))"),
                 valueBuilder.unsafe(), getVolatile(), field, Unsafe.class, arrayBase(),
                 Unsafe.class, arrayScale());
     }
@@ -123,18 +133,24 @@ class PrimitiveHeapMemberGenerator extends HeapMemberGenerator {
 
     @Override
     void generateReadMarshallable(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-        String cast = fieldModel.type == char.class ? "(char) " : "";
-        methodBuilder.addStatement("$N = $Nbytes.$N()",
-                fieldModel.fieldName(), cast, fieldModel.readMethod());
+        if (fieldModel.type != char.class || fieldType() != fieldModel.type) {
+            methodBuilder.addStatement("$N = " + unwrap("bytes.$N()"),
+                    field, fieldModel.readMethod());
+        } else {
+            methodBuilder.addStatement("$N = (char) bytes.readUnsignedShort()", field);
+        }
     }
 
     @Override
     void generateArrayElementReadMarshallable(
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
-        String cast = fieldModel.type == char.class ? "(char) " : "";
-        methodBuilder.addStatement("$N[index] = $Nbytes.$N()",
-                fieldModel.fieldName(), cast, fieldModel.readMethod());
+        if (fieldModel.type != char.class || fieldType() != fieldModel.type) {
+            methodBuilder.addStatement("$N[index] = " + unwrap("bytes.$N()"),
+                    field, fieldModel.readMethod());
+        } else {
+            methodBuilder.addStatement("$N[index] = (char) bytes.readUnsignedShort()", field);
+        }
     }
 
     @Override

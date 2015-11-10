@@ -54,6 +54,16 @@ class ObjectHeapMemberGenerator extends HeapMemberGenerator {
     }
 
     @Override
+    String wrap(String rawStoredValue) {
+        return rawStoredValue;
+    }
+
+    @Override
+    String unwrap(String inputValue) {
+        return inputValue;
+    }
+
+    @Override
     public void generateGetVolatile(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
         methodBuilder.addStatement("return ($T) $N.getObjectVolatile(this, $N)",
                 fieldModel.type, valueBuilder.unsafe(), fieldOffset(valueBuilder));

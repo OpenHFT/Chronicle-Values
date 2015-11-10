@@ -261,9 +261,9 @@ class FloatingFieldModel extends PrimitiveFieldModel {
 
     private String toBits() {
         if (type == float.class) {
-            return "Float.floatToIntBits";
+            return "java.lang.Float.floatToIntBits";
         } else {
-            return "Double.doubleToLongBits";
+            return "java.lang.Double.doubleToLongBits";
         }
     }
 }

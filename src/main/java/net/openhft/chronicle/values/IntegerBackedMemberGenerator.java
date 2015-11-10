@@ -48,6 +48,7 @@ abstract class IntegerBackedMemberGenerator extends MemberGenerator {
     public void generateArrayElementGet(
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
+        arrayFieldModel.checkBounds(methodBuilder);
         String value = backingFieldModel.genArrayElementGet(
                 arrayFieldModel, valueBuilder, methodBuilder, NORMAL_ACCESS_TYPE);
         finishGet(methodBuilder, value);
@@ -63,6 +64,7 @@ abstract class IntegerBackedMemberGenerator extends MemberGenerator {
     public void generateArrayElementGetVolatile(
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
+        arrayFieldModel.checkBounds(methodBuilder);
         String value = backingFieldModel.genArrayElementGet(
                 arrayFieldModel, valueBuilder, methodBuilder, VOLATILE_ACCESS_TYPE);
         finishGet(methodBuilder, value);
@@ -78,6 +80,7 @@ abstract class IntegerBackedMemberGenerator extends MemberGenerator {
     public void generateArrayElementSet(
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
+        arrayFieldModel.checkBounds(methodBuilder);
         String valueToWrite = startSet(methodBuilder);
         backingFieldModel.genArrayElementSet(arrayFieldModel, valueBuilder, methodBuilder,
                 NORMAL_ACCESS_TYPE, valueToWrite);
@@ -94,6 +97,7 @@ abstract class IntegerBackedMemberGenerator extends MemberGenerator {
     public void generateArrayElementSetVolatile(
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
+        arrayFieldModel.checkBounds(methodBuilder);
         String valueToWrite = startSet(methodBuilder);
         backingFieldModel.genArrayElementSet(arrayFieldModel, valueBuilder, methodBuilder,
                 VOLATILE_ACCESS_TYPE, valueToWrite);
@@ -110,6 +114,7 @@ abstract class IntegerBackedMemberGenerator extends MemberGenerator {
     public void generateArrayElementSetOrdered(
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
+        arrayFieldModel.checkBounds(methodBuilder);
         String valueToWrite = startSet(methodBuilder);
         backingFieldModel.genArrayElementSet(arrayFieldModel, valueBuilder, methodBuilder,
                 ORDERED_ACCESS_TYPE, valueToWrite);
@@ -144,7 +149,7 @@ abstract class IntegerBackedMemberGenerator extends MemberGenerator {
 
     @Override
     void generateWriteMarshallable(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-        methodBuilder.addStatement("bytes.write$N($N)", backingFieldModel.capTypeName(),
+        methodBuilder.addStatement("bytes.$N($N)", backingFieldModel.writeMethod(),
                 backingFieldModel.genGet(valueBuilder, NORMAL_ACCESS_TYPE));
     }
 
@@ -154,7 +159,7 @@ abstract class IntegerBackedMemberGenerator extends MemberGenerator {
             MethodSpec.Builder methodBuilder) {
         String value = backingFieldModel.genArrayElementGet(
                 arrayFieldModel, valueBuilder, methodBuilder, NORMAL_ACCESS_TYPE);
-        methodBuilder.addStatement("bytes.write$N($N)", backingFieldModel.capTypeName(), value);
+        methodBuilder.addStatement("bytes.$N($N)", backingFieldModel.writeMethod(), value);
     }
 
     @Override
@@ -171,6 +176,6 @@ abstract class IntegerBackedMemberGenerator extends MemberGenerator {
     }
 
     private String readValue() {
-        return format("bytes.read%s()", backingFieldModel.capTypeName());
+        return format("bytes.%s()", backingFieldModel.readMethod());
     }
 }

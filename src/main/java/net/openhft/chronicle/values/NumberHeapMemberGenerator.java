@@ -33,21 +33,31 @@ class NumberHeapMemberGenerator extends PrimitiveHeapMemberGenerator {
 
     @Override
     public void generateAdd(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-        methodBuilder.addStatement(format("return %s($N += addition)", getCast()), field);
+        methodBuilder.addStatement("$T $N = " + wrap("$N") + " + addition",
+                fieldModel.type, fieldModel.varName(), field);
+        methodBuilder.addStatement("$N = " + unwrap("$N"), field, fieldModel.varName());
+        methodBuilder.addStatement("return $N", fieldModel.varName());
     }
 
     @Override
     public void generateArrayElementAdd(
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
-        methodBuilder.addStatement(format("return %s($N[index] += addition)", getCast()), field);
+        methodBuilder.addStatement("$T $N = " + wrap("$N[index]") + " + addition",
+                fieldModel.type, fieldModel.varName(), field);
+        methodBuilder.addStatement("$N[index] = " + unwrap("$N"), field, fieldModel.varName());
+        methodBuilder.addStatement("return $N", fieldModel.varName());
     }
 
     @Override
     public void generateAddAtomic(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-        methodBuilder.addStatement(
-                format("return %s($N.$N(this, $N, addition) + addition)", getCast()),
-                valueBuilder.unsafe(), getAndAdd(), fieldOffset(valueBuilder));
+        if (fieldModel.type == float.class || fieldModel.type == double.class) {
+            methodBuilder.addStatement("return $N.$N(this, $N, addition) + addition",
+                    valueBuilder.unsafe(), getAndAdd(), fieldOffset(valueBuilder));
+        } else  {
+            methodBuilder.addStatement("return " + wrap("$N.$N(this, $N, addition) + addition"),
+                    valueBuilder.unsafe(), getAndAdd(), fieldOffset(valueBuilder));
+        }
     }
 
     @Override
@@ -55,10 +65,18 @@ class NumberHeapMemberGenerator extends PrimitiveHeapMemberGenerator {
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
         arrayFieldModel.checkBounds(methodBuilder);
-        methodBuilder.addStatement(
-                format("return %s($N.$N($N, (long) $T.$N + (index * (long) $T.$N), addition) + " +
-                        "addition)", getCast()),
-                valueBuilder.unsafe(), getAndAdd(), field, Unsafe.class, arrayBase(),
-                Unsafe.class, arrayScale());
+        if (fieldModel.type == float.class || fieldModel.type == double.class) {
+            methodBuilder.addStatement(
+                    "return $N.$N($N, (long) $T.$N + (index * (long) $T.$N), addition) + addition",
+                    valueBuilder.unsafe(), getAndAdd(), field, Unsafe.class, arrayBase(),
+                    Unsafe.class, arrayScale());
+        } else {
+            methodBuilder.addStatement(
+                    "return " + wrap("$N.$N($N, (long) $T.$N + " +
+                            "(index * (long) $T.$N), addition) + addition"),
+                    valueBuilder.unsafe(), getAndAdd(), field, Unsafe.class, arrayBase(),
+                    Unsafe.class, arrayScale());
+
+        }
     }
 }

@@ -238,9 +238,9 @@ abstract class FieldModel {
         }
     }
 
-    private void generateMethod(ValueBuilder valueBuilder, Method m,
-                                BiConsumer<ValueBuilder, MethodSpec.Builder> generate,
-                                String... parameterNames) {
+    private void generateMethod(
+            ValueBuilder valueBuilder, Method m,
+            BiConsumer<ValueBuilder, MethodSpec.Builder> generate, String... parameterNames) {
         if (m != null) {
             List<String> paramNames = new ArrayList<>();
             if (this instanceof ArrayFieldModel)

@@ -133,7 +133,8 @@ class IntegerFieldModel extends PrimitiveFieldModel {
     final MemberGenerator nativeGenerator = new IntegerBackedMemberGenerator(this, this) {
 
         @Override
-        void generateArrayElementFields(ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder) {
+        void generateArrayElementFields(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder) {
             // no fields
         }
 
@@ -247,17 +248,15 @@ class IntegerFieldModel extends PrimitiveFieldModel {
 
         @Override
         String generateHashCode(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-            String value = genGet(valueBuilder, NORMAL_ACCESS_TYPE);
-            return String.format("%s.hashCode(%s)", boxed(type).getName(), value);
+            return format("%s.hashCode(%s())", boxed(type).getName(), getOrGetVolatile().getName());
         }
 
         @Override
         String generateArrayElementHashCode(
                 ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
                 MethodSpec.Builder methodBuilder) {
-            String value = genArrayElementGet(
-                    arrayFieldModel, valueBuilder, methodBuilder, NORMAL_ACCESS_TYPE);
-            return String.format("%s.hashCode(%s)", boxed(type).getName(), value);
+            return format("%s.hashCode(%s(index))",
+                    boxed(type).getName(), arrayFieldModel.getOrGetVolatile().getName());
         }
     };
 
@@ -296,10 +295,10 @@ class IntegerFieldModel extends PrimitiveFieldModel {
         if (range.min() == 0 && range.max() == readMax - readMin) {
             char[] m = new char[bitsToRead / 4];
             Arrays.fill(m, 'F');
-            String mask = "0xFF" + new String(m);
+            String mask = "0x" + new String(m);
             if (type == long.class)
                 mask += "L";
-            return format("%s & %s", read, mask);
+            return cast(format("%s & %s", read, mask));
         }
 
         // value adjusted to the specified range, no masking
@@ -313,7 +312,7 @@ class IntegerFieldModel extends PrimitiveFieldModel {
             } else {
                 add = (range.min() - readMin) + "L";
             }
-            return format("%s + %s", read, add);
+            return cast(format("%s + %s", read, add));
         }
 
         // low or high masks
@@ -330,7 +329,13 @@ class IntegerFieldModel extends PrimitiveFieldModel {
             String l = (min < Integer.MAX_VALUE || min > Integer.MAX_VALUE) ? "L" : "";
             masked = format("(%s) + %s", masked, min + l);
         }
-        return masked;
+        return cast(masked);
+    }
+
+    private String cast(String value) {
+        if (type == byte.class || type == char.class || type == short.class)
+            value = format("((%s) (%s))", type.getSimpleName(), value);
+        return value;
     }
 
     String genArrayElementGet(
@@ -380,7 +385,8 @@ class IntegerFieldModel extends PrimitiveFieldModel {
             valueToWrite = format("(%s & %s) | %s", read, mask, valueToWrite);
         }
 
-        String writeMethod = "write" + accessType.apply(integerBytesMethodSuffix(bitsToWrite));
+        String writeMethod = "write" + accessType.apply(
+                type != char.class ? integerBytesMethodSuffix(bitsToWrite) : "UnsignedShort");
         String write = format("bs.%s(%s, %s)", writeMethod, ioOffset, valueToWrite);
         methodBuilder.addStatement(write);
     }
