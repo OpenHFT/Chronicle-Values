@@ -8,9 +8,9 @@ interfaces. Interfaces, that could be processed by Chronicle-Values generation, 
 interfaces**.
 
 **Project status: Alpha**, the feature matrix (see below) is very wast and not fully implemented
-yet, please write the value interface according to the specification below, with the unit tests for
-your interface. If the generation from the value interface (according to spec) doesn't work, please
-report the case via issues on Github.
+yet, please write the value interface according to the specification below, with the **unit tests
+for your interface**. If the generation from the value interface (according to spec) doesn't work,
+please report the case via issues on Github.
 
 ## Value interface specification
 
@@ -103,68 +103,87 @@ interface SomeStats {
 
 ### More than 2 operations with fields
 
- - `[get]<FieldName>[At]`, `[set]<FieldName>[At]`, `is<FieldName>[At]` - simple get/set. For
- `boolean` fields, `isFoo()` Java bean syntax variation is supported. Also, `get-` and `set-`
- prefixes could be omitted, e. g.
- ```java
- interface Point {
-     double x();
-     void x(double x);
+#### Simple get/set
 
-     double y();
-     void y(double y);
- }
- ```
- - `getVolatile<FieldName>[At]`, `setVolatile<FieldName>[At]` - volatile get/set
- - `setOrdered<FieldName>[At]` - ordered write operation, the same as behind
- `AtomicInteger.lazySet()`
- - `type add<FieldName>[At]([int index, ]type addition)` - equivalent of
- ```java
-     int foo = getFoo();
-     foo += addition;
-     setFoo(foo);
-     return foo;
- ```
- works only with numeric primitive field types: `byte`, `char`, `short`, `int`, `long`, `double`,
- `float`
- - `type addAtomic<FieldName>[At]([int index, ]type addition)` - same as `add`, operates via atomic
- operations, works only with numeric primitive field types.
- - `boolean compareAndSwap<FieldName>[At]([int index, ]type expectedValue, type newValue)` - atomic
- field value exchange, returns `true` if successfully swapped the value. Works only with primitive,
- `enum` and `Date` field types.
- - `getUsing<Foo>[At]([int index, ]Type using)` - for `String`, `CharSequence` or another
- value interface field types. Reads the value into the given on-heap object. Primarily useful for
- retrieving data from flyweight implementations without creating garbage.
+`[get]<FieldName>[At]`, `[set]<FieldName>[At]`, `is<FieldName>[At]` - simple get/set. For `boolean`
+fields, `isFoo()` Java bean syntax variation is supported. Also, `get-` and `set-` prefixes could be
+omitted, e. g.
+```java
+interface Point {
+    double x();
+    void x(double x);
 
- If the field type is `String` or `CharSequence`, `using` parameter type must be `StringBuilder`.
- Return type of the `getUsing` method in this case might be `CharSequence`, `StringBuilder`,
- `String` or `void`, if this char sequence field is marked as `@NotNull`. Semantically this method
- is equivalent to
- ```java
- CharSequence getUsingName(StringBuilder using) {
-     using.setLength(0);
-     CharSequence name = getName();
-     if (name != null) {
-        using.append(name);
-        return using;
-     } else {
-        return null;
-     }
- }
- ```
+    double y();
+    void y(double y);
+}
+```
 
- Note that the `StringBuilder` is cleared via `setLength(0)` before reusing.
+#### Volatile get/set
 
- If the field type is another value interface field, `using` parameter type is the value interface,
- the return type of the method could be the interface or `void`. See `getUsingCenter(Point using)`
- in the example above.
+`getVolatile<FieldName>[At]`, `setVolatile<FieldName>[At]`
+
+#### "Ordered" set
+
+`setOrdered<FieldName>[At]` - ordered write operation, the same as behind `AtomicInteger.lazySet()`
+
+#### Simple add
+
+`type add<FieldName>[At]([int index, ]type addition)` - equivalent of
+```java
+    int foo = getFoo();
+    foo += addition;
+    setFoo(foo);
+    return foo;
+```
+works only with numeric primitive field types: `byte`, `char`, `short`, `int`, `long`, `double`,
+`float`
+
+#### Atomic add
+
+`type addAtomic<FieldName>[At]([int index, ]type addition)` - same as `add`, operates via atomic
+operations, works only with numeric primitive field types.
+
+#### Compare-and-swap
+
+`boolean compareAndSwap<FieldName>[At]([int index, ]type expectedValue, type newValue)` - atomic
+field value exchange, returns `true` if successfully swapped the value. Works only with primitive,
+`enum` and `Date` field types.
+
+#### getUsing
+
+`getUsing<Foo>[At]([int index, ]Type using)` - for `String`, `CharSequence` or another value
+interface field types. Reads the value into the given on-heap object. Primarily useful for
+retrieving data from flyweight implementations without creating garbage.
+
+If the field type is `String` or `CharSequence`, `using` parameter type must be `StringBuilder`.
+Return type of the `getUsing` method in this case might be `CharSequence`, `StringBuilder`, `String`
+or `void`, if this char sequence field is marked as `@NotNull`. Semantically this method is
+equivalent to
+```java
+CharSequence getUsingName(StringBuilder using) {
+    using.setLength(0);
+    CharSequence name = getName();
+    if (name != null) {
+       using.append(name);
+       return using;
+    } else {
+       return null;
+    }
+}
+```
+
+Note that the `StringBuilder` is cleared via `setLength(0)` before reusing.
+
+If the field type is another value interface field, `using` parameter type is the value interface,
+the return type of the method could be the interface or `void`. See `getUsingCenter(Point using)` in
+the example above.
 
 ### Field configuration via annotations
 
 #### Field ordering in flyweight layout
 
-Field order is unspecified. In order to ensure some order, put `@Group` annotations on all field's
-methods, for example:
+Field order is unspecified. To ensure some order, put `@Group` annotations on all field's methods,
+for example:
 
 ```java
 interface Complex {
