@@ -204,7 +204,18 @@ public class ValueModel {
         return ValueModel.acquire(firstFieldType).firstPrimitiveFieldType();
     }
 
-    int sizeInBytes() {
+    /**
+     * Returns the recommended alignment of a flyweight bytes offset, to satisfy alignments of all
+     * the fields. It is the most coarse among all of it's fields' {@linkplain Align#offset()
+     * offset} and {@linkplain Align#dontCross() don't cross} alignments.
+     *
+     * @return the alignment of the flyweight value itself, to satisfy fields' alignments
+     */
+    public int recommendedOffsetAlignment() {
+        return fields().mapToInt(FieldModel::maxAlignmentInBytes).max().getAsInt();
+    }
+
+    public int sizeInBytes() {
         return sizeInBytes;
     }
 

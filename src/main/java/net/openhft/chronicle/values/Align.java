@@ -46,10 +46,9 @@ public @interface Align {
      *     #dontCross()} alignment is equivalent to 1-byte for fields which take <= 8 bits, 2-byte
      *     for fields which take <= 16 bits, 4-byte for fields which take <= 32 bits, 8-byte for
      *     fields which take <= 64 bits. {@link #offset()} alignment is 1-byte for such fields.</li>
-     *     <li>If the field is Value-generated interface, default {@code offset} alignment is
-     *     equivalent to the most coarse {@code offset} <i>or</i> {@code dontCross} alignment of
-     *     this sub-value's fields. {@code dontCross} default alignment for Value fields is {@link
-     *     #NO_ALIGNMENT}.</li>
+     *     <li>If the field is another value interface, default {@code offset} alignment is
+     *     {@link ValueModel#recommendedOffsetAlignment()} for this sub-value interface. {@code
+     *     dontCross} default alignment for Value fields is {@link #NO_ALIGNMENT}.</li>
      *     <li>If the field is an array, default {@code offset} alignment is equivalent to the
      *     maximum of it's element {@code offset} or {@code dontCross} alignment, default {@code
      *     dontCross} for array fields is {@code NO_ALIGNMENT}.

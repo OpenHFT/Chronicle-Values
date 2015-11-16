@@ -41,7 +41,7 @@ class ValueFieldModel extends ScalarFieldModel {
     @Override
     int offsetAlignmentInBytes() {
         if (offsetAlignment == Align.DEFAULT)
-            return valueModel.fields().mapToInt(FieldModel::maxAlignmentInBytes).max().getAsInt();
+            return valueModel.recommendedOffsetAlignment();
         // Value fields should be aligned at least to a byte boundary
         return Math.max(1, offsetAlignment);
     }
