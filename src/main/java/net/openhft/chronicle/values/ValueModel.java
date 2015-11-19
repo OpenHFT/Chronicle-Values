@@ -209,10 +209,12 @@ public class ValueModel {
      * the fields. It is the most coarse among all of it's fields' {@linkplain Align#offset()
      * offset} and {@linkplain Align#dontCross() don't cross} alignments.
      *
+     * <p>Returns a positive integer >= 1.
+     *
      * @return the alignment of the flyweight value itself, to satisfy fields' alignments
      */
     public int recommendedOffsetAlignment() {
-        return fields().mapToInt(FieldModel::maxAlignmentInBytes).max().getAsInt();
+        return Math.max(fields().mapToInt(FieldModel::maxAlignmentInBytes).max().getAsInt(), 1);
     }
 
     public int sizeInBytes() {
