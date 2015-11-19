@@ -44,7 +44,7 @@ final class Generators {
         ValueBuilder valueBuilder = new ValueBuilder(model, nativeClassName, typeBuilder);
         model.fields().forEach(f -> f.generateNativeMembers(valueBuilder));
         generateNativeCommons(valueBuilder);
-        valueBuilder.closeStaticInitializationBlock();
+        valueBuilder.closeConstructorsAndInitializationBlocks();
         TypeSpec nativeType = typeBuilder.build();
         String result = JavaFile
                 .builder(model.valueType.getPackage().getName(), nativeType)
@@ -230,7 +230,7 @@ final class Generators {
         generateValueCommons(valueBuilder, FieldModel::heapGenerator);
         if (Byteable.class.isAssignableFrom(model.valueType))
             typeBuilder.addSuperinterface(HeapByteable.class);
-        valueBuilder.closeStaticInitializationBlock();
+        valueBuilder.closeConstructorsAndInitializationBlocks();
         TypeSpec heapType = typeBuilder.build();
         String result = JavaFile
                 .builder(model.valueType.getPackage().getName(), heapType)

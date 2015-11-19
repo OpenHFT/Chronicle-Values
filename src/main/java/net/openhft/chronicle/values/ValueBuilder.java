@@ -18,15 +18,14 @@ package net.openhft.chronicle.values;
 
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import net.openhft.chronicle.core.Jvm;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
 
-import static javax.lang.model.element.Modifier.FINAL;
-import static javax.lang.model.element.Modifier.PRIVATE;
-import static javax.lang.model.element.Modifier.STATIC;
+import static javax.lang.model.element.Modifier.*;
 
 class ValueBuilder {
 
@@ -35,6 +34,7 @@ class ValueBuilder {
     final TypeSpec.Builder typeBuilder;
     private FieldSpec unsafe;
     private CodeBlock.Builder staticBlockBuilder;
+    private MethodSpec.Builder defaultConstructorBuilder;
 
     public ValueBuilder(ValueModel model, String className, TypeSpec.Builder typeBuilder) {
         this.model = model;
@@ -57,18 +57,28 @@ class ValueBuilder {
     }
 
     CodeBlock.Builder staticBlockBuilder() {
-        if (staticBlockBuilder == null) {
+        if (staticBlockBuilder == null)
             staticBlockBuilder = CodeBlock.builder();
-        }
         return staticBlockBuilder;
     }
 
-    void closeStaticInitializationBlock() {
+    MethodSpec.Builder defaultConstructorBuilder() {
+        if (defaultConstructorBuilder == null) {
+            defaultConstructorBuilder = MethodSpec.constructorBuilder();
+            defaultConstructorBuilder.addModifiers(PUBLIC);
+        }
+        return defaultConstructorBuilder;
+    }
+
+    void closeConstructorsAndInitializationBlocks() {
         if (staticBlockBuilder != null) {
             staticBlockBuilder.nextControlFlow("catch ($T e)", IllegalAccessException.class);
             staticBlockBuilder.addStatement("throw new $T(e)", AssertionError.class);
             staticBlockBuilder.endControlFlow();
             typeBuilder.addStaticBlock(staticBlockBuilder.build());
+        }
+        if (defaultConstructorBuilder != null) {
+            typeBuilder.addMethod(defaultConstructorBuilder.build());
         }
     }
 }
