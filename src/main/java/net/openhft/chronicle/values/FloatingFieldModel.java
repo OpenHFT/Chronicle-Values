@@ -17,6 +17,7 @@
 package net.openhft.chronicle.values;
 
 import com.squareup.javapoet.MethodSpec;
+import sun.misc.Unsafe;
 
 import static java.lang.String.format;
 import static net.openhft.chronicle.values.Primitives.boxed;
@@ -243,6 +244,46 @@ class FloatingFieldModel extends PrimitiveFieldModel {
     @Override
     MemberGenerator createHeapGenerator() {
         return new NumberHeapMemberGenerator(this) {
+
+            @Override
+            public void generateAddAtomic(
+                    ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+                methodBuilder.beginControlFlow("while (true)");
+                methodBuilder.addStatement("$T $N = " + wrap("$N.$N(this, $N)"),
+                        type, oldName(),
+                        valueBuilder.unsafe(), getVolatile(), fieldOffset(valueBuilder));
+                methodBuilder.addStatement("$T $N = $N + addition", type, newName(), oldName());
+                methodBuilder.beginControlFlow(
+                        format("if ($N.$N(this, $N, %s, %s))", unwrap("$N"), unwrap("$N")),
+                        valueBuilder.unsafe(), compareAndSwap(), fieldOffset(valueBuilder),
+                        oldName(), newName());
+                methodBuilder.addStatement("return $N", newName());
+                methodBuilder.endControlFlow();
+                methodBuilder.endControlFlow();
+            }
+
+            @Override
+            public void generateArrayElementAddAtomic(
+                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                    MethodSpec.Builder methodBuilder) {
+                arrayFieldModel.checkBounds(methodBuilder);
+                methodBuilder.beginControlFlow("while (true)");
+                methodBuilder.addStatement(
+                        "$T $N = " + wrap("$N.$N($N, (long) $T.$N + (index * (long) $T.$N))"),
+                        type, oldName(),
+                        valueBuilder.unsafe(), getVolatile(), field, Unsafe.class, arrayBase(),
+                        Unsafe.class, arrayScale());
+                methodBuilder.addStatement("$T $N = $N + addition", type, newName(), oldName());
+                methodBuilder.beginControlFlow(
+                        format("if ($N.$N($N, (long) $T.$N + (index * (long) $T.$N), %s, %s))",
+                                unwrap("$N"), unwrap("$N")),
+                        valueBuilder.unsafe(), compareAndSwap(), field, Unsafe.class, arrayBase(),
+                        Unsafe.class, arrayScale(), oldName(), newName());
+                methodBuilder.addStatement("return $N", newName());
+                methodBuilder.endControlFlow();
+                methodBuilder.endControlFlow();
+            }
+
             @Override
             void generateEquals(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
                 methodBuilder.addCode("if ($N($N) != $N(other.$N())) return false;\n",

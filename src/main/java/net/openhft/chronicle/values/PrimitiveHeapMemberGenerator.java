@@ -50,7 +50,7 @@ class PrimitiveHeapMemberGenerator extends HeapMemberGenerator {
         return modelType;
     }
 
-    private String getVolatile() {
+    String getVolatile() {
         return "get" + capType + "Volatile";
     }
 

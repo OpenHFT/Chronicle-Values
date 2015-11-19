@@ -175,7 +175,14 @@ class IntegerFieldModel extends PrimitiveFieldModel {
             // TODO use addAndGetXxxNotAtomic from BytesStore interface when possible
             String value = genGet(valueBuilder, NORMAL_ACCESS_TYPE);
             methodBuilder.addStatement("$T $N = " + value, type, oldName());
-            methodBuilder.addStatement("$T $N = $N + $N", type, newName(), oldName(), "addition");
+            if (type != byte.class && type != short.class && type != char.class) {
+                methodBuilder.addStatement("$T $N = $N + $N",
+                        type, newName(), oldName(), "addition");
+            } else {
+                methodBuilder.addStatement("$T $N = ($T) ($N + $N)",
+                        type, newName(), type, oldName(), "addition");
+
+            }
             Range range = range();
             String checkCondition = checkCondition(newName(), range);
             if (!checkCondition.isEmpty()) {

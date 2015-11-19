@@ -33,8 +33,14 @@ class NumberHeapMemberGenerator extends PrimitiveHeapMemberGenerator {
 
     @Override
     public void generateAdd(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-        methodBuilder.addStatement("$T $N = " + wrap("$N") + " + addition",
-                fieldModel.type, fieldModel.varName(), field);
+        if (fieldModel.type != byte.class && fieldModel.type != char.class &&
+                fieldModel.type != short.class) {
+            methodBuilder.addStatement("$T $N = " + wrap("$N") + " + addition",
+                    fieldModel.type, fieldModel.varName(), field);
+        } else {
+            methodBuilder.addStatement("$T $N = ($T) (" + wrap("$N") + " + addition)",
+                    fieldModel.type, fieldModel.varName(), fieldModel.type, field);
+        }
         methodBuilder.addStatement("$N = " + unwrap("$N"), field, fieldModel.varName());
         methodBuilder.addStatement("return $N", fieldModel.varName());
     }
@@ -51,13 +57,8 @@ class NumberHeapMemberGenerator extends PrimitiveHeapMemberGenerator {
 
     @Override
     public void generateAddAtomic(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-        if (fieldModel.type == float.class || fieldModel.type == double.class) {
-            methodBuilder.addStatement("return $N.$N(this, $N, addition) + addition",
-                    valueBuilder.unsafe(), getAndAdd(), fieldOffset(valueBuilder));
-        } else  {
-            methodBuilder.addStatement("return " + wrap("$N.$N(this, $N, addition) + addition"),
-                    valueBuilder.unsafe(), getAndAdd(), fieldOffset(valueBuilder));
-        }
+        methodBuilder.addStatement("return " + wrap("$N.$N(this, $N, addition) + addition"),
+                valueBuilder.unsafe(), getAndAdd(), fieldOffset(valueBuilder));
     }
 
     @Override
@@ -65,18 +66,10 @@ class NumberHeapMemberGenerator extends PrimitiveHeapMemberGenerator {
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
         arrayFieldModel.checkBounds(methodBuilder);
-        if (fieldModel.type == float.class || fieldModel.type == double.class) {
-            methodBuilder.addStatement(
-                    "return $N.$N($N, (long) $T.$N + (index * (long) $T.$N), addition) + addition",
-                    valueBuilder.unsafe(), getAndAdd(), field, Unsafe.class, arrayBase(),
-                    Unsafe.class, arrayScale());
-        } else {
-            methodBuilder.addStatement(
-                    "return " + wrap("$N.$N($N, (long) $T.$N + " +
-                            "(index * (long) $T.$N), addition) + addition"),
-                    valueBuilder.unsafe(), getAndAdd(), field, Unsafe.class, arrayBase(),
-                    Unsafe.class, arrayScale());
-
-        }
+        methodBuilder.addStatement(
+                "return " + wrap("$N.$N($N, (long) $T.$N + " +
+                        "(index * (long) $T.$N), addition) + addition"),
+                valueBuilder.unsafe(), getAndAdd(), field, Unsafe.class, arrayBase(),
+                Unsafe.class, arrayScale());
     }
 }

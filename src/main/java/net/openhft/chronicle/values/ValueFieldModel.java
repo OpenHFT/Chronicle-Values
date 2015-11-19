@@ -41,7 +41,7 @@ class ValueFieldModel extends ScalarFieldModel {
     @Override
     int offsetAlignmentInBytes() {
         if (offsetAlignment == Align.DEFAULT)
-            return valueModel.recommendedOffsetAlignment();
+            return valueModel().recommendedOffsetAlignment();
         // Value fields should be aligned at least to a byte boundary
         return Math.max(1, offsetAlignment);
     }
@@ -71,7 +71,7 @@ class ValueFieldModel extends ScalarFieldModel {
             methodBuilder.addStatement("$T $N = this.$N", nativeType, cachedValue, cachedValue);
             int byteOffset = verifiedByteOffset(valueBuilder);
             methodBuilder.addStatement("$N.bytesStore(bs, offset + $L, $L)",
-                    cachedValue, byteOffset, valueModel.sizeInBytes());
+                    cachedValue, byteOffset, valueModel().sizeInBytes());
         }
 
         @Override
@@ -95,7 +95,7 @@ class ValueFieldModel extends ScalarFieldModel {
             int arrayByteOffset = arrayField.verifiedByteOffset(valueBuilder);
             genVerifiedElementOffset(arrayField, methodBuilder);
             methodBuilder.addStatement("$N.bytesStore(bs, offset + $L + elementOffset, $L)",
-                    cachedValue, arrayByteOffset, valueModel.sizeInBytes());
+                    cachedValue, arrayByteOffset, valueModel().sizeInBytes());
         }
 
         @Override
@@ -104,7 +104,7 @@ class ValueFieldModel extends ScalarFieldModel {
             methodBuilder.beginControlFlow("if ($N instanceof $T)", varName(), nativeType);
             int byteOffset = verifiedByteOffset(valueBuilder);
             methodBuilder.addStatement("(($T) $N).bytesStore(bs, offset + $L, $L)",
-                    nativeType, varName(), byteOffset, valueModel.sizeInBytes());
+                    nativeType, varName(), byteOffset, valueModel().sizeInBytes());
             methodBuilder.nextControlFlow("else");
             initCachedValue(valueBuilder, methodBuilder);
             methodBuilder.addStatement("(($T) $N).copyFrom($N)",
@@ -121,7 +121,7 @@ class ValueFieldModel extends ScalarFieldModel {
             genVerifiedElementOffset(arrayFieldModel, methodBuilder);
             int arrayByteOffset = arrayFieldModel.verifiedByteOffset(valueBuilder);
             methodBuilder.addStatement("(($T) $N).bytesStore(bs, offset + $L + elementOffset, $L)",
-                    nativeType, varName(), arrayByteOffset, valueModel.sizeInBytes());
+                    nativeType, varName(), arrayByteOffset, valueModel().sizeInBytes());
             methodBuilder.nextControlFlow("else");
             initArrayElementCachedValue(arrayFieldModel, valueBuilder, methodBuilder);
             methodBuilder.addStatement(
@@ -284,7 +284,7 @@ class ValueFieldModel extends ScalarFieldModel {
             @Override
             void generateReadMarshallable(
                     ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-                methodBuilder.addStatement("$N = new $T()", fieldName(), valueModel.heapClass());
+                methodBuilder.addStatement("$N = new $T()", fieldName(), valueModel().heapClass());
                 methodBuilder.addStatement("$N.readMarshallable(bytes)", fieldName());
             }
 
@@ -293,7 +293,7 @@ class ValueFieldModel extends ScalarFieldModel {
                     ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
                     MethodSpec.Builder methodBuilder) {
                 methodBuilder.addStatement("$N[index] = new $T()",
-                        fieldName(), valueModel.heapClass());
+                        fieldName(), valueModel().heapClass());
                 methodBuilder.addStatement("$N[index].readMarshallable(bytes)", fieldName());
             }
 
