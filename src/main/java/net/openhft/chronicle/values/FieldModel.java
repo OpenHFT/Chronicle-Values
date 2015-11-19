@@ -29,7 +29,7 @@ import java.util.function.BiConsumer;
 import static net.openhft.chronicle.values.Generators.methodBuilder;
 import static net.openhft.chronicle.values.Utils.capitalize;
 
-abstract class FieldModel {
+public abstract class FieldModel {
     String name;
     /**
      * The field type if this is a {@link ScalarFieldModel},
@@ -194,6 +194,10 @@ abstract class FieldModel {
                 oldName(), newName());
     }
 
+    public String name() {
+        return name;
+    }
+
     /**
      * Field name as variable name. Not equal to field name, because it could clash with Java
      * keyword or type name, e. g. getInt()/setInt()
@@ -261,6 +265,10 @@ abstract class FieldModel {
         this.get = get;
     }
 
+    public Method get() {
+        return get;
+    }
+
     void setGetVolatile(Method getVolatile) {
         if (this.getVolatile != null) {
             throw new IllegalStateException("GetVolatile is already declared for the field" +
@@ -283,6 +291,10 @@ abstract class FieldModel {
                     ": " + this.set.getName() + ", " + set.getName());
         }
         this.set = set;
+    }
+
+    public Method set() {
+        return set;
     }
 
     void setSetVolatile(Method setVolatile) {

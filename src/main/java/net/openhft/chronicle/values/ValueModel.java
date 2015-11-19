@@ -193,7 +193,7 @@ public class ValueModel {
         return alignment == NO_ALIGNMENT || from / alignment == (from + size - 1) / alignment;
     }
 
-    Stream<FieldModel> fields() {
+    public Stream<FieldModel> fields() {
         return orderedFields.stream();
     }
 
