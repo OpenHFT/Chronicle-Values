@@ -30,6 +30,8 @@ import static java.util.function.Function.identity;
 import static net.openhft.chronicle.values.Primitives.boxed;
 import static net.openhft.chronicle.values.Primitives.widthInBits;
 import static net.openhft.chronicle.values.RangeImpl.*;
+import static net.openhft.chronicle.values.Utils.capitalize;
+import static net.openhft.chronicle.values.Utils.formatIntOrLong;
 
 class IntegerFieldModel extends PrimitiveFieldModel {
 
@@ -121,12 +123,16 @@ class IntegerFieldModel extends PrimitiveFieldModel {
     }
 
     private static String integerBytesMethodSuffix(int bitsToRead) {
-        switch (bitsToRead) {
-            case 8: return "Byte";
-            case 16: return "Short";
-            case 32: return "Int";
-            case 64: return "Long";
-            default: throw new AssertionError("cannot read/write " + bitsToRead + " bits");
+        return capitalize(integerBytesIoType(bitsToRead).getSimpleName());
+    }
+
+    private static Class integerBytesIoType(int bits) {
+        switch (bits) {
+            case 8: return byte.class;
+            case 16: return short.class;
+            case 32: return int.class;
+            case 64: return long.class;
+            default: throw new AssertionError("cannot read/write " + bits + " bits");
         }
     }
 
@@ -162,12 +168,12 @@ class IntegerFieldModel extends PrimitiveFieldModel {
         @NotNull
         private String checkCondition(String value, Range range) {
             Range defaultRange = defaultRange();
-            String cond = "|| ";
+            String cond = " || ";
             if (range.min() != defaultRange.min())
-                cond += value + " < " + range.min();
+                cond += value + " < " + formatIntOrLong(range.min());
             if (range.max() != defaultRange.max())
-                cond += "|| " + value + " > " + range.max();
-            return cond.substring(3);
+                cond += " || " + value + " > " + formatIntOrLong(range.max());
+            return cond.substring(4);
         }
 
         @Override
@@ -392,6 +398,9 @@ class IntegerFieldModel extends PrimitiveFieldModel {
             valueToWrite = format("(%s & %s) | %s", read, mask, valueToWrite);
         }
 
+        Class ioType = integerBytesIoType(bitsToWrite);
+        if (ioType != type)
+            valueToWrite = format("(%s) %s", ioType.getSimpleName(), valueToWrite);
         String writeMethod = "write" + accessType.apply(
                 type != char.class ? integerBytesMethodSuffix(bitsToWrite) : "UnsignedShort");
         String write = format("bs.%s(%s, %s)", writeMethod, ioOffset, valueToWrite);

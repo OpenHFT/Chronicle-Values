@@ -16,21 +16,8 @@
 
 package net.openhft.chronicle.values;
 
-final class Utils {
-
-    public static int roundUp(int divident, int divisor) {
-        return ((divident + divisor - 1) / divisor) * divisor;
-    }
-
-    static String capitalize(String s) {
-        return s.substring(0, 1).toUpperCase() + s.substring(1);
-    }
-
-    static String formatIntOrLong(long v) {
-        if (v >= Integer.MIN_VALUE && v <= Integer.MAX_VALUE)
-            return v + "";
-        return v + "L";
-    }
-
-    private Utils() {}
+public interface UnsignedIntValue {
+    long getValue();
+    void setValue(@Range(min = 0, max = (1L << 32) - 1) long value);
+    long addValue(long addition);
 }

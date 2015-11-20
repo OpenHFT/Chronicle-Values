@@ -62,6 +62,30 @@ public class CoreValuesTest {
     }
 
     @Test
+    public void testHeapUnsignedIntValue() {
+        testUnsignedIntValue(Values.newHeapInstance(UnsignedIntValue.class));
+    }
+
+    @Test
+    public void testNativeUnsignedIntValue() {
+        UnsignedIntValue unsignedIntValue = Values.newNativeReference(UnsignedIntValue.class);
+        BytesStore bs = nativeStoreWithFixedCapacity(((Byteable) unsignedIntValue).maxSize());
+        assertEquals(4, bs.capacity());
+        ((Byteable) unsignedIntValue).bytesStore(bs, 0, ((Byteable) unsignedIntValue).maxSize());
+        testUnsignedIntValue(unsignedIntValue);
+    }
+
+    public void testUnsignedIntValue(UnsignedIntValue v) {
+        assertEquals(0, v.getValue());
+
+        v.setValue(1);
+        assertEquals(1, v.getValue());
+
+        v.addValue(1);
+        assertEquals(2, v.getValue());
+    }
+
+    @Test
     public void testHeapByteValue() {
         testByteValue(Values.newHeapInstance(ByteValue.class));
     }
