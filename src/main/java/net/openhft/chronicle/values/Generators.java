@@ -216,7 +216,7 @@ final class Generators {
         methodBuilder.addStatement("sb.append($S)", modelName);
         valueBuilder.model.fields()
                 .forEach(f -> generator.apply(f).generateToString(valueBuilder, methodBuilder));
-        methodBuilder.addStatement("sb.insert($L, '{')", modelName.length());
+        methodBuilder.addStatement("sb.setCharAt($L, '{')", modelName.length());
         methodBuilder.addStatement("sb.append(' ').append('}')");
         methodBuilder.addStatement("return sb.toString()");
         return methodBuilder.build();
