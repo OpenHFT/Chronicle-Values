@@ -276,7 +276,7 @@ class ArrayFieldModel extends FieldModel {
             beginLoop(methodBuilder);
             elemGenerator.generateArrayElementToString(self(), valueBuilder, methodBuilder);
             methodBuilder.endControlFlow();
-            methodBuilder.addStatement("sb.insert(sb.length() - 2, ']')");
+            methodBuilder.addStatement("sb.setCharAt(sb.length() - 2, ']')");
             methodBuilder.addStatement("sb.setLength(sb.length() - 1)");
         }
 
