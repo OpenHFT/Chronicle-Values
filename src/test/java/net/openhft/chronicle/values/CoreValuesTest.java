@@ -19,6 +19,7 @@ package net.openhft.chronicle.values;
 import net.openhft.chronicle.bytes.Byteable;
 import net.openhft.chronicle.bytes.BytesStore;
 import net.openhft.chronicle.core.values.*;
+import org.jetbrains.annotations.*;
 import org.junit.Test;
 
 import static net.openhft.chronicle.bytes.NativeBytesStore.nativeStoreWithFixedCapacity;
@@ -203,11 +204,26 @@ public class CoreValuesTest {
 
     @Test
     public void testNativeDoubleValue() {
+        DoubleValue doubleValue = newBackedNativeDoubleValue();
+        testDoubleValue(doubleValue);
+    }
+
+    @org.jetbrains.annotations.NotNull
+    private DoubleValue newBackedNativeDoubleValue() {
         DoubleValue doubleValue = Values.newNativeReference(DoubleValue.class);
         BytesStore bs = nativeStoreWithFixedCapacity(((Byteable) doubleValue).maxSize());
         assertEquals(8, bs.capacity());
         ((Byteable) doubleValue).bytesStore(bs, 0, ((Byteable) doubleValue).maxSize());
-        testDoubleValue(doubleValue);
+        return doubleValue;
+    }
+
+    @Test
+    public void testDoubleValueEquals() {
+        DoubleValue nativeDoubleValue = newBackedNativeDoubleValue();
+        DoubleValue heapDoubleValue = Values.newHeapInstance(DoubleValue.class);
+        nativeDoubleValue.setValue(11.0);
+        heapDoubleValue.setValue(11.0);
+        assertEquals(nativeDoubleValue, heapDoubleValue);
     }
 
     public void testDoubleValue(DoubleValue v) {
