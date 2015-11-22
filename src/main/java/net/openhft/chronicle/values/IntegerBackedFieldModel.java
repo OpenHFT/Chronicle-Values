@@ -23,7 +23,7 @@ class IntegerBackedFieldModel extends PrimitiveFieldModel {
     final IntegerFieldModel backend = new IntegerFieldModel(this);
 
     @Override
-    public void addTypeInfo(Method m, MethodTemplate template) {
+    void addTypeInfo(Method m, MethodTemplate template) {
         super.addTypeInfo(m, template);
         backend.addVolatileInfo(template);
     }

@@ -232,7 +232,7 @@ public class ValueModel {
         return fieldData.get(field).bitExtent;
     }
 
-    Class nativeClass() {
+    public Class nativeClass() {
         Class c;
         if ((c = nativeClass) != null)
             return c;
@@ -244,7 +244,7 @@ public class ValueModel {
         }
     }
 
-    Class heapClass() {
+    public Class heapClass() {
         Class c;
         if ((c = heapClass) != null)
             return c;

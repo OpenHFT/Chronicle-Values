@@ -56,7 +56,7 @@ class IntegerFieldModel extends PrimitiveFieldModel {
     Range range;
 
     @Override
-    public void addTypeInfo(Method m, MethodTemplate template) {
+    void addTypeInfo(Method m, MethodTemplate template) {
         super.addTypeInfo(m, template);
 
         Parameter annotatedParameter = template.annotatedParameter.apply(m);

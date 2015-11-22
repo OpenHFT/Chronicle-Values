@@ -25,7 +25,7 @@ import static net.openhft.chronicle.values.Primitives.widthInBits;
 abstract class PrimitiveFieldModel extends ScalarFieldModel {
 
     @Override
-    public void addTypeInfo(Method m, MethodTemplate template) {
+    void addTypeInfo(Method m, MethodTemplate template) {
         super.addTypeInfo(m, template);
         addVolatileInfo(template);
     }

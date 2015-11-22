@@ -33,7 +33,7 @@ class CharSequenceFieldModel extends ScalarFieldModel {
     MaxUtf8Length maxUtf8Length;
 
     @Override
-    public void addTypeInfo(Method m, MethodTemplate template) {
+    void addTypeInfo(Method m, MethodTemplate template) {
         if (!template.regex.startsWith("getUsing"))
             super.addTypeInfo(m, template);
         nullability.addInfo(m, template);

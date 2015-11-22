@@ -26,13 +26,13 @@ import java.util.Date;
 import static net.openhft.chronicle.values.Primitives.isPrimitiveIntegerType;
 import static net.openhft.chronicle.values.Utils.roundUp;
 
-class ArrayFieldModel extends FieldModel {
+public class ArrayFieldModel extends FieldModel {
 
     ScalarFieldModel elemModel;
     Array array;
 
     @Override
-    public void addLayoutInfo(Method m, MethodTemplate template) {
+    void addLayoutInfo(Method m, MethodTemplate template) {
         super.addLayoutInfo(m, template);
         Array array = m.getAnnotation(Array.class);
         if (array != null) {
@@ -52,7 +52,7 @@ class ArrayFieldModel extends FieldModel {
     }
 
     @Override
-    public void addTypeInfo(Method m, MethodTemplate template) {
+    void addTypeInfo(Method m, MethodTemplate template) {
         super.addTypeInfo(m, template);
         if (elemModel == null) {
             elemModel = createScalarModel(type);
@@ -313,5 +313,9 @@ class ArrayFieldModel extends FieldModel {
                 ArrayIndexOutOfBoundsException.class,
                 " is out of bounds, array length " + array.length());
         methodBuilder.endControlFlow();
+    }
+
+    public Array array() {
+        return array;
     }
 }

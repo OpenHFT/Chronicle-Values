@@ -51,7 +51,7 @@ public abstract class FieldModel {
     Method addAtomic;
     Method compareAndSwap;
 
-    public void addLayoutInfo(Method m, MethodTemplate template) {
+    void addLayoutInfo(Method m, MethodTemplate template) {
         Group group = m.getAnnotation(Group.class);
         if (group != null) {
             // this offset makes default groupOrder=0 always smaller than specified order
@@ -81,7 +81,7 @@ public abstract class FieldModel {
         this.offsetAlignment = offsetAlignment;
     }
 
-    public void addTypeInfo(Method m, MethodTemplate template) {
+    void addTypeInfo(Method m, MethodTemplate template) {
         Class fieldType = template.fieldType.apply(m);
         if (type != null && type != fieldType) {
             throw new IllegalStateException("different field types in methods of the field " +
@@ -90,7 +90,7 @@ public abstract class FieldModel {
         type = fieldType;
     }
 
-    public final void addInfo(Method m, MethodTemplate template) {
+    final void addInfo(Method m, MethodTemplate template) {
         addTypeInfo(m, template);
         addLayoutInfo(m, template);
     }
@@ -206,7 +206,7 @@ public abstract class FieldModel {
         return "_" + name;
     }
 
-    String fieldName() {
+    public String fieldName() {
         return "__field" + name;
     }
 
@@ -297,6 +297,17 @@ public abstract class FieldModel {
         return set;
     }
 
+    public Method setOrSetOrderedOrSetVolatile() {
+        if (set != null)
+            return set;
+        if (setOrdered != null)
+            return setOrdered;
+        if (setVolatile != null)
+            return setVolatile;
+        throw new IllegalStateException("set or setVolatile or setOrdered expected for field " +
+                name);
+    }
+
     void setSetVolatile(Method setVolatile) {
         if (this.setVolatile != null) {
             throw new IllegalStateException("SetVolatile is already declared for the field " +
@@ -360,7 +371,7 @@ public abstract class FieldModel {
         methodBuilder.addStatement("long elementOffset = index * $LL", elemByteExtent);
     }
 
-    Method getOrGetVolatile() {
+    public Method getOrGetVolatile() {
         if (get != null)
             return get;
         if (getVolatile != null)

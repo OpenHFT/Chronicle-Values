@@ -32,7 +32,7 @@ class EnumFieldModel extends IntegerBackedFieldModel {
     final FieldNullability nullability = new FieldNullability(this);
 
     @Override
-    public void addTypeInfo(Method m, MethodTemplate template) {
+    void addTypeInfo(Method m, MethodTemplate template) {
         super.addTypeInfo(m, template);
         nullability.addInfo(m, template);
     }
