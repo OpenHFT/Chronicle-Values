@@ -106,16 +106,6 @@ public class ArrayFieldModel extends FieldModel {
         return roundUp(elemModel.sizeInBits(), elemModel.offsetAlignmentInBits());
     }
 
-    /**
-     * 1, 2, 4 bits - unchanged, 3 bits - aligned to 4, otherwise aligned to a byte boundary
-     */
-    private int elemSizeInBits() {
-        int elemSizeInBits = elemModel.sizeInBits();
-        if (elemSizeInBits > 8)
-            return (elemSizeInBits + 7) & ~7;
-        return Maths.nextPower2(elemSizeInBits, 1);
-    }
-
     @Override
     int offsetAlignmentInBytes() {
         int elementAlignment = elemModel.maxAlignmentInBytes();
