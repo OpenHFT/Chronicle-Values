@@ -21,6 +21,10 @@ package net.openhft.chronicle.values;
  */
 public final class Values {
 
+    public static boolean isValueInterfaceOrImplClass(Class<?> valueTypeOrImplClass) {
+        return ValueModel.isValueModelOrImplClass(valueTypeOrImplClass);
+    }
+
     public static <T> T newHeapInstance(Class<T> valueType) {
         try {
             return heapClassFor(valueType).newInstance();

@@ -35,37 +35,63 @@ public class ValueModel {
     public static final String $$HEAP = "$$Heap";
 
     public static ValueModel acquire(Class<?> valueType) {
-        if (valueType.isInterface())
-            return classValueModel.get(valueType);
-        if (valueType.getName().endsWith($$NATIVE)) {
+        if (valueType.isInterface()) {
+            Object valueModelOrException = classValueModel.get(valueType);
+            if (valueModelOrException instanceof ValueModel)
+                return (ValueModel) valueModelOrException;
+            throw new IllegalArgumentException((Exception) valueModelOrException);
+        }
+        if (valueType.getName().endsWith($$NATIVE) ||
+                valueType.getName().endsWith($$HEAP)) {
             Type[] superInterfaces = valueType.getGenericInterfaces();
             for (Type superInterface : superInterfaces) {
-                Class rawInterface;
-                if (superInterface instanceof Class) {
-                    rawInterface = (Class) superInterface;
-                } else {
-                    if (superInterface instanceof ParameterizedType) {
-                        rawInterface = (Class) ((ParameterizedType) superInterface).getRawType();
-                    } else {
-                        throw new AssertionError("Super interface should be a raw interface or" +
-                                "a parameterized interface");
-                    }
-                }
+                Class rawInterface = rawInterface(superInterface);
                 if (!CodeTemplate.NON_MODEL_TYPES.contains(rawInterface))
-                    return classValueModel.get(rawInterface);
+                    return acquire(rawInterface);
             }
         }
-        if (valueType.getName().endsWith($$HEAP)) {
-            throw new UnsupportedOperationException();
-        }
-        throw new IllegalArgumentException(valueType + " is not an interface nor" +
+        throw new IllegalArgumentException(valueType + " is not an interface nor " +
                 "a generated class native or heap class");
     }
 
-    private static ClassValue<ValueModel> classValueModel = new ClassValue<ValueModel>() {
+    static boolean isValueModelOrImplClass(Class<?> valueType) {
+        if (valueType.isInterface()) {
+            Object valueModelOrException = classValueModel.get(valueType);
+            return valueModelOrException instanceof ValueModel;
+        }
+        if (valueType.getName().endsWith($$NATIVE) ||
+                valueType.getName().endsWith($$HEAP)) {
+            Type[] superInterfaces = valueType.getGenericInterfaces();
+            for (Type superInterface : superInterfaces) {
+                Class rawInterface = rawInterface(superInterface);
+                if (!CodeTemplate.NON_MODEL_TYPES.contains(rawInterface))
+                    return isValueModelOrImplClass(rawInterface);
+            }
+        }
+        return false;
+    }
+
+    private static Class rawInterface(Type superInterface) {
+        if (superInterface instanceof Class) {
+            return (Class) superInterface;
+        } else {
+            if (superInterface instanceof ParameterizedType) {
+                return (Class) ((ParameterizedType) superInterface).getRawType();
+            } else {
+                throw new AssertionError("Super interface should be a raw interface or" +
+                        "a parameterized interface");
+            }
+        }
+    }
+
+    static ClassValue<Object> classValueModel = new ClassValue<Object>() {
         @Override
-        protected ValueModel computeValue(Class<?> valueType) {
-            return CodeTemplate.createValueModel(valueType);
+        protected Object computeValue(Class<?> valueType) {
+            try {
+                return CodeTemplate.createValueModel(valueType);
+            } catch (Exception e) {
+                return e;
+            }
         }
     };
 
