@@ -16,7 +16,6 @@
 
 package net.openhft.chronicle.values;
 
-
 import net.openhft.chronicle.bytes.Byteable;
 import net.openhft.chronicle.bytes.BytesMarshallable;
 
