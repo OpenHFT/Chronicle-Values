@@ -90,7 +90,7 @@ Self-references are forbidden.
 
 #### Array fields
 
-Of any of the above types, with special syntax:
+Of any of the above types, with special syntax: `-At` suffix and first parameter of all methods should be `int index`.
 
 ```java
 interface SomeStats {
@@ -151,7 +151,7 @@ field value exchange, returns `true` if successfully swapped the value. Works on
 
 #### getUsing
 
-`getUsing<Foo>[At]([int index, ]Type using)` - for `String`, `CharSequence` or another value
+`getUsing<FieldName>[At]([int index, ]Type using)` - for `String`, `CharSequence` or another value
 interface field types. Reads the value into the given on-heap object. Primarily useful for
 retrieving data from flyweight implementations without creating garbage.
 
@@ -182,7 +182,7 @@ the example above.
 
 #### Field ordering in flyweight layout
 
-Field order is unspecified. To ensure some order, put `@Group` annotations on all field's methods,
+Field order is unspecified. To ensure some order, put `@Group` annotations on any of field's methods,
 for example:
 
 ```java
