@@ -245,7 +245,8 @@ interface Message {
 }
 ```
 
-See `@Align` and `@Array` annotations Javadocs for more information.
+See `@Align` and `@Array` annotations [Javadocs](javadoc.io/doc/net.openhft/chronicle-values)
+for more information.
 
 ## Use
 
@@ -279,3 +280,4 @@ Point offHeapPoint = Values.newDirectReference(Point.class);
 offHeapPoint.bytesStore(bytesStore, offset, offHeapPoint.maxSize());
 ```
 
+## [Javadocs](javadoc.io/doc/net.openhft/chronicle-values)
