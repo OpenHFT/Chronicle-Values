@@ -36,7 +36,7 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 
 final class Generators {
 
-    private static final boolean dumpCode = Boolean.getBoolean("chronicle.values.dumpCode");
+    private static final boolean DUMP_CODE = Boolean.getBoolean("chronicle.values.dumpCode");
 
     static String generateNativeClass(ValueModel model, String nativeClassName) {
         TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(nativeClassName);
@@ -50,7 +50,7 @@ final class Generators {
                 .builder(model.valueType.getPackage().getName(), nativeType)
                 .build()
                 .toString();
-        if (dumpCode)
+        if (DUMP_CODE)
             System.out.println(result);
         return result;
     }
@@ -236,7 +236,7 @@ final class Generators {
                 .builder(model.valueType.getPackage().getName(), heapType)
                 .build()
                 .toString();
-        if (dumpCode)
+        if (DUMP_CODE)
             System.out.println(result);
         return result;
     }
