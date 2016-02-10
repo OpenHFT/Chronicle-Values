@@ -40,15 +40,19 @@ import static java.util.stream.Collectors.toList;
 import static net.openhft.chronicle.values.MethodTemplate.Type.ARRAY;
 import static net.openhft.chronicle.values.MethodTemplate.Type.SCALAR;
 
-final class CodeTemplate {
+enum CodeTemplate {
+    ;
 
     public static final Function<Method, Parameter> NO_ANNOTATED_PARAM = m -> null;
-
+    static final List<Class<?>> NON_MODEL_TYPES = asList(
+            Object.class, Serializable.class, Externalizable.class, BytesMarshallable.class,
+            Copyable.class, Byteable.class);
     private static final SortedSet<MethodTemplate> METHOD_TEMPLATES =
             new TreeSet<>(
                     comparing((MethodTemplate t) -> t.parameters)
                             .thenComparing(k -> -k.regex.length())
                             .thenComparing(k -> k.regex));
+    private static final String FIELD_NAME = "([a-zA-Z$][a-zA-Z\\d_$]*)";
 
     static {
         addReadPatterns("get", 0, FieldModel::setGet);
@@ -64,8 +68,6 @@ final class CodeTemplate {
         addWritePattern("addAtomic", 1, FieldModel::setAddAtomic);
         addWritePattern("compareAndSwap", 2, FieldModel::setCompareAndSwap);
     }
-
-    private static final String FIELD_NAME = "([a-zA-Z$][a-zA-Z\\d_$]*)";
 
     private static void addReadPatterns(
             String regex, int arguments, BiConsumer<FieldModel, Method> addMethodToModel) {
@@ -137,10 +139,6 @@ final class CodeTemplate {
                 .sorted(comparing(m -> m.getName().length()))
                 .forEach(action);
     }
-
-    static final List<Class<?>> NON_MODEL_TYPES = asList(
-            Object.class, Serializable.class, Externalizable.class, BytesMarshallable.class,
-            Copyable.class, Byteable.class);
 
     private static boolean hasMethod(Class<?> type, Method m) {
         return Stream.of(type.getMethods())
