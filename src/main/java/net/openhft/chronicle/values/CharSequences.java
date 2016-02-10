@@ -16,7 +16,8 @@
 
 package net.openhft.chronicle.values;
 
-public final class CharSequences {
+public enum CharSequences {
+    ;
 
     public static int hashCode(CharSequence cs) {
         if (cs == null)
@@ -30,10 +31,8 @@ public final class CharSequences {
 
     // to match Objects.equals(Object o1, Object o2)
     public static boolean equals(CharSequence left, CharSequence right) {
-        if (left == null && right == null)
-            return true;
-        if (left == null || right == null)
-            return false;
+        if (left == null)
+            return right == null;
         if (left.length() != right.length())
             return false;
         for (int i = 0; i < left.length(); i++) {
@@ -41,23 +40,5 @@ public final class CharSequences {
                 return false;
         }
         return true;
-    }
-
-    // to match Objects.equals(Object o1, Object o2)
-    public static boolean equals(CharSequence left, CharSequence right) {
-        if (left == null && right == null)
-            return true;
-        if (left == null || right == null)
-            return false;
-        if (left.length() != right.length())
-            return false;
-        for (int i = 0; i < left.length(); i++) {
-            if (left.charAt(i) != right.charAt(i))
-                return false;
-        }
-        return true;
-    }
-
-    private CharSequences() {
     }
 }
