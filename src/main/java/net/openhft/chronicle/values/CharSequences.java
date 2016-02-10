@@ -28,7 +28,7 @@ public final class CharSequences {
         return h;
     }
 
-    public static boolean equals(CharSequence left, CharSequence right) {
+    public static boolean isEqual(CharSequence left, CharSequence right) {
         if (left == null && right == null)
             return true;
         if (left == null || right == null)

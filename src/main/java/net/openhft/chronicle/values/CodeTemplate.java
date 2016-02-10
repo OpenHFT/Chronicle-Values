@@ -42,6 +42,10 @@ import static net.openhft.chronicle.values.MethodTemplate.Type.SCALAR;
 
 final class CodeTemplate {
 
+	private CodeTemplate() {
+		
+	}
+	
     public static final Function<Method, Parameter> NO_ANNOTATED_PARAM = m -> null;
 
     private static final SortedSet<MethodTemplate> METHOD_TEMPLATES =

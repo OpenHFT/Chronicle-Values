@@ -61,11 +61,9 @@ public abstract class FieldModel {
         Align align = m.getAnnotation(Align.class);
         if (align != null) {
             // if both specified
-            if (align.offset() > 0 && align.dontCross() >= 0) {
-                if (align.dontCross() % align.offset() != 0) {
+            if (align.offset() > 0 && align.dontCross() >= 0 && align.dontCross() % align.offset() != 0) {
                     throw new IllegalStateException(align + " dontCross alignment should be " +
                             "a multiple of offset alignment, field " + name);
-                }
             }
             setOffsetAlignmentExplicitly(align.offset());
             dontCrossAlignment = align.dontCross();
