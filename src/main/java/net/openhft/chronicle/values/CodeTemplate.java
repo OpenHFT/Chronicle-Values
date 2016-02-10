@@ -43,6 +43,10 @@ import static net.openhft.chronicle.values.MethodTemplate.Type.SCALAR;
 enum CodeTemplate {
     ;
 
+	private CodeTemplate() {
+		
+	}
+	
     public static final Function<Method, Parameter> NO_ANNOTATED_PARAM = m -> null;
     static final List<Class<?>> NON_MODEL_TYPES = asList(
             Object.class, Serializable.class, Externalizable.class, BytesMarshallable.class,
