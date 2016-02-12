@@ -290,11 +290,25 @@ class IntegerFieldModel extends PrimitiveFieldModel {
             Function<String, String> accessType) {
         int leastBitsToRead = lowMaskBits + sizeInBits();
         int bitsToRead = Maths.nextPower2(leastBitsToRead, 8);
-        int highMaskBits = Math.max(bitsToRead - bitExtent, 0);
+        int highMaskBits = Math.max(bitsToRead - bitExtent - lowMaskBits, 0);
+        int fieldBits = bitsToRead - lowMaskBits - highMaskBits;
 
         String read = read(readOffset, bitsToRead, accessType);
-        long readMin = (-1L) << (bitsToRead - 1);
+
+        long readMin = (-1L) << (fieldBits - 1);
         long readMax = -(readMin + 1);
+
+        if (lowMaskBits > 0 || highMaskBits > 0) {
+            if (lowMaskBits > 0)
+                read = format("%s >> %d", read, lowMaskBits);
+            if (highMaskBits > 0) {
+                String l = bitsToRead == 64 ? "L" : "";
+                read = format("(%s) & (-1%s >>> %d)", read, l, highMaskBits);
+                readMin = 0;
+                readMax = (1L << fieldBits) - 1;
+            }
+        }
+
         Range range = range();
 
         // No read value translation
@@ -306,43 +320,32 @@ class IntegerFieldModel extends PrimitiveFieldModel {
         // also the first form is optimized on assembly level by HotSpot (unsigned treatment of
         // the value, no actual `& 0xFF` op), not sure about the second form.
         if (range.min() == 0 && range.max() == readMax - readMin) {
-            char[] m = new char[bitsToRead / 4];
-            Arrays.fill(m, 'F');
-            String mask = "0x" + new String(m);
+            String mask;
+            // mask are equivalent, the first representation is more readable
+            if (fieldBits % 4 == 0) {
+                char[] m = new char[fieldBits / 4];
+                Arrays.fill(m, 'F');
+                mask = "0x" + new String(m);
+            } else {
+                char[] m = new char[fieldBits];
+                Arrays.fill(m, '1');
+                mask = "0b" + new String(m);
+            }
             if (type == long.class)
                 mask += "L";
             return cast(format("%s & %s", read, mask));
         }
 
-        // value adjusted to the specified range, no masking
-        if (lowMaskBits == 0 && highMaskBits == 0) {
-            String add;
-            if (type != long.class) {
-                assert bitsToRead <= 32 : "long read of int value is possible only if " +
-                        "the value spans 5 bytes, therefore must be masked";
-                // if add > Integer.MAX_VALUE, it should overflow in int bounds
-                add = (((int) range.min()) - ((int) readMin)) + "";
-            } else {
-                add = (range.min() - readMin) + "L";
-            }
-            return cast(format("%s + %s", read, add));
+        String add;
+        if (type != long.class) {
+            assert bitsToRead <= 32 : "long read of int value is possible only if " +
+                    "the value spans 5 bytes, therefore must be masked";
+            // if add > Integer.MAX_VALUE, it should overflow in int bounds
+            add = (((int) range.min()) - ((int) readMin)) + "";
+        } else {
+            add = (range.min() - readMin) + "L";
         }
-
-        // low or high masks
-        assert lowMaskBits > 0 || highMaskBits > 0;
-        String masked = read;
-        if (lowMaskBits > 0)
-            masked = format("%s >> %d", read, lowMaskBits);
-        if (highMaskBits > 0) {
-            String l = bitsToRead == 64 ? "L" : "";
-            masked = format("(%s) & (-1%s >>> %d)", masked, l, highMaskBits);
-        }
-        if (range.min() != 0) {
-            long min = range.min();
-            String l = (min < Integer.MAX_VALUE || min > Integer.MAX_VALUE) ? "L" : "";
-            masked = format("(%s) + %s", masked, min + l);
-        }
-        return cast(masked);
+        return cast(format("%s + %s", read, add));
     }
 
     private String cast(String value) {
@@ -384,7 +387,7 @@ class IntegerFieldModel extends PrimitiveFieldModel {
             Function<String, String> accessType, String valueToWrite) {
         int leastBitsToWrite = lowMaskBits + sizeInBits();
         int bitsToWrite = Maths.nextPower2(leastBitsToWrite, 8);
-        int highMaskBits = Math.max(bitsToWrite - bitExtent, 0);
+        int highMaskBits = Math.max(bitsToWrite - bitExtent - lowMaskBits, 0);
 
         if (lowMaskBits > 0 || highMaskBits > 0) {
             assert accessType == NORMAL_ACCESS_TYPE :
@@ -400,7 +403,7 @@ class IntegerFieldModel extends PrimitiveFieldModel {
 
         Class ioType = integerBytesIoType(bitsToWrite);
         if (ioType != type)
-            valueToWrite = format("(%s) %s", ioType.getSimpleName(), valueToWrite);
+            valueToWrite = format("(%s) (%s)", ioType.getSimpleName(), valueToWrite);
         String writeMethod = "write" + accessType.apply(
                 type != char.class ? integerBytesMethodSuffix(bitsToWrite) : "UnsignedShort");
         String write = format("bs.%s(%s, %s)", writeMethod, ioOffset, valueToWrite);
