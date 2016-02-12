@@ -319,7 +319,9 @@ class IntegerFieldModel extends PrimitiveFieldModel {
         // differently, because `readByte() & 0xFF` looks more familiar than `readByte() + 128`,
         // also the first form is optimized on assembly level by HotSpot (unsigned treatment of
         // the value, no actual `& 0xFF` op), not sure about the second form.
-        if (range.min() == 0 && range.max() == readMax - readMin) {
+        long readRange = readMax - readMin;
+        if (range.min() == 0 &&
+                (readRange < 0 || range.max() <= readRange)) { // overflow-aware
             String mask;
             // mask are equivalent, the first representation is more readable
             if (fieldBits % 4 == 0) {
@@ -389,10 +391,35 @@ class IntegerFieldModel extends PrimitiveFieldModel {
         int bitsToWrite = Maths.nextPower2(leastBitsToWrite, 8);
         int highMaskBits = Math.max(bitsToWrite - bitExtent - lowMaskBits, 0);
 
+        int fieldBits = bitsToWrite - lowMaskBits - highMaskBits;
+        long readMin;
+        long readMax;
+        if (highMaskBits == 0) {
+            readMin = (-1L) << (fieldBits - 1);
+            readMax = -(readMin + 1);
+        } else {
+            readMin = 0;
+            readMax = (1L << fieldBits) - 1;
+        }
+        long readRange = readMax - readMin;
+        Range range = range();
+        if ((readMin > range.min() || readMax < range.max()) &&
+                (range.min() != 0 || (readRange >= 0 && range.max() > readRange))) {
+            String sub;
+            if (type != long.class) {
+                assert bitsToWrite <= 32 : "long read of int value is possible only if " +
+                        "the value spans 5 bytes, therefore must be masked";
+                // if sub > Integer.MAX_VALUE, it should overflow in int bounds
+                sub = (((int) range.min()) - ((int) readMin)) + "";
+            } else {
+                sub = (range.min() - readMin) + "L";
+            }
+            valueToWrite = format("(%s - %s)", valueToWrite, sub);
+        }
+
         if (lowMaskBits > 0 || highMaskBits > 0) {
             assert accessType == NORMAL_ACCESS_TYPE :
                     "volatile/ordered fields shouldn't have masking";
-            int fieldBits = bitsToWrite - lowMaskBits - highMaskBits;
             String mask = "0b" + repeat('1', highMaskBits) + repeat('0', fieldBits) +
                     repeat('1', lowMaskBits);
             String read = read(ioOffset, bitsToWrite, NORMAL_ACCESS_TYPE);
