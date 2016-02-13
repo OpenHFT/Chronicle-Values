@@ -325,13 +325,9 @@ class IntegerFieldModel extends PrimitiveFieldModel {
             String mask;
             // mask are equivalent, the first representation is more readable
             if (fieldBits % 4 == 0) {
-                char[] m = new char[fieldBits / 4];
-                Arrays.fill(m, 'F');
-                mask = "0x" + new String(m);
+                mask = "0x" + repeat('F', fieldBits / 4);
             } else {
-                char[] m = new char[fieldBits];
-                Arrays.fill(m, '1');
-                mask = "0b" + new String(m);
+                mask = "0b" + repeat('1', fieldBits);
             }
             if (type == long.class)
                 mask += "L";
@@ -420,8 +416,16 @@ class IntegerFieldModel extends PrimitiveFieldModel {
         if (lowMaskBits > 0 || highMaskBits > 0) {
             assert accessType == NORMAL_ACCESS_TYPE :
                     "volatile/ordered fields shouldn't have masking";
-            String mask = "0b" + repeat('1', highMaskBits) + repeat('0', fieldBits) +
-                    repeat('1', lowMaskBits);
+            String mask;
+            if (lowMaskBits % 4 == 0 && fieldBits % 4 == 0 && highMaskBits % 4 == 0) {
+                mask = "0x" + repeat('F', highMaskBits / 4) + repeat('0', fieldBits / 4) +
+                        repeat('F', lowMaskBits / 4);
+            } else {
+                mask = "0b" + repeat('1', highMaskBits) + repeat('0', fieldBits) +
+                        repeat('1', lowMaskBits);
+            }
+            if (bitsToWrite == 64)
+                mask += "L";
             String read = read(ioOffset, bitsToWrite, NORMAL_ACCESS_TYPE);
             if (lowMaskBits > 0)
                 valueToWrite = format("(%s << %s)", valueToWrite, lowMaskBits);
