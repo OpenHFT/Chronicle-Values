@@ -155,7 +155,7 @@
                         <Bundle-Name>OpenHFT :: ${project.artifactId}</Bundle-Name>
                         <Bundle-Version>${project.version}</Bundle-Version>
                         <Export-Package>
-                            net.openhft.chronicle.values.*
+                            net.openhft.chronicle.values.*;-noimport:=true
                         </Export-Package>
                     </instructions>
                 </configuration>
