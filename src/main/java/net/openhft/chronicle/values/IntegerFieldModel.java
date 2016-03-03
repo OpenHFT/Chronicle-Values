@@ -303,7 +303,7 @@ class IntegerFieldModel extends PrimitiveFieldModel {
                 read = format("%s >> %d", read, lowMaskBits);
             if (highMaskBits > 0) {
                 String l = bitsToRead == 64 ? "L" : "";
-                read = format("(%s) & (-1%s >>> %d)", read, l, highMaskBits);
+                read = format("(%s) & ((1%s << %d) - 1)", read, l, fieldBits);
                 readMin = 0;
                 readMax = (1L << fieldBits) - 1;
             }
@@ -331,7 +331,7 @@ class IntegerFieldModel extends PrimitiveFieldModel {
             }
             if (type == long.class)
                 mask += "L";
-            return cast(format("%s & %s", read, mask));
+            return cast(format("(%s) & %s", read, mask));
         }
 
         String add;
@@ -343,7 +343,7 @@ class IntegerFieldModel extends PrimitiveFieldModel {
         } else {
             add = (range.min() - readMin) + "L";
         }
-        return cast(format("%s + %s", read, add));
+        return cast(format("(%s) + %s", read, add));
     }
 
     private String cast(String value) {
@@ -410,7 +410,7 @@ class IntegerFieldModel extends PrimitiveFieldModel {
             } else {
                 sub = (range.min() - readMin) + "L";
             }
-            valueToWrite = format("(%s - %s)", valueToWrite, sub);
+            valueToWrite = format("((%s) - %s)", valueToWrite, sub);
         }
 
         if (lowMaskBits > 0 || highMaskBits > 0) {
@@ -428,8 +428,8 @@ class IntegerFieldModel extends PrimitiveFieldModel {
                 mask += "L";
             String read = read(ioOffset, bitsToWrite, NORMAL_ACCESS_TYPE);
             if (lowMaskBits > 0)
-                valueToWrite = format("(%s << %s)", valueToWrite, lowMaskBits);
-            valueToWrite = format("(%s & %s) | %s", read, mask, valueToWrite);
+                valueToWrite = format("((%s) << %s)", valueToWrite, lowMaskBits);
+            valueToWrite = format("((%s) & %s) | (%s)", read, mask, valueToWrite);
         }
 
         Class ioType = integerBytesIoType(bitsToWrite);
