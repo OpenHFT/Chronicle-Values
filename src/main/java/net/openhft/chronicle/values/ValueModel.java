@@ -328,7 +328,7 @@ public class ValueModel {
     private Class createClass(
             String className, BiFunction<ValueModel, String, String> generateClass) {
         String classNameWithPackage = valueType.getPackage().getName() + "." + className;
-        ClassLoader cl = getClass().getClassLoader();
+        ClassLoader cl = valueType.getClassLoader();
         try {
             return cl.loadClass(classNameWithPackage);
         } catch (ClassNotFoundException ignored) {
