@@ -60,7 +60,7 @@ public class ValueModel {
             Type[] superInterfaces = valueType.getGenericInterfaces();
             for (Type superInterface : superInterfaces) {
                 Class rawInterface = rawInterface(superInterface);
-                if (!CodeTemplate.NON_MODEL_TYPES.contains(rawInterface))
+                if (!CodeTemplate.nonModelType(rawInterface))
                     return acquire(rawInterface);
             }
         }
@@ -78,7 +78,7 @@ public class ValueModel {
             Type[] superInterfaces = valueType.getGenericInterfaces();
             for (Type superInterface : superInterfaces) {
                 Class rawInterface = rawInterface(superInterface);
-                if (!CodeTemplate.NON_MODEL_TYPES.contains(rawInterface))
+                if (!CodeTemplate.nonModelType(rawInterface))
                     return isValueModelOrImplClass(rawInterface);
             }
         }
@@ -328,7 +328,7 @@ public class ValueModel {
     private Class createClass(
             String className, BiFunction<ValueModel, String, String> generateClass) {
         String classNameWithPackage = valueType.getPackage().getName() + "." + className;
-        ClassLoader cl = valueType.getClassLoader();
+        ClassLoader cl = BytecodeGen.getClassLoader(valueType);
         try {
             return cl.loadClass(classNameWithPackage);
         } catch (ClassNotFoundException ignored) {

@@ -26,7 +26,7 @@ package net.openhft.chronicle.values;
 public final class ImplGenerationFailedException extends RuntimeException {
     private static final long serialVersionUID = 0L;
 
-    public ImplGenerationFailedException(Exception cause) {
+    public ImplGenerationFailedException(Throwable cause) {
         super(cause);
     }
 }

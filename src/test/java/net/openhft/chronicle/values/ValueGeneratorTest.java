@@ -103,7 +103,8 @@ public class ValueGeneratorTest {
                 ValueModel.simpleName(JavaBeanInterfaceGetUsing.class) + "$$Native");
         System.out.println(actual);
         CachedCompiler cc = new CachedCompiler(null, null);
-        Class aClass = cc.loadFromJava(JavaBeanInterfaceGetUsing.class.getName() + "$$Native", actual);
+        Class aClass = cc.loadFromJava(BytecodeGen.getClassLoader(JavaBeanInterfaceGetUsing.class),
+                JavaBeanInterfaceGetUsing.class.getName() + "$$Native", actual);
         JavaBeanInterfaceGetUsing jbi = (JavaBeanInterfaceGetUsing) aClass.asSubclass(JavaBeanInterfaceGetUsing.class).newInstance();
         BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
                 ((Byteable) jbi).bytesStore(bytes, 0L, ((Byteable) jbi).maxSize());
