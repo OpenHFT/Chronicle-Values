@@ -112,6 +112,25 @@
                 </configuration>
             </plugin>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.3</version>
+                <configuration>
+                    <links>
+                        <link>http://openhft.github.io/Chronicle-Bytes/apidocs/</link>
+                    </links>
+                    <sourceFileExcludes>
+                        <exclude>net/openhft/chronicle/values/FieldModel.java</exclude>
+                        <exclude>net/openhft/chronicle/values/ArrayFieldModel.java</exclude>
+                        <exclude>net/openhft/chronicle/values/Enums.java</exclude>
+                        <exclude>net/openhft/chronicle/values/CharSequences.java</exclude>
+                    </sourceFileExcludes>
+                    <failOnError>false</failOnError>
+                    <additionalparam>-Xdoclint:none</additionalparam>
+                </configuration>
+            </plugin>
+
             <!-- used to allow getClass().getPackage().getImplementationVersion() -->
 
             <plugin>

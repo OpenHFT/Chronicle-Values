@@ -34,6 +34,20 @@ public class ValueModel {
     public static final String $$NATIVE = "$$Native";
     public static final String $$HEAP = "$$Heap";
 
+    /**
+     * Returns a {@code ValueModel} for the given {@code valueType}, if the latter is a value
+     * interface, or if it the heap or native implementation for some value interface, returns the
+     * {@code ValueModel} for that value interface.
+     *
+     * @param valueType a value interface or the heap or native implementation class for some
+     * value interface
+     * @return a ValueModel for the given value interface, or if the given {@code valueType} is
+     * the heap or native implementation for some value interface, returns the ValueModel of that
+     * value interface
+     * @throws IllegalArgumentException if the given valueType is not a <i>value interface</i>,
+     * or the heap or native implementation of some value interface, or the Chronicle Values library
+     * is not able to construct a ValueModel from this interface
+     */
     public static ValueModel acquire(Class<?> valueType) {
         if (valueType.isInterface()) {
             Object valueModelOrException = classValueModel.get(valueType);
@@ -258,6 +272,12 @@ public class ValueModel {
         return fieldData.get(field).bitExtent;
     }
 
+    /**
+     * Generates (if not yet) and returns a native (flyweight) implementation for this ValueModel.
+     *
+     * @return a native (flyweight) implementation for this ValueModel
+     * @throws ImplGenerationFailedException if generation failed
+     */
     public Class nativeClass() {
         Class c;
         if ((c = nativeClass) != null)
@@ -270,6 +290,12 @@ public class ValueModel {
         }
     }
 
+    /**
+     * Generates (if not yet) and returns a heap implementation for this ValueModel.
+     *
+     * @return a heap implementation for this ValueModel
+     * @throws ImplGenerationFailedException if generation failed
+     */
     public Class heapClass() {
         Class c;
         if ((c = heapClass) != null)
@@ -310,7 +336,7 @@ public class ValueModel {
             try {
                 return CACHED_COMPILER.loadFromJava(cl, classNameWithPackage, javaCode);
             } catch (ClassNotFoundException e) {
-                throw new AssertionError(e);
+                throw new ImplGenerationFailedException(e);
             }
         }
     }

@@ -25,27 +25,58 @@ public final class Values {
         return ValueModel.isValueModelOrImplClass(valueTypeOrImplClass);
     }
 
+    /**
+     * Equivalent for {@link #heapClassFor(Class) heapClassFor(valueType)}{@code .newInstance()}.
+     *
+     * @throws IllegalArgumentException if the given {@code valueType} is not a value interface
+     * @throws ImplGenerationFailedException if generation of a heap implementation failed
+     */
     public static <T> T newHeapInstance(Class<T> valueType) {
         try {
             return heapClassFor(valueType).newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+            throw new AssertionError(e);
         }
     }
 
+    /**
+     * Equivalent for {@link #nativeClassFor nativeClassFor(valueType)}{@code .newInstance()}.
+     *
+     * @throws IllegalArgumentException if the given {@code valueType} is not a value interface
+     * @throws ImplGenerationFailedException if generation of a native implementation failed
+     */
     public static <T> T newNativeReference(Class<T> valueType) {
         try {
             return nativeClassFor(valueType).newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+            throw new AssertionError(e);
         }
     }
 
+    /**
+     * Generates (if not yet) and returns a heap implementation for the given value interface.
+     *
+     * @param valueType the value interface to return a heap implementation for
+     * @param <T> the value interface as a type parameter
+     * @return a heap implementation class for the given value interface
+     * @throws IllegalArgumentException if the given {@code valueType} is not a value interface
+     * @throws ImplGenerationFailedException if generation of a heap implementation failed
+     */
     public static <T> Class<T> heapClassFor(Class<T> valueType) {
         //noinspection unchecked
         return ValueModel.acquire(valueType).heapClass();
     }
 
+    /**
+     * Generates (if not yet) and returns a native (flyweight) implementation for the given value
+     * interface.
+     *
+     * @param valueType the value interface to return a native implementation for
+     * @param <T> the value interface as a type parameter
+     * @return a native (flyweight) implementation class for the given value interface
+     * @throws IllegalArgumentException if the given {@code valueType} is not a value interface
+     * @throws ImplGenerationFailedException if generation of a native implementation failed
+     */
     public static <T> Class<T> nativeClassFor(Class<T> valueType) {
         //noinspection unchecked
         return ValueModel.acquire(valueType).nativeClass();
