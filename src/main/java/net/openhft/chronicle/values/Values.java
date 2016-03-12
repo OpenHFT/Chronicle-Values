@@ -22,7 +22,7 @@ package net.openhft.chronicle.values;
 public final class Values {
 
     public static boolean isValueInterfaceOrImplClass(Class<?> valueTypeOrImplClass) {
-        return ValueModel.isValueModelOrImplClass(valueTypeOrImplClass);
+        return ValueModel.isValueInterfaceOrImplClass(valueTypeOrImplClass);
     }
 
     /**

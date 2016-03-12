@@ -84,14 +84,14 @@ public class ValueModel {
         return ifNotFound.get();
     }
 
-    static boolean isValueModelOrImplClass(Class<?> valueType) {
+    static boolean isValueInterfaceOrImplClass(Class<?> valueType) {
         if (valueType.isInterface()) {
             if (CodeTemplate.NON_MODEL_TYPES.contains(valueType))
                 return false;
             Object valueModelOrException = classValueModel.get(valueType);
             return valueModelOrException instanceof ValueModel;
         }
-        return doSomethingForInterfaceOr(valueType, ValueModel::isValueModelOrImplClass,
+        return doSomethingForInterfaceOr(valueType, ValueModel::isValueInterfaceOrImplClass,
                 () -> false);
     }
 
