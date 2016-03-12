@@ -241,7 +241,7 @@ final class BytecodeGen {
      * Loader for Values-generated classes. For referenced classes, this delegates to either either
      * the user's classloader (which is the parent of this classloader) or Values's class loader.
      */
-    private static class BridgeClassLoader extends ClassLoader {
+    static class BridgeClassLoader extends ClassLoader {
 
         BridgeClassLoader() {
             // use system loader as parent

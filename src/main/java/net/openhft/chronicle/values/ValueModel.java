@@ -29,7 +29,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static net.openhft.chronicle.values.Align.NO_ALIGNMENT;
 import static net.openhft.chronicle.values.Utils.roundUp;
-import static net.openhft.compiler.CompilerUtils.CACHED_COMPILER;
+import static net.openhft.chronicle.values.CompilerUtils.CACHED_COMPILER;
 
 public class ValueModel {
 
@@ -95,7 +95,7 @@ public class ValueModel {
                 () -> false);
     }
 
-    private static Class rawInterface(Type superInterface) {
+    static Class rawInterface(Type superInterface) {
         if (superInterface instanceof Class) {
             return (Class) superInterface;
         } else {
@@ -344,7 +344,7 @@ public class ValueModel {
         } catch (ClassNotFoundException ignored) {
             String javaCode = generateClass.apply(this, className);
             try {
-                return CACHED_COMPILER.loadFromJava(cl, classNameWithPackage, javaCode);
+                return CACHED_COMPILER.loadFromJava(valueType, cl, classNameWithPackage, javaCode);
             } catch (ClassNotFoundException e) {
                 throw new ImplGenerationFailedException(e);
             }
