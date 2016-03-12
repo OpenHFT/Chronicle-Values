@@ -20,6 +20,8 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
@@ -50,39 +52,47 @@ public class ValueModel {
      */
     public static ValueModel acquire(Class<?> valueType) {
         if (valueType.isInterface()) {
+            if (CodeTemplate.NON_MODEL_TYPES.contains(valueType))
+                throw notValueInterfaceOfImpl(valueType);
             Object valueModelOrException = classValueModel.get(valueType);
             if (valueModelOrException instanceof ValueModel)
                 return (ValueModel) valueModelOrException;
             throw new IllegalArgumentException((Exception) valueModelOrException);
         }
-        if (valueType.getName().endsWith($$NATIVE) ||
-                valueType.getName().endsWith($$HEAP)) {
+        return doSomethingForInterfaceOr(valueType, ValueModel::acquire,
+                () -> { throw notValueInterfaceOfImpl(valueType); });
+    }
+
+    private static IllegalArgumentException notValueInterfaceOfImpl(Class<?> valueType) {
+        return new IllegalArgumentException(valueType + " is not an interface nor " +
+                "a generated class native or heap class");
+    }
+
+    private static <T> T doSomethingForInterfaceOr(
+            Class<?> valueType, Function<Class, T> actionForInterface, Supplier<T> ifNotFound) {
+        String typeName = valueType.getName();
+        if (typeName.endsWith($$NATIVE) || typeName.endsWith($$HEAP)) {
             Type[] superInterfaces = valueType.getGenericInterfaces();
             for (Type superInterface : superInterfaces) {
                 Class rawInterface = rawInterface(superInterface);
-                if (!CodeTemplate.nonModelType(rawInterface))
-                    return acquire(rawInterface);
+                // index of first $ in Foo$$Heap or Foo$$Native
+                int firstDollarIndex = typeName.lastIndexOf('$') - 1;
+                if (rawInterface.getName().equals(typeName.substring(0, firstDollarIndex)))
+                    return actionForInterface.apply(rawInterface);
             }
         }
-        throw new IllegalArgumentException(valueType + " is not an interface nor " +
-                "a generated class native or heap class");
+        return ifNotFound.get();
     }
 
     static boolean isValueModelOrImplClass(Class<?> valueType) {
         if (valueType.isInterface()) {
+            if (CodeTemplate.NON_MODEL_TYPES.contains(valueType))
+                return false;
             Object valueModelOrException = classValueModel.get(valueType);
             return valueModelOrException instanceof ValueModel;
         }
-        if (valueType.getName().endsWith($$NATIVE) ||
-                valueType.getName().endsWith($$HEAP)) {
-            Type[] superInterfaces = valueType.getGenericInterfaces();
-            for (Type superInterface : superInterfaces) {
-                Class rawInterface = rawInterface(superInterface);
-                if (!CodeTemplate.nonModelType(rawInterface))
-                    return isValueModelOrImplClass(rawInterface);
-            }
-        }
-        return false;
+        return doSomethingForInterfaceOr(valueType, ValueModel::isValueModelOrImplClass,
+                () -> false);
     }
 
     private static Class rawInterface(Type superInterface) {

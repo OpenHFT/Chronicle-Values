@@ -52,10 +52,6 @@ enum CodeTemplate {
             Object.class, Serializable.class, Externalizable.class, BytesMarshallable.class,
             Copyable.class, Byteable.class);
 
-    static boolean nonModelType(Class<?> type) {
-        return NON_MODEL_TYPES.stream()
-                .anyMatch(nonModelType -> nonModelType.getName().equals(type.getName()));
-    }
     private static final SortedSet<MethodTemplate> METHOD_TEMPLATES =
             new TreeSet<>(
                     comparing((MethodTemplate t) -> t.parameters)
