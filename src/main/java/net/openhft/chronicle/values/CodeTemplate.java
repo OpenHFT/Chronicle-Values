@@ -125,6 +125,9 @@ enum CodeTemplate {
             fieldModel.addInfo(m, methodTemplate);
         });
         List<FieldModel> fields = fieldModelMap.values().stream().collect(toList());
+        if (fields.isEmpty())
+            throw new IllegalArgumentException(valueType + " is not a value interface");
+        fields.forEach(FieldModel::checkAnyWriteMethodPresent);
         fields.forEach(FieldModel::postProcess);
         fields.forEach(FieldModel::checkState);
         return new ValueModel(valueType, fields.stream());

@@ -137,6 +137,14 @@ public abstract class FieldModel {
         checkDontCrossSmallerThanSize();
     }
 
+    void checkAnyWriteMethodPresent() {
+        if (set == null && setVolatile == null && setOrdered == null && add == null &&
+                addAtomic == null && compareAndSwap == null) {
+            throw new IllegalStateException("Some writing method should be present for field " +
+                    name);
+        }
+    }
+
     void checkDontCrossMultipleOfOffsetAlignment() {
         int offset = offsetAlignmentInBytes();
         int dontCross = dontCrossAlignmentInBytes();
