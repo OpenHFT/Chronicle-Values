@@ -17,9 +17,6 @@
 package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.bytes.*;
-import net.openhft.chronicle.core.ReferenceCounted;
-import net.openhft.chronicle.core.io.*;
-import net.openhft.chronicle.core.io.Closeable;
 import net.openhft.chronicle.core.io.IORuntimeException;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,29 +27,22 @@ import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
 
 @SuppressWarnings("RefusedBequest")
 class MyJavaFileManager implements JavaFileManager {
 
-    private static Stream<JavaFileObject> classFileObjects(Class<?> c) {
-        List<JavaFileObject> fileObjects = new ArrayList<>();
-        addFileObjects(fileObjects, c);
-        return fileObjects.stream();
-    }
-
-    private static void addFileObjects(List<JavaFileObject> fileObjects, Class<?> c) {
-        fileObjects.add(classFileObject(c));
+    private static void addFileObjects(Map<String, Set<JavaFileObject>> fileObjects, Class<?> c) {
+        fileObjects.compute(c.getPackage().getName(), (p, objects) -> {
+            if (objects == null)
+                objects = new HashSet<>();
+            objects.add(classFileObject(c));
+            return objects;
+        });
 
         Type[] interfaces = c.getGenericInterfaces();
         for (Type superInterface : interfaces) {
             Class rawInterface = ValueModel.rawInterface(superInterface);
-            if (rawInterface.getPackage().equals(c.getPackage()))
-                addFileObjects(fileObjects, rawInterface);
+            addFileObjects(fileObjects, rawInterface);
         }
     }
 
@@ -67,46 +57,37 @@ class MyJavaFileManager implements JavaFileManager {
         }
     }
 
-    private static Map.Entry<Package, List<JavaFileObject>> classesToFileObjects(
-            List<Class<?>> classes) {
-        List<JavaFileObject> fileObjects = classes.stream()
-                .flatMap(MyJavaFileManager::classFileObjects)
-                .distinct().collect(Collectors.toList());
-        return new AbstractMap.SimpleEntry<>(classes.get(0).getPackage(), fileObjects);
+    private static final Map<String, Set<JavaFileObject>> dependencyFileObjects = new HashMap<>();
+    static {
+        Arrays.asList(
+                // Values classes and interfaces
+                Enums.class, CharSequences.class, ValueModel.class,
+                Values.class, FieldModel.class, ArrayFieldModel.class, Copyable.class,
+
+                // Values annotations
+                Align.class, Array.class, Group.class, MaxUtf8Length.class,
+                net.openhft.chronicle.values.NotNull.class, Range.class,
+
+                // Bytes classes and interfaces
+                Bytes.class, BytesStore.class, BytesUtil.class,
+                Byteable.class, BytesMarshallable.class,
+
+                // Core exception
+                IORuntimeException.class
+
+        ).forEach(c -> addFileObjects(dependencyFileObjects, c));
     }
 
-    private static final Map.Entry<Package, List<JavaFileObject>> valuesPackageFileObjects =
-            classesToFileObjects(asList(Enums.class, CharSequences.class, ValueModel.class,
-                    Values.class, FieldModel.class, ArrayFieldModel.class, Copyable.class));
-
-    private static final Map.Entry<Package, List<JavaFileObject>> bytesPackageFileObjects =
-            classesToFileObjects(asList(Bytes.class, BytesStore.class, BytesUtil.class,
-                    Byteable.class, BytesMarshallable.class));
-
-    private static final Map.Entry<Package, List<JavaFileObject>> corePackageFileObjects =
-            classesToFileObjects(singletonList(ReferenceCounted.class));
-
-    private static final Map.Entry<Package, List<JavaFileObject>> coreIoPackageFileObjects =
-            classesToFileObjects(asList(Closeable.class, IORuntimeException.class));
-
-    private static void addToPackages(
-            Map<Package, List<JavaFileObject>> packages,
-            Map.Entry<Package, List<JavaFileObject>> fileObjects) {
-        packages.put(fileObjects.getKey(), fileObjects.getValue());
-    }
-
-    private final Map<Package, List<JavaFileObject>> packages = new HashMap<>();
+    private final Map<String, Set<JavaFileObject>> fileObjects;
     private final StandardJavaFileManager fileManager;
     private final Map<String, ByteArrayOutputStream> buffers = new LinkedHashMap<>();
 
     MyJavaFileManager(Class valueType, StandardJavaFileManager fileManager) {
-        Map.Entry<Package, List<JavaFileObject>> valueTypePackageFileObjects =
-                classesToFileObjects(singletonList(valueType));
-        addToPackages(packages, coreIoPackageFileObjects);
-        addToPackages(packages, corePackageFileObjects);
-        addToPackages(packages, bytesPackageFileObjects);
-        addToPackages(packages, valuesPackageFileObjects);
-        addToPackages(packages, valueTypePackageFileObjects);
+        // deep clone dependencyFileObjects
+        fileObjects = new HashMap<>(dependencyFileObjects);
+        fileObjects.replaceAll((p, objects) -> new HashSet<>(objects));
+        // enrich with valueType's fileObjects
+        addFileObjects(fileObjects, valueType);
         this.fileManager = fileManager;
     }
 
@@ -117,15 +98,16 @@ class MyJavaFileManager implements JavaFileManager {
     public Iterable<JavaFileObject> list(
             Location location, String packageName, Set<Kind> kinds, boolean recurse)
             throws IOException {
-        List<JavaFileObject> fileObjects = new ArrayList<>();
-        for (Map.Entry<Package, List<JavaFileObject>> packageFileObjects : packages.entrySet()) {
-            if (packageName.equals(packageFileObjects.getKey().getName())) {
-                fileObjects.addAll(packageFileObjects.getValue());
-                break;
-            }
+        Iterable<JavaFileObject> delegateFileObjects =
+                fileManager.list(location, packageName, kinds, recurse);
+        Collection<JavaFileObject> packageFileObjects;
+        if ((packageFileObjects = fileObjects.get(packageName)) != null) {
+            packageFileObjects = new ArrayList<>(packageFileObjects);
+            delegateFileObjects.forEach(packageFileObjects::add);
+            return packageFileObjects;
+        } else {
+            return delegateFileObjects;
         }
-        fileManager.list(location, packageName, kinds, recurse).forEach(fileObjects::add);
-        return fileObjects;
     }
 
     public String inferBinaryName(Location location, JavaFileObject file) {
