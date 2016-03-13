@@ -20,15 +20,15 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.*;
 
 @SuppressWarnings("StaticNonFinalField")
 class CachedCompiler {
     private static final Map<ClassLoader, Map<String, Class>> loadedClassesMap =
             new WeakHashMap<>();
+
+    private static final List<String> options =
+            Arrays.asList("-XDenableSunApiLintControl", "-Xlint:-sunapi");
 
     private final Map<String, JavaFileObject> javaFileObjects = new HashMap<>();
     private boolean errors;
@@ -44,10 +44,11 @@ class CachedCompiler {
                 new MyJavaFileManager(valueType, CompilerUtils.s_standardJavaFileManager);
         errors = false;
         CompilerUtils.s_compiler.getTask(null, fileManager, diagnostic -> {
-            if (diagnostic.getKind() == Diagnostic.Kind.ERROR)
+            if (diagnostic.getKind() == Diagnostic.Kind.ERROR) {
                 errors = true;
-            System.err.println(diagnostic);
-        }, null, null, compilationUnits).call();
+                System.err.println(diagnostic);
+            }
+        }, options, null, compilationUnits).call();
         Map<String, byte[]> result = fileManager.getAllBuffers();
         if (errors) {
             // compilation error, so we want to exclude this file from future compilation passes
