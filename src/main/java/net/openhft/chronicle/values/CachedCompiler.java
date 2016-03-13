@@ -42,6 +42,7 @@ class CachedCompiler {
 
         MyJavaFileManager fileManager =
                 new MyJavaFileManager(valueType, CompilerUtils.s_standardJavaFileManager);
+        errors = false;
         CompilerUtils.s_compiler.getTask(null, fileManager, diagnostic -> {
             if (diagnostic.getKind() == Diagnostic.Kind.ERROR)
                 errors = true;
