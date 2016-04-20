@@ -17,17 +17,13 @@
 package net.openhft.chronicle.values;
 
 import com.squareup.javapoet.*;
-import net.openhft.chronicle.bytes.Byteable;
-import net.openhft.chronicle.bytes.Bytes;
-import net.openhft.chronicle.bytes.BytesMarshallable;
-import net.openhft.chronicle.bytes.BytesStore;
+import net.openhft.chronicle.bytes.*;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.List;
 import java.util.function.Function;
 
-import static com.squareup.javapoet.TypeName.OBJECT;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -37,6 +33,9 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 final class Generators {
 
     private static final boolean DUMP_CODE = Boolean.getBoolean("chronicle.values.dumpCode");
+
+    private Generators() {
+    }
 
     static String generateNativeClass(ValueModel model, String nativeClassName) {
         TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(nativeClassName);
@@ -149,8 +148,7 @@ final class Generators {
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("readMarshallable")
                 .addAnnotation(Override.class)
                 .addModifiers(PUBLIC)
-                .addParameter(ParameterizedTypeName.get(ClassName.get(Bytes.class),
-                        WildcardTypeName.subtypeOf(OBJECT)), "bytes");
+                .addParameter(ClassName.get(BytesIn.class), "bytes");
         valueBuilder.model.fields()
                 .forEach(f -> generator.apply(f)
                         .generateReadMarshallable(valueBuilder, methodBuilder));
@@ -162,7 +160,7 @@ final class Generators {
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("writeMarshallable")
                 .addAnnotation(Override.class)
                 .addModifiers(PUBLIC)
-                .addParameter(Bytes.class, "bytes");
+                .addParameter(BytesOut.class, "bytes");
         valueBuilder.model.fields()
                 .forEach(f -> generator.apply(f)
                         .generateWriteMarshallable(valueBuilder, methodBuilder));
@@ -253,6 +251,4 @@ final class Generators {
         }
         return builder;
     }
-
-    private Generators() {}
 }
