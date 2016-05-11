@@ -17,9 +17,14 @@ please report the case via issues on Github.
 
 ## Value interface specification
 
+An important pre-requirement for value interfaces: they should belong to some package with
+a non-empty name, not the default package.
+
 Simple example:
 
 ```java
+package test;
+
 interface Balance {
     long getDollars();
     void setDollars(long dollars);
