@@ -23,8 +23,7 @@ import java.util.Date;
  */
 public interface JavaBeanInterfaceGetDate {
 
-    void setDate(Date date);
-
     Date getDate();
 
+    void setDate(Date date);
 }
