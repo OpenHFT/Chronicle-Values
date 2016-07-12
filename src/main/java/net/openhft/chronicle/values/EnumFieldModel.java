@@ -137,8 +137,9 @@ class EnumFieldModel extends IntegerBackedFieldModel {
 
     private String fromOrdinalOrMinusOne(MethodSpec.Builder methodBuilder, String value) {
         if (nullable()) {
-            methodBuilder.addStatement("int ordinal = " + value);
-            return format("ordinal >= 0 ? %s[ordinal] : null", universeName());
+            String ordinalVariableName = name() + "Ordinal";
+            methodBuilder.addStatement(format("int %s = %s", ordinalVariableName, value));
+            return format("%s >= 0 ? %s[%s] : null", ordinalVariableName, universeName(), ordinalVariableName);
         } else {
             return format("%s[%s]", universeName(), value);
         }
