@@ -224,4 +224,21 @@ public class ValueGeneratorTest {
         jbid.setDate(date);
         assertEquals(date, jbid.getDate());
     }
+
+    @Test
+    public void testGenerateInterfaceWithMoreThanOneEnums()   {
+        //dvg.setDumpCode(true);
+        JavaBeanInterfaceMoreThanOneEnums jbid = newNativeReference(JavaBeanInterfaceMoreThanOneEnums.class);
+        BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
+        ((Byteable) jbid).bytesStore(bytes, 0L, ((Byteable) jbid).maxSize());
+        MyEnum myEnum1 = MyEnum.B;
+        jbid.setMyEnum1(myEnum1);
+        MyEnum myEnum2 = MyEnum.A;
+        jbid.setMyEnum2(myEnum2);
+        BuySell buySell = BuySell.BUY;
+        jbid.setBuySell(buySell);
+        assertEquals(myEnum1, jbid.getMyEnum1());
+        assertEquals(myEnum2, jbid.getMyEnum2());
+        assertEquals(buySell, jbid.getBuySell());
+    }
 }
