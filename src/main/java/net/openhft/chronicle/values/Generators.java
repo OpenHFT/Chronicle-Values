@@ -32,8 +32,6 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 
 final class Generators {
 
-    private static final boolean DUMP_CODE = Boolean.getBoolean("chronicle.values.dumpCode");
-
     private Generators() {
     }
 
@@ -49,7 +47,7 @@ final class Generators {
                 .builder(model.valueType.getPackage().getName(), nativeType)
                 .build()
                 .toString();
-        if (DUMP_CODE)
+        if (Boolean.getBoolean("chronicle.values.dumpCode"))
             System.out.println(result);
         return result;
     }
@@ -234,7 +232,7 @@ final class Generators {
                 .builder(model.valueType.getPackage().getName(), heapType)
                 .build()
                 .toString();
-        if (DUMP_CODE)
+        if (Boolean.getBoolean("chronicle.values.dumpCode"))
             System.out.println(result);
         return result;
     }
