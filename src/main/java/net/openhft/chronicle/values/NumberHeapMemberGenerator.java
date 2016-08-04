@@ -21,7 +21,7 @@ import sun.misc.Unsafe;
 
 import static java.lang.String.format;
 
-class NumberHeapMemberGenerator extends PrimitiveHeapMemberGenerator {
+class NumberHeapMemberGenerator extends PrimitiveBackedHeapMemberGenerator {
 
     NumberHeapMemberGenerator(FieldModel fieldModel) {
         super(fieldModel);
@@ -35,13 +35,16 @@ class NumberHeapMemberGenerator extends PrimitiveHeapMemberGenerator {
     public void generateAdd(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
         if (fieldModel.type != byte.class && fieldModel.type != char.class &&
                 fieldModel.type != short.class) {
-            methodBuilder.addStatement("$T $N = " + wrap("$N") + " + addition",
+            methodBuilder.addStatement(
+                    "$T $N = " + wrap(valueBuilder, methodBuilder, "$N") + " + addition",
                     fieldModel.type, fieldModel.varName(), field);
         } else {
-            methodBuilder.addStatement("$T $N = ($T) (" + wrap("$N") + " + addition)",
+            methodBuilder.addStatement(
+                    "$T $N = ($T) (" + wrap(valueBuilder, methodBuilder, "$N") + " + addition)",
                     fieldModel.type, fieldModel.varName(), fieldModel.type, field);
         }
-        methodBuilder.addStatement("$N = " + unwrap("$N"), field, fieldModel.varName());
+        methodBuilder.addStatement(
+                "$N = " + unwrap(methodBuilder, "$N"), field, fieldModel.varName());
         methodBuilder.addStatement("return $N", fieldModel.varName());
     }
 
@@ -49,15 +52,18 @@ class NumberHeapMemberGenerator extends PrimitiveHeapMemberGenerator {
     public void generateArrayElementAdd(
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
-        methodBuilder.addStatement("$T $N = " + wrap("$N[index]") + " + addition",
+        methodBuilder.addStatement(
+                "$T $N = " + wrap(valueBuilder, methodBuilder, "$N[index]") + " + addition",
                 fieldModel.type, fieldModel.varName(), field);
-        methodBuilder.addStatement("$N[index] = " + unwrap("$N"), field, fieldModel.varName());
+        methodBuilder.addStatement("$N[index] = " + unwrap(methodBuilder, "$N"),
+                field, fieldModel.varName());
         methodBuilder.addStatement("return $N", fieldModel.varName());
     }
 
     @Override
     public void generateAddAtomic(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-        methodBuilder.addStatement("return " + wrap("$N.$N(this, $N, addition) + addition"),
+        methodBuilder.addStatement("return " +
+                        wrap(valueBuilder, methodBuilder, "$N.$N(this, $N, addition) + addition"),
                 valueBuilder.unsafe(), getAndAdd(), fieldOffset(valueBuilder));
     }
 
@@ -67,7 +73,7 @@ class NumberHeapMemberGenerator extends PrimitiveHeapMemberGenerator {
             MethodSpec.Builder methodBuilder) {
         arrayFieldModel.checkBounds(methodBuilder);
         methodBuilder.addStatement(
-                "return " + wrap("$N.$N($N, (long) $T.$N + " +
+                "return " + wrap(valueBuilder, methodBuilder, "$N.$N($N, (long) $T.$N + " +
                         "(index * (long) $T.$N), addition) + addition"),
                 valueBuilder.unsafe(), getAndAdd(), field, Unsafe.class, arrayBase(),
                 Unsafe.class, arrayScale());

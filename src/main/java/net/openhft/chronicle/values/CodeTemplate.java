@@ -28,7 +28,6 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,16 +35,14 @@ import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static net.openhft.chronicle.values.MethodTemplate.Type.ARRAY;
 import static net.openhft.chronicle.values.MethodTemplate.Type.SCALAR;
+import static net.openhft.chronicle.values.Primitives.isPrimitiveIntegerType;
 
 enum CodeTemplate {
     ;
-
-	private CodeTemplate() {
-		
-	}
 	
     public static final Function<Method, Parameter> NO_ANNOTATED_PARAM = m -> null;
     static final List<Class<?>> NON_MODEL_TYPES = asList(
@@ -104,27 +101,8 @@ enum CodeTemplate {
     }
 
     static ValueModel createValueModel(Class<?> valueType) {
-        // build up the field models.
-        LinkedHashMap<String, FieldModel> fieldModelMap = new LinkedHashMap<>();
-        forEachAbstractMethod(valueType, m -> {
-            MethodTemplate methodTemplate = METHOD_TEMPLATES.stream()
-                    .filter(t -> t.parameters == m.getParameterCount())
-                    .filter(t -> m.getName().matches(t.regex))
-                    .findFirst().orElseThrow(IllegalStateException::new);
-            Matcher matcher = Pattern.compile(methodTemplate.regex).matcher(m.getName());
-            if (!matcher.find())
-                throw new AssertionError();
-            String fieldName = convertFieldName(matcher.group(1));
-            FieldModel fieldModel = fieldModelMap.computeIfAbsent(fieldName,
-                    n -> {
-                        FieldModel model = methodTemplate.createModel(m, n);
-                        model.name = fieldName;
-                        return model;
-                    });
-            methodTemplate.addMethodToModel.accept(fieldModel, m);
-            fieldModel.addInfo(m, methodTemplate);
-        });
-        List<FieldModel> fields = fieldModelMap.values().stream().collect(toList());
+        List<FieldModel> fields = methodsAndTemplatesByField(valueType).entrySet().stream()
+                .map(e -> createAndConfigureModel(e.getKey(), e.getValue())).collect(toList());
         if (fields.isEmpty())
             throw new IllegalArgumentException(valueType + " is not a value interface");
         fields.forEach(FieldModel::checkAnyWriteMethodPresent);
@@ -133,19 +111,115 @@ enum CodeTemplate {
         return new ValueModel(valueType, fields.stream());
     }
 
-    private static void forEachAbstractMethod(Class<?> c, Consumer<Method> action) {
-        Stream.of(c.getMethods())
-                .filter(m -> (m.getModifiers() & Modifier.ABSTRACT) != 0)
-                .filter(m -> NON_MODEL_TYPES.stream().noneMatch(t -> hasMethod(t, m)))
-                // sorts methods in the order of ascending name lengths
-                // this forEachAbstractMethod() is called in createValueModel(), where FieldModel
-                // are created lazily from the field type info appearing in the first processed
-                // method. Char Sequence fields could have a method void getUsing() which doesn't
-                // contain actual field type info (String or CharSequence).
-                // When we sort methods, getFoo() or setFoo() is always processed before potential
-                // getUsing(), and the field could be created lazily like in general case
-                .sorted(comparing(m -> m.getName().length()))
-                .forEach(action);
+    private static FieldModel createAndConfigureModel(
+            String fieldName, List<MethodAndTemplate> methodsAndTemplates) {
+        if (methodsAndTemplates.stream().map(mt -> mt.template.type).distinct().count() > 1) {
+            throw new IllegalArgumentException("All or none accessors of the " + fieldName +
+                    " field should end with -At (what means this is an array field)");
+        }
+        ScalarFieldModel scalarModel =
+                createAndConfigureScalarModel(fieldName, methodsAndTemplates);
+        if (methodsAndTemplates.get(0).template.type == SCALAR) {
+            return scalarModel;
+        } else {
+            ArrayFieldModel arrayModel = new ArrayFieldModel(scalarModel);
+            configureModel(arrayModel, methodsAndTemplates);
+            return arrayModel;
+        }
+    }
+
+    private static ScalarFieldModel createAndConfigureScalarModel(
+            String fieldName, List<MethodAndTemplate> methodsAndTemplates) {
+        ScalarFieldModel nonPointerModel =
+                createNonPointerScalarModel(fieldName, methodsAndTemplates);
+        configureModel(nonPointerModel, methodsAndTemplates);
+
+        boolean hasPointerAnnotation = methodsAndTemplates.stream().map(mt -> mt.method)
+                .flatMap(m -> Arrays.stream(m.getParameterAnnotations()).flatMap(Arrays::stream))
+                .anyMatch(a -> a.annotationType() == Pointer.class);
+        if (hasPointerAnnotation) {
+            if (!(nonPointerModel instanceof ValueFieldModel)) {
+                throw new IllegalStateException(fieldName + " annotated with @Pointer but has " +
+                        nonPointerModel.type.getName() + " type which is not a value interface");
+            }
+            PointerFieldModel pointerModel =
+                    new PointerFieldModel((ValueFieldModel) nonPointerModel);
+            configureModel(pointerModel, methodsAndTemplates);
+            return pointerModel;
+        } else {
+            return nonPointerModel;
+        }
+    }
+
+    private static void configureModel(
+            FieldModel model, List<MethodAndTemplate> methodsAndTemplates) {
+        methodsAndTemplates.forEach(mt -> {
+            model.name = mt.fieldName;
+            model.addInfo(mt.method, mt.template);
+            mt.template.addMethodToModel.accept(model, mt.method);
+        });
+    }
+
+    private static ScalarFieldModel createNonPointerScalarModel(
+            String fieldName, List<MethodAndTemplate> methodsAndTemplates) {
+        // CharSequence fields could have a method void getUsing() which doesn't contain actual
+        // field type info (String or CharSequence).
+        MethodAndTemplate nonGetUsingMethodAndTemplate = methodsAndTemplates.stream()
+                .filter(mt -> !mt.template.regex.startsWith("getUsing"))
+                .findAny().orElseThrow(() -> new IllegalStateException(fieldName +
+                        " field should have some accessor methods except " +
+                        methodsAndTemplates.get(0).method.getName()));
+        MethodTemplate nonGetUsingMethodTemplate = nonGetUsingMethodAndTemplate.template;
+        Method nonGetUsingMethod = nonGetUsingMethodAndTemplate.method;
+        Class fieldType = nonGetUsingMethodTemplate.fieldType.apply(nonGetUsingMethod);
+        if (isPrimitiveIntegerType(fieldType))
+            return new IntegerFieldModel();
+        if (fieldType == float.class || fieldType == double.class)
+            return new FloatingFieldModel();
+        if (fieldType == boolean.class)
+            return new BooleanFieldModel();
+        if (Enum.class.isAssignableFrom(fieldType))
+            return new EnumFieldModel();
+        if (fieldType == Date.class)
+            return new DateFieldModel();
+        if (CharSequence.class.isAssignableFrom(fieldType))
+            return new CharSequenceFieldModel();
+        if (fieldType.isInterface())
+            return new ValueFieldModel();
+        throw new IllegalStateException(fieldName + " field type " + fieldType +
+                " is not supported: not a primitive, enum, CharSequence " +
+                "or another value interface");
+    }
+
+    static class MethodAndTemplate {
+        final Method method;
+        final MethodTemplate template;
+        final String fieldName;
+
+        MethodAndTemplate(Method method, MethodTemplate template, String fieldName) {
+            this.method = method;
+            this.template = template;
+            this.fieldName = fieldName;
+        }
+    }
+
+    private static Map<String, List<MethodAndTemplate>> methodsAndTemplatesByField(
+            Class<?> valueType) {
+        return Stream.of(valueType.getMethods())
+                    .filter(m -> (m.getModifiers() & Modifier.ABSTRACT) != 0)
+                    .filter(m -> NON_MODEL_TYPES.stream().noneMatch(t -> hasMethod(t, m)))
+                    .map(m -> {
+                        MethodTemplate methodTemplate = METHOD_TEMPLATES.stream()
+                                .filter(t -> t.parameters == m.getParameterCount())
+                                .filter(t -> m.getName().matches(t.regex))
+                                .findFirst().orElseThrow(IllegalStateException::new);
+                        Matcher matcher = Pattern.compile(methodTemplate.regex)
+                                .matcher(m.getName());
+                        if (!matcher.find())
+                            throw new AssertionError();
+                        String fieldName = convertFieldName(matcher.group(1));
+                        return new MethodAndTemplate(m, methodTemplate, fieldName);
+                    }).collect(groupingBy(mt -> mt.fieldName));
     }
 
     private static boolean hasMethod(Class<?> type, Method m) {

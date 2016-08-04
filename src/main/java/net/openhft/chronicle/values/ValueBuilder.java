@@ -16,10 +16,8 @@
 
 package net.openhft.chronicle.values;
 
-import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.FieldSpec;
-import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.*;
+import net.openhft.chronicle.bytes.NativeBytesStore;
 import net.openhft.chronicle.core.Jvm;
 import sun.misc.Unsafe;
 
@@ -35,6 +33,7 @@ class ValueBuilder {
     private FieldSpec unsafe;
     private CodeBlock.Builder staticBlockBuilder;
     private MethodSpec.Builder defaultConstructorBuilder;
+    private FieldSpec bytesStoreForPointers;
 
     public ValueBuilder(ValueModel model, String className, TypeSpec.Builder typeBuilder) {
         this.model = model;
@@ -80,5 +79,18 @@ class ValueBuilder {
         if (defaultConstructorBuilder != null) {
             typeBuilder.addMethod(defaultConstructorBuilder.build());
         }
+    }
+
+    FieldSpec bytesStoreForPointers() {
+        if (bytesStoreForPointers == null) {
+            ParameterizedTypeName bsType =
+                    ParameterizedTypeName.get(NativeBytesStore.class, Void.class);
+            bytesStoreForPointers = FieldSpec
+                    .builder(bsType, "bytesStoreForPointers", PRIVATE, STATIC, FINAL)
+                    .initializer("$T.instance()", PointersBytesStore.class)
+                    .build();
+            typeBuilder.addField(bytesStoreForPointers);
+        }
+        return bytesStoreForPointers;
     }
 }

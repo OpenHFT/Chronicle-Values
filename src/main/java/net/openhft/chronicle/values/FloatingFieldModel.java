@@ -249,12 +249,14 @@ class FloatingFieldModel extends PrimitiveFieldModel {
             public void generateAddAtomic(
                     ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
                 methodBuilder.beginControlFlow("while (true)");
-                methodBuilder.addStatement("$T $N = " + wrap("$N.$N(this, $N)"),
+                methodBuilder.addStatement(
+                        "$T $N = " + wrap(valueBuilder, methodBuilder, "$N.$N(this, $N)"),
                         type, oldName(),
                         valueBuilder.unsafe(), getVolatile(), fieldOffset(valueBuilder));
                 methodBuilder.addStatement("$T $N = $N + addition", type, newName(), oldName());
                 methodBuilder.beginControlFlow(
-                        format("if ($N.$N(this, $N, %s, %s))", unwrap("$N"), unwrap("$N")),
+                        format("if ($N.$N(this, $N, %s, %s))",
+                                unwrap(methodBuilder, "$N"), unwrap(methodBuilder, "$N")),
                         valueBuilder.unsafe(), compareAndSwap(), fieldOffset(valueBuilder),
                         oldName(), newName());
                 methodBuilder.addStatement("return $N", newName());
@@ -269,14 +271,15 @@ class FloatingFieldModel extends PrimitiveFieldModel {
                 arrayFieldModel.checkBounds(methodBuilder);
                 methodBuilder.beginControlFlow("while (true)");
                 methodBuilder.addStatement(
-                        "$T $N = " + wrap("$N.$N($N, (long) $T.$N + (index * (long) $T.$N))"),
+                        "$T $N = " + wrap(valueBuilder, methodBuilder,
+                                "$N.$N($N, (long) $T.$N + (index * (long) $T.$N))"),
                         type, oldName(),
                         valueBuilder.unsafe(), getVolatile(), field, Unsafe.class, arrayBase(),
                         Unsafe.class, arrayScale());
                 methodBuilder.addStatement("$T $N = $N + addition", type, newName(), oldName());
                 methodBuilder.beginControlFlow(
                         format("if ($N.$N($N, (long) $T.$N + (index * (long) $T.$N), %s, %s))",
-                                unwrap("$N"), unwrap("$N")),
+                                unwrap(methodBuilder, "$N"), unwrap(methodBuilder, "$N")),
                         valueBuilder.unsafe(), compareAndSwap(), field, Unsafe.class, arrayBase(),
                         Unsafe.class, arrayScale(), oldName(), newName());
                 methodBuilder.addStatement("return $N", newName());
@@ -287,7 +290,8 @@ class FloatingFieldModel extends PrimitiveFieldModel {
             @Override
             void generateEquals(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
                 methodBuilder.addCode(
-                        format("if ($N(%s) != $N(other.$N())) return false;\n", wrap("$N")),
+                        format("if ($N(%s) != $N(other.$N())) return false;\n",
+                                wrap(valueBuilder, methodBuilder, "$N")),
                         toBits(), field, toBits(), getOrGetVolatile().getName());
             }
 
@@ -297,7 +301,7 @@ class FloatingFieldModel extends PrimitiveFieldModel {
                     MethodSpec.Builder methodBuilder) {
                 methodBuilder.addCode(
                         format("if ($N(%s) != $N(other.$N(index))) return false;\n",
-                                wrap("$N[index]")),
+                                wrap(valueBuilder, methodBuilder, "$N[index]")),
                         toBits(), field, toBits(), getOrGetVolatile().getName());
             }
         };

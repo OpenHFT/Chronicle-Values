@@ -21,15 +21,17 @@ import net.openhft.chronicle.core.Maths;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
-import java.util.Date;
 
-import static net.openhft.chronicle.values.Primitives.isPrimitiveIntegerType;
 import static net.openhft.chronicle.values.Utils.roundUp;
 
 public class ArrayFieldModel extends FieldModel {
 
-    ScalarFieldModel elemModel;
+    private final ScalarFieldModel elemModel;
     Array array;
+
+    public ArrayFieldModel(ScalarFieldModel elemModel) {
+        this.elemModel = elemModel;
+    }
 
     @Override
     void addLayoutInfo(Method m, MethodTemplate template) {
@@ -49,40 +51,6 @@ public class ArrayFieldModel extends FieldModel {
             elemModel.setOffsetAlignmentExplicitly(elementOffsetAlignment);
             elemModel.dontCrossAlignment = array.elementDontCrossAlignment();
         }
-    }
-
-    @Override
-    void addTypeInfo(Method m, MethodTemplate template) {
-        super.addTypeInfo(m, template);
-        if (elemModel == null) {
-            elemModel = createScalarModel(type);
-            elemModel.name = name;
-        }
-        elemModel.addTypeInfo(m, template);
-    }
-
-    ScalarFieldModel createScalarModel(Class type) {
-        return createScalarFieldModel(type, name);
-    }
-
-    @NotNull
-    static ScalarFieldModel createScalarFieldModel(Class type, String fieldName) {
-        if (isPrimitiveIntegerType(type))
-            return new IntegerFieldModel();
-        if (type == float.class || type == double.class)
-            return new FloatingFieldModel();
-        if (type == boolean.class)
-            return new BooleanFieldModel();
-        if (Enum.class.isAssignableFrom(type))
-            return new EnumFieldModel();
-        if (type == Date.class)
-            return new DateFieldModel();
-        if (CharSequence.class.isAssignableFrom(type))
-            return new CharSequenceFieldModel();
-        if (type.isInterface())
-            return new ValueFieldModel();
-        throw new IllegalStateException(fieldName + " field type " + type + " is not supported: " +
-                "not a primitive, enum, CharSequence or another value interface");
     }
 
     @Override

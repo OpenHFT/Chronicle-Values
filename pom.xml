@@ -122,6 +122,7 @@
                         <exclude>net/openhft/chronicle/values/ArrayFieldModel.java</exclude>
                         <exclude>net/openhft/chronicle/values/Enums.java</exclude>
                         <exclude>net/openhft/chronicle/values/CharSequences.java</exclude>
+                        <exclude>net/openhft/chronicle/values/PointersBytesStore.java</exclude>
                     </sourceFileExcludes>
                     <failOnError>false</failOnError>
                     <additionalparam>-Xdoclint:none</additionalparam>

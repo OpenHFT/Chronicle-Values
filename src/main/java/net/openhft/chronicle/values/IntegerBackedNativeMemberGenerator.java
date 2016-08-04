@@ -20,28 +20,29 @@ import com.squareup.javapoet.MethodSpec;
 
 import static java.lang.String.format;
 import static net.openhft.chronicle.values.IntegerFieldModel.*;
-import static net.openhft.chronicle.values.Primitives.boxed;
 
-abstract class IntegerBackedMemberGenerator extends MemberGenerator {
+abstract class IntegerBackedNativeMemberGenerator extends MemberGenerator {
 
     final IntegerFieldModel backingFieldModel;
 
-    protected IntegerBackedMemberGenerator(
+    IntegerBackedNativeMemberGenerator(
             FieldModel fieldModel, IntegerFieldModel backingFieldModel) {
         super(fieldModel);
         this.backingFieldModel = backingFieldModel;
     }
 
-    protected abstract void finishGet(MethodSpec.Builder methodBuilder, String value);
+    abstract void finishGet(
+            ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder, String value);
 
     /**
      * Returns integer value to write (as string)
      */
-    protected abstract String startSet(MethodSpec.Builder methodBuilder);
+    abstract String startSet(MethodSpec.Builder methodBuilder);
 
     @Override
     public void generateGet(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-        finishGet(methodBuilder, backingFieldModel.genGet(valueBuilder, NORMAL_ACCESS_TYPE));
+        String value = backingFieldModel.genGet(valueBuilder, NORMAL_ACCESS_TYPE);
+        finishGet(valueBuilder, methodBuilder, value);
     }
 
     @Override
@@ -51,13 +52,14 @@ abstract class IntegerBackedMemberGenerator extends MemberGenerator {
         arrayFieldModel.checkBounds(methodBuilder);
         String value = backingFieldModel.genArrayElementGet(
                 arrayFieldModel, valueBuilder, methodBuilder, NORMAL_ACCESS_TYPE);
-        finishGet(methodBuilder, value);
+        finishGet(valueBuilder, methodBuilder, value);
     }
 
     @Override
     public void generateGetVolatile(
             ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-        finishGet(methodBuilder, backingFieldModel.genGet(valueBuilder, VOLATILE_ACCESS_TYPE));
+        String value = backingFieldModel.genGet(valueBuilder, VOLATILE_ACCESS_TYPE);
+        finishGet(valueBuilder, methodBuilder, value);
     }
 
     @Override
@@ -67,13 +69,13 @@ abstract class IntegerBackedMemberGenerator extends MemberGenerator {
         arrayFieldModel.checkBounds(methodBuilder);
         String value = backingFieldModel.genArrayElementGet(
                 arrayFieldModel, valueBuilder, methodBuilder, VOLATILE_ACCESS_TYPE);
-        finishGet(methodBuilder, value);
+        finishGet(valueBuilder, methodBuilder, value);
     }
 
     @Override
     public void generateSet(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
         String valueToWrite = startSet(methodBuilder);
-        backingFieldModel.genSet(valueBuilder, methodBuilder, valueToWrite, NORMAL_ACCESS_TYPE);
+        backingFieldModel.genSet(valueBuilder, methodBuilder, NORMAL_ACCESS_TYPE, valueToWrite);
     }
 
     @Override
@@ -90,7 +92,7 @@ abstract class IntegerBackedMemberGenerator extends MemberGenerator {
     public void generateSetVolatile(
             ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
         String valueToWrite = startSet(methodBuilder);
-        backingFieldModel.genSet(valueBuilder, methodBuilder, valueToWrite, VOLATILE_ACCESS_TYPE);
+        backingFieldModel.genSet(valueBuilder, methodBuilder, VOLATILE_ACCESS_TYPE, valueToWrite);
     }
 
     @Override
@@ -107,7 +109,7 @@ abstract class IntegerBackedMemberGenerator extends MemberGenerator {
     public void generateSetOrdered(
             ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
         String valueToWrite = startSet(methodBuilder);
-        backingFieldModel.genSet(valueBuilder, methodBuilder, valueToWrite, ORDERED_ACCESS_TYPE);
+        backingFieldModel.genSet(valueBuilder, methodBuilder, ORDERED_ACCESS_TYPE, valueToWrite);
     }
 
     @Override
@@ -164,7 +166,7 @@ abstract class IntegerBackedMemberGenerator extends MemberGenerator {
 
     @Override
     void generateReadMarshallable(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-        backingFieldModel.genSet(valueBuilder, methodBuilder, readValue(), NORMAL_ACCESS_TYPE);
+        backingFieldModel.genSet(valueBuilder, methodBuilder, NORMAL_ACCESS_TYPE, readValue());
     }
 
     @Override

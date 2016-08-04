@@ -24,6 +24,7 @@ import sun.misc.Unsafe;
 
 import static java.lang.String.format;
 import static javax.lang.model.element.Modifier.*;
+import static net.openhft.chronicle.values.Utils.capitalize;
 
 abstract class HeapMemberGenerator extends MemberGenerator {
 
@@ -62,9 +63,10 @@ abstract class HeapMemberGenerator extends MemberGenerator {
         return fieldModel.type;
     }
 
-    abstract String wrap(String rawStoredValue);
+    abstract String wrap(
+            ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder, String rawStoredValue);
 
-    abstract String unwrap(String inputValue);
+    abstract String unwrap(MethodSpec.Builder methodBuilder, String inputValue);
 
     @Override
     void generateFields(ValueBuilder valueBuilder) {
@@ -83,33 +85,39 @@ abstract class HeapMemberGenerator extends MemberGenerator {
 
     @Override
     public void generateGet(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-        methodBuilder.addStatement("return " + wrap("$N"), field);
+        String rawValue = "raw" + capitalize(field.name) + "Value";
+        methodBuilder.addStatement("$T $N = $N", fieldType(), rawValue, field);
+        methodBuilder.addStatement("return $N", wrap(valueBuilder, methodBuilder, rawValue));
     }
 
     @Override
     public void generateArrayElementGet(
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
-        methodBuilder.addStatement("return " + wrap("$N[index]"), field);
+        String rawValue = "raw" + capitalize(field.name) + "Value";
+        methodBuilder.addStatement("$T $N = $N[index]", fieldType(), rawValue, field);
+        methodBuilder.addStatement("return $N", wrap(valueBuilder, methodBuilder, rawValue));
     }
 
     @Override
     public void generateSet(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-        methodBuilder.addStatement("this.$N = " + unwrap("$N"), field, fieldModel.varName());
+        methodBuilder.addStatement("this.$N = $N",
+                field, unwrap(methodBuilder, fieldModel.varName()));
     }
 
     @Override
     public void generateArrayElementSet(
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
-        methodBuilder.addStatement("this.$N[index] = " + unwrap("$N"), field, fieldModel.varName());
+        methodBuilder.addStatement("this.$N[index] = $N",
+                field, unwrap(methodBuilder, fieldModel.varName()));
     }
 
     @Override
     public void generateSetVolatile(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-        methodBuilder.addStatement(format("$N.$N(this, $N, %s)", unwrap("$N")),
+        methodBuilder.addStatement("$N.$N(this, $N, $N)",
                 valueBuilder.unsafe(), putVolatile(), fieldOffset(valueBuilder),
-                fieldModel.varName());
+                unwrap(methodBuilder, fieldModel.varName()));
     }
 
     @Override
@@ -118,16 +126,17 @@ abstract class HeapMemberGenerator extends MemberGenerator {
             MethodSpec.Builder methodBuilder) {
         arrayFieldModel.checkBounds(methodBuilder);
         methodBuilder.addStatement(
-                format("$N.$N($N, (long) $T.$N + (index * (long) $T.$N), %s)", unwrap("$N")),
+                format("$N.$N($N, (long) $T.$N + (index * (long) $T.$N), %s)",
+                        unwrap(methodBuilder, fieldModel.varName())),
                 valueBuilder.unsafe(), putVolatile(), field, Unsafe.class, arrayBase(),
-                Unsafe.class, arrayScale(), fieldModel.varName());
+                Unsafe.class, arrayScale());
     }
 
     @Override
     public void generateSetOrdered(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-        methodBuilder.addStatement(format("$N.$N(this, $N, %s)", unwrap("$N")),
+        methodBuilder.addStatement("$N.$N(this, $N, $N)",
                 valueBuilder.unsafe(), putOrdered(), fieldOffset(valueBuilder),
-                fieldModel.varName());
+                unwrap(methodBuilder, fieldModel.varName()));
     }
 
     @Override
@@ -136,18 +145,20 @@ abstract class HeapMemberGenerator extends MemberGenerator {
             MethodSpec.Builder methodBuilder) {
         arrayFieldModel.checkBounds(methodBuilder);
         methodBuilder.addStatement(
-                format("$N.$N($N, (long) $T.$N + (index * (long) $T.$N), %s)", unwrap("$N")),
+                format("$N.$N($N, (long) $T.$N + (index * (long) $T.$N), %s)",
+                        unwrap(methodBuilder, fieldModel.varName())),
                 valueBuilder.unsafe(), putOrdered(), field, Unsafe.class, arrayBase(), Unsafe.class,
-                arrayScale(), fieldModel.varName());
+                arrayScale());
     }
 
     @Override
     public void generateCompareAndSwap(
             ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-        methodBuilder.addStatement(
-                format("return $N.$N(this, $N, %s, %s)", unwrap("$N"), unwrap("$N")),
+        String unwrappedOld = unwrap(methodBuilder, fieldModel.oldName());
+        String unwrappedNew = unwrap(methodBuilder, fieldModel.newName());
+        methodBuilder.addStatement("return $N.$N(this, $N, $N, $N)",
                 valueBuilder.unsafe(), compareAndSwap(), fieldOffset(valueBuilder),
-                fieldModel.oldName(), fieldModel.newName());
+                unwrappedOld, unwrappedNew);
     }
 
     @Override
@@ -155,36 +166,45 @@ abstract class HeapMemberGenerator extends MemberGenerator {
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
         arrayFieldModel.checkBounds(methodBuilder);
+        String unwrappedOld = unwrap(methodBuilder, fieldModel.oldName());
+        String unwrappedNew = unwrap(methodBuilder, fieldModel.newName());
         methodBuilder.addStatement(
-                format("return $N.$N($N, (long) $T.$N + (index * (long) $T.$N), %s, %s)",
-                        unwrap("$N"), unwrap("$N")),
+                "return $N.$N($N, (long) $T.$N + (index * (long) $T.$N), $N, $N)",
                 valueBuilder.unsafe(), compareAndSwap(), field, Unsafe.class, arrayBase(),
-                Unsafe.class, arrayScale(), fieldModel.oldName(), fieldModel.newName());
+                Unsafe.class, arrayScale(), unwrappedOld, unwrappedNew);
     }
 
     @Override
     public void generateCopyFrom(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-        methodBuilder.addStatement(format("this.$N = %s", unwrap("from.$N()")),
-                field, fieldModel.getOrGetVolatile().getName());
+        String copy = fieldModel.name + "Copy";
+        methodBuilder.addStatement("$T $N = from.$N()",
+                fieldModel.type, copy, fieldModel.getOrGetVolatile().getName());
+        methodBuilder.addStatement("this.$N = $N", field, unwrap(methodBuilder, copy));
     }
 
     @Override
     public void generateArrayElementCopyFrom(
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
-        methodBuilder.addStatement(format("this.$N[index] = %s", unwrap("from.$N(index)")),
-                field, arrayFieldModel.getOrGetVolatile().getName());
+        String copy = arrayFieldModel.name + "Copy";
+        methodBuilder.addStatement("$T $N = from.$N(index)",
+                arrayFieldModel.type, copy, arrayFieldModel.getOrGetVolatile().getName());
+        methodBuilder.addStatement("this.$N[index] = $N", field, unwrap(methodBuilder, copy));
     }
 
     @Override
     void generateToString(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-        genToString(methodBuilder, wrap(field.name));
+        String rawValue = "raw" + capitalize(field.name) + "Value";
+        methodBuilder.addStatement("$T $N = $N", fieldType(), rawValue, field);
+        genToString(methodBuilder, wrap(valueBuilder, methodBuilder, rawValue));
     }
 
     @Override
     void generateArrayElementToString(
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
-        genArrayElementToString(methodBuilder, wrap(field.name + "[index]"));
+        String rawValue = "raw" + capitalize(field.name) + "Value";
+        methodBuilder.addStatement("$T $N = $N[index]", fieldType(), rawValue, field);
+        genArrayElementToString(methodBuilder, wrap(valueBuilder, methodBuilder, rawValue));
     }
 }

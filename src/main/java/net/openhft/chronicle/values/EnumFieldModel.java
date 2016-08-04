@@ -48,13 +48,14 @@ class EnumFieldModel extends IntegerBackedFieldModel {
         }
         backend.type = int.class;
         backend.range = new RangeImpl(min, constants - 1);
+        backend.postProcess();
     }
 
     private boolean nullable() {
         return nullability.nullability() == NULLABLE;
     }
 
-    final MemberGenerator nativeGenerator = new IntegerBackedMemberGenerator(this, backend) {
+    final MemberGenerator nativeGenerator = new IntegerBackedNativeMemberGenerator(this, backend) {
 
         @Override
         public void generateFields(ValueBuilder valueBuilder) {
@@ -68,12 +69,12 @@ class EnumFieldModel extends IntegerBackedFieldModel {
         }
 
         @Override
-        protected void finishGet(MethodSpec.Builder methodBuilder, String value) {
-            methodBuilder.addStatement("return " + fromOrdinalOrMinusOne(methodBuilder, value));
+        void finishGet(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder, String value) {
+            methodBuilder.addStatement("return $N", fromOrdinalOrMinusOne(methodBuilder, value));
         }
 
         @Override
-        protected String startSet(MethodSpec.Builder methodBuilder) {
+        String startSet(MethodSpec.Builder methodBuilder) {
             return toOrdinalOrMinusOne(varName());
         }
 

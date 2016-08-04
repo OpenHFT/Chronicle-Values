@@ -22,14 +22,13 @@ import com.squareup.javapoet.MethodSpec;
 
 import java.lang.reflect.Method;
 
-import static java.lang.String.format;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 
 class ValueFieldModel extends ScalarFieldModel {
-    ValueModel valueModel;
+    private ValueModel valueModel;
 
-    ValueModel valueModel() {
+    private ValueModel valueModel() {
         if (valueModel == null)
             valueModel = ValueModel.acquire(type);
         return valueModel;
@@ -48,10 +47,16 @@ class ValueFieldModel extends ScalarFieldModel {
         return Math.max(1, offsetAlignment);
     }
 
-    final MemberGenerator nativeGenerator = new MemberGenerator(this) {
+    private final NativeMemberGenerator nativeGenerator = new NativeMemberGenerator();
+
+    final class NativeMemberGenerator extends MemberGenerator {
 
         private Class nativeType;
-        private FieldSpec cachedValue;
+        FieldSpec cachedValue;
+
+        NativeMemberGenerator() {
+            super(ValueFieldModel.this);
+        }
 
         @Override
         public void generateFields(ValueBuilder valueBuilder) {
@@ -260,10 +265,10 @@ class ValueFieldModel extends ScalarFieldModel {
             initArrayElementCachedValue(arrayFieldModel, valueBuilder, methodBuilder);
             genArrayElementToString(methodBuilder, cachedValue.name);
         }
-    };
+    }
 
     @Override
-    MemberGenerator nativeGenerator() {
+    NativeMemberGenerator nativeGenerator() {
         return nativeGenerator;
     }
 

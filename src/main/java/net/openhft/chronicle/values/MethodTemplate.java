@@ -23,8 +23,6 @@ import java.lang.reflect.Parameter;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import static net.openhft.chronicle.values.ArrayFieldModel.createScalarFieldModel;
-
 class MethodTemplate {
     final String regex;
     final int parameters;
@@ -42,14 +40,6 @@ class MethodTemplate {
         this.fieldType = fieldType;
         this.annotatedParameter = annotatedParameter;
         this.addMethodToModel = addMethodToModel;
-    }
-
-    FieldModel createModel(Method m, String fieldName) {
-        if (type == Type.SCALAR) {
-            return createScalarFieldModel(fieldType.apply(m), fieldName);
-        } else {
-            return new ArrayFieldModel();
-        }
     }
 
     enum Type {

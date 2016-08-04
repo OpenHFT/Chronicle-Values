@@ -30,9 +30,10 @@ class DateFieldModel extends IntegerBackedFieldModel {
         super.postProcess();
         backend.type = long.class;
         backend.range = RangeImpl.DEFAULT_LONG_RANGE;
+        backend.postProcess();
     }
 
-    final MemberGenerator nativeGenerator = new IntegerBackedMemberGenerator(this, backend) {
+    final MemberGenerator nativeGenerator = new IntegerBackedNativeMemberGenerator(this, backend) {
 
         @Override
         void generateArrayElementFields(
@@ -41,12 +42,12 @@ class DateFieldModel extends IntegerBackedFieldModel {
         }
 
         @Override
-        protected void finishGet(MethodSpec.Builder methodBuilder, String value) {
+        void finishGet(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder, String value) {
             methodBuilder.addStatement(format("return new $T(%s)", value), Date.class);
         }
 
         @Override
-        protected String startSet(MethodSpec.Builder methodBuilder) {
+        String startSet(MethodSpec.Builder methodBuilder) {
             return varName() + ".getTime()";
         }
 

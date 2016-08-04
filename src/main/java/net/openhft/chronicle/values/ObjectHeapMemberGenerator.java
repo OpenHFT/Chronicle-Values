@@ -54,12 +54,13 @@ class ObjectHeapMemberGenerator extends HeapMemberGenerator {
     }
 
     @Override
-    String wrap(String rawStoredValue) {
+    String wrap(
+            ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder, String rawStoredValue) {
         return rawStoredValue;
     }
 
     @Override
-    String unwrap(String inputValue) {
+    String unwrap(MethodSpec.Builder methodBuilder, String inputValue) {
         return inputValue;
     }
 

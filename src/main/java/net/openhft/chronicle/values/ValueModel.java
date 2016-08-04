@@ -108,7 +108,7 @@ public class ValueModel {
         }
     }
 
-    static ClassValue<Object> classValueModel = new ClassValue<Object>() {
+    private static ClassValue<Object> classValueModel = new ClassValue<Object>() {
         @Override
         protected Object computeValue(Class<?> valueType) {
             try {
@@ -147,7 +147,7 @@ public class ValueModel {
         int from;
         int to;
 
-        public BitRange(int from, int to) {
+        BitRange(int from, int to) {
             this.from = from;
             this.to = to;
         }
@@ -318,11 +318,11 @@ public class ValueModel {
         }
     }
 
-    Class createNativeClass() {
+    private Class createNativeClass() {
         return createClass(simpleName() + $$NATIVE, Generators::generateNativeClass);
     }
 
-    Class createHeapClass() {
+    private Class createHeapClass() {
         return createClass(simpleName() + $$HEAP, Generators::generateHeapClass);
     }
 

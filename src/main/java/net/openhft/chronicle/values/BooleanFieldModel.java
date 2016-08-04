@@ -305,7 +305,7 @@ class BooleanFieldModel extends PrimitiveFieldModel {
 
     @Override
     MemberGenerator createHeapGenerator() {
-        return new PrimitiveHeapMemberGenerator(this) {
+        return new PrimitiveBackedHeapMemberGenerator(this) {
 
         };
     }
