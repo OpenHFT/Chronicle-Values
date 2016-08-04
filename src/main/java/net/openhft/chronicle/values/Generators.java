@@ -137,7 +137,12 @@ final class Generators {
                 .addModifiers(PUBLIC)
                 .addParameter(valueBuilder.model.valueType, "from");
         valueBuilder.model.fields()
-                .forEach(f -> generator.apply(f).generateCopyFrom(valueBuilder, methodBuilder));
+                .forEach(f -> {
+                    // plain java blocks to isolate variable namespaces
+                    methodBuilder.beginControlFlow("");
+                    generator.apply(f).generateCopyFrom(valueBuilder, methodBuilder);
+                    methodBuilder.endControlFlow();
+                });
         return methodBuilder.build();
     }
 
@@ -148,8 +153,12 @@ final class Generators {
                 .addModifiers(PUBLIC)
                 .addParameter(ClassName.get(BytesIn.class), "bytes");
         valueBuilder.model.fields()
-                .forEach(f -> generator.apply(f)
-                        .generateReadMarshallable(valueBuilder, methodBuilder));
+                .forEach(f -> {
+                    // plain java blocks to isolate variable namespaces
+                    methodBuilder.beginControlFlow("");
+                    generator.apply(f).generateReadMarshallable(valueBuilder, methodBuilder);
+                    methodBuilder.endControlFlow();
+                });
         return methodBuilder.build();
     }
 
@@ -160,8 +169,12 @@ final class Generators {
                 .addModifiers(PUBLIC)
                 .addParameter(BytesOut.class, "bytes");
         valueBuilder.model.fields()
-                .forEach(f -> generator.apply(f)
-                        .generateWriteMarshallable(valueBuilder, methodBuilder));
+                .forEach(f -> {
+                    // plain java blocks to isolate variable namespaces
+                    methodBuilder.beginControlFlow("");
+                    generator.apply(f).generateWriteMarshallable(valueBuilder, methodBuilder);
+                    methodBuilder.endControlFlow();
+                });
         return methodBuilder.build();
     }
 
@@ -176,8 +189,12 @@ final class Generators {
         methodBuilder.addCode("if (!(obj instanceof $T)) return false;\n",
                 valueType);
         methodBuilder.addStatement("$T other = ($T) obj", valueType, valueType);
-        valueBuilder.model.fields().forEach(f ->
-                generator.apply(f).generateEquals(valueBuilder, methodBuilder));
+        valueBuilder.model.fields().forEach(f -> {
+            // plain java blocks to isolate variable namespaces
+            methodBuilder.beginControlFlow("");
+            generator.apply(f).generateEquals(valueBuilder, methodBuilder);
+            methodBuilder.endControlFlow();
+        });
         methodBuilder.addStatement("return true");
         return methodBuilder.build();
     }
@@ -194,8 +211,11 @@ final class Generators {
         methodBuilder.addStatement("int hashCode = 1");
         valueBuilder.model.fields().forEach(f -> {
             methodBuilder.addStatement("hashCode *= 1000003");
+            // plain java blocks to isolate variable namespaces
+            methodBuilder.beginControlFlow("");
             String fieldHashCode = generator.apply(f).generateHashCode(valueBuilder, methodBuilder);
             methodBuilder.addStatement("hashCode ^= $N", fieldHashCode);
+            methodBuilder.endControlFlow();
         });
         methodBuilder.addStatement("return hashCode");
         return methodBuilder.build();
@@ -210,8 +230,12 @@ final class Generators {
         methodBuilder.addStatement("$T sb = new $T()", StringBuilder.class, StringBuilder.class);
         String modelName = valueBuilder.model.simpleName();
         methodBuilder.addStatement("sb.append($S)", modelName);
-        valueBuilder.model.fields()
-                .forEach(f -> generator.apply(f).generateToString(valueBuilder, methodBuilder));
+        valueBuilder.model.fields().forEach(f -> {
+            // plain java blocks to isolate variable namespaces
+            methodBuilder.beginControlFlow("");
+            generator.apply(f).generateToString(valueBuilder, methodBuilder);
+            methodBuilder.endControlFlow();
+        });
         methodBuilder.addStatement("sb.setCharAt($L, '{')", modelName.length());
         methodBuilder.addStatement("sb.append(' ').append('}')");
         methodBuilder.addStatement("return sb.toString()");
