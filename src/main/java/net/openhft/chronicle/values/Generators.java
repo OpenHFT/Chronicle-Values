@@ -151,7 +151,7 @@ final class Generators {
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("readMarshallable")
                 .addAnnotation(Override.class)
                 .addModifiers(PUBLIC)
-                .addParameter(ClassName.get(BytesIn.class), "bytes");
+                .addParameter(BytesIn.class, "bytes");
         valueBuilder.model.fields()
                 .forEach(f -> {
                     // plain java blocks to isolate variable namespaces
