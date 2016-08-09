@@ -20,7 +20,11 @@ package net.openhft.chronicle.values;
 import net.openhft.chronicle.bytes.Byteable;
 import net.openhft.chronicle.bytes.BytesStore;
 
-interface HeapByteable extends Byteable {
+/**
+ * NOT FOR DIRECT USE. Implements {@link Byteable} by throwing {@link UnsupportedOperationException}
+ * from all methods.
+ */
+public interface HeapByteable extends Byteable {
 
     @Override
     default void bytesStore(BytesStore bytesStore, long l, long l1) {
