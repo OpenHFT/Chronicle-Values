@@ -54,7 +54,7 @@ enum CodeTemplate {
                     comparing((MethodTemplate t) -> t.parameters)
                             .thenComparing(k -> -k.regex.length())
                             .thenComparing(k -> k.regex));
-    private static final String FIELD_NAME = "([a-zA-Z$][a-zA-Z\\d_$]*)";
+    private static final String FIELD_NAME = "([a-zA-Z_$][a-zA-Z\\d_$]*)";
 
     static {
         addReadPatterns("get", 0, FieldModel::setGet);
