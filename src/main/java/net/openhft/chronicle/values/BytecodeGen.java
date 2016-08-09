@@ -1,6 +1,7 @@
 /*
- *      Copyright (C) 2015  higherfrequencytrading.com
+ *      Copyright (C) 2015, 2016  higherfrequencytrading.com
  *      Copyright (C) 2008, 2013 Google Inc.
+ *      Copyright (C) 2016 Roman Leventov
  *
  *      This program is free software: you can redistribute it and/or modify
  *      it under the terms of the GNU Lesser General Public License as published by
