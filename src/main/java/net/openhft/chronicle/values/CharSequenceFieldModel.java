@@ -87,7 +87,7 @@ class CharSequenceFieldModel extends ScalarFieldModel {
     private void addCachedStringBuilder(ValueBuilder valueBuilder) {
         FieldSpec cachedStringBuilder = FieldSpec
                 .builder(StringBuilder.class, cachedStringBuilder(), PRIVATE, FINAL)
-                .initializer("new $T()", StringBuilder.class)
+                .initializer("new $T($L)", StringBuilder.class, maxUtf8Length.value())
                 .build();
         valueBuilder.typeBuilder.addField(cachedStringBuilder);
     }
