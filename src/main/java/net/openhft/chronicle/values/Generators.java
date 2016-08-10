@@ -23,7 +23,6 @@ import net.openhft.chronicle.bytes.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.List;
-import java.util.function.Function;
 
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
@@ -54,7 +53,7 @@ final class Generators {
     }
 
     private static void generateNativeCommons(ValueBuilder valueBuilder) {
-        generateValueCommons(valueBuilder, FieldModel::nativeGenerator);
+        generateValueCommons(valueBuilder, ImplType.NATIVE);
         ValueModel model = valueBuilder.model;
         valueBuilder.typeBuilder
                 .addSuperinterface(Byteable.class)
@@ -115,24 +114,39 @@ final class Generators {
         }
     }
 
-    private static void generateValueCommons(
-            ValueBuilder valueBuilder, Function<FieldModel, MemberGenerator> generator) {
+    private enum ImplType {
+        HEAP {
+            @Override
+            MemberGenerator getMemberGenerator(FieldModel fieldModel) {
+                return fieldModel.heapGenerator();
+            }
+        },
+        NATIVE {
+            @Override
+            MemberGenerator getMemberGenerator(FieldModel fieldModel) {
+                return fieldModel.nativeGenerator();
+            }
+        };
+
+        abstract MemberGenerator getMemberGenerator(FieldModel fieldModel);
+    }
+
+    private static void generateValueCommons(ValueBuilder valueBuilder, ImplType implType) {
         Class<?> valueType = valueBuilder.model.valueType;
         valueBuilder.typeBuilder
                 .addSuperinterface(valueType)
                 .addSuperinterface(ParameterizedTypeName.get(Copyable.class, valueType))
                 .addSuperinterface(BytesMarshallable.class);
         valueBuilder.typeBuilder
-                .addMethod(copyFromMethod(valueBuilder, generator))
-                .addMethod(writeMarshallableMethod(valueBuilder, generator))
-                .addMethod(readMarshallableMethod(valueBuilder, generator))
-                .addMethod(equalsMethod(valueBuilder, generator))
-                .addMethod(hashCodeMethod(valueBuilder, generator))
-                .addMethod(toStringMethod(valueBuilder, generator));
+                .addMethod(copyFromMethod(valueBuilder, implType))
+                .addMethod(writeMarshallableMethod(valueBuilder, implType))
+                .addMethod(readMarshallableMethod(valueBuilder, implType))
+                .addMethod(equalsMethod(valueBuilder, implType))
+                .addMethod(hashCodeMethod(valueBuilder, implType))
+                .addMethod(toStringMethod(valueBuilder, implType));
     }
 
-    private static MethodSpec copyFromMethod(
-            ValueBuilder valueBuilder, Function<FieldModel, MemberGenerator> generator) {
+    private static MethodSpec copyFromMethod(ValueBuilder valueBuilder, ImplType implType) {
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("copyFrom")
                 .addAnnotation(Override.class)
                 .addModifiers(PUBLIC)
@@ -141,14 +155,13 @@ final class Generators {
                 .forEach(f -> {
                     // plain java blocks to isolate variable namespaces
                     methodBuilder.beginControlFlow("");
-                    generator.apply(f).generateCopyFrom(valueBuilder, methodBuilder);
+                    implType.getMemberGenerator(f).generateCopyFrom(valueBuilder, methodBuilder);
                     methodBuilder.endControlFlow();
                 });
         return methodBuilder.build();
     }
 
-    private static MethodSpec readMarshallableMethod(
-            ValueBuilder valueBuilder, Function<FieldModel, MemberGenerator> generator) {
+    private static MethodSpec readMarshallableMethod(ValueBuilder valueBuilder, ImplType implType) {
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("readMarshallable")
                 .addAnnotation(Override.class)
                 .addModifiers(PUBLIC)
@@ -157,14 +170,15 @@ final class Generators {
                 .forEach(f -> {
                     // plain java blocks to isolate variable namespaces
                     methodBuilder.beginControlFlow("");
-                    generator.apply(f).generateReadMarshallable(valueBuilder, methodBuilder);
+                    implType.getMemberGenerator(f)
+                            .generateReadMarshallable(valueBuilder, methodBuilder);
                     methodBuilder.endControlFlow();
                 });
         return methodBuilder.build();
     }
 
     private static MethodSpec writeMarshallableMethod(
-            ValueBuilder valueBuilder, Function<FieldModel, MemberGenerator> generator) {
+            ValueBuilder valueBuilder, ImplType implType) {
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("writeMarshallable")
                 .addAnnotation(Override.class)
                 .addModifiers(PUBLIC)
@@ -173,14 +187,14 @@ final class Generators {
                 .forEach(f -> {
                     // plain java blocks to isolate variable namespaces
                     methodBuilder.beginControlFlow("");
-                    generator.apply(f).generateWriteMarshallable(valueBuilder, methodBuilder);
+                    implType.getMemberGenerator(f)
+                            .generateWriteMarshallable(valueBuilder, methodBuilder);
                     methodBuilder.endControlFlow();
                 });
         return methodBuilder.build();
     }
 
-    private static MethodSpec equalsMethod(
-            ValueBuilder valueBuilder, Function<FieldModel, MemberGenerator> generator) {
+    private static MethodSpec equalsMethod(ValueBuilder valueBuilder, ImplType implType) {
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("equals")
                 .addParameter(Object.class, "obj")
                 .addAnnotation(Override.class)
@@ -193,7 +207,7 @@ final class Generators {
         valueBuilder.model.fields().forEach(f -> {
             // plain java blocks to isolate variable namespaces
             methodBuilder.beginControlFlow("");
-            generator.apply(f).generateEquals(valueBuilder, methodBuilder);
+            implType.getMemberGenerator(f).generateEquals(valueBuilder, methodBuilder);
             methodBuilder.endControlFlow();
         });
         methodBuilder.addStatement("return true");
@@ -203,8 +217,7 @@ final class Generators {
     /**
      * Copies google/auto value's strategy of hash code generation
      */
-    private static MethodSpec hashCodeMethod(
-            ValueBuilder valueBuilder, Function<FieldModel, MemberGenerator> generator) {
+    private static MethodSpec hashCodeMethod(ValueBuilder valueBuilder, ImplType implType) {
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("hashCode")
                 .addAnnotation(Override.class)
                 .addModifiers(PUBLIC)
@@ -214,7 +227,8 @@ final class Generators {
             methodBuilder.addStatement("hashCode *= 1000003");
             // plain java blocks to isolate variable namespaces
             methodBuilder.beginControlFlow("");
-            String fieldHashCode = generator.apply(f).generateHashCode(valueBuilder, methodBuilder);
+            String fieldHashCode =
+                    implType.getMemberGenerator(f).generateHashCode(valueBuilder, methodBuilder);
             methodBuilder.addStatement("hashCode ^= $N", fieldHashCode);
             methodBuilder.endControlFlow();
         });
@@ -222,8 +236,7 @@ final class Generators {
         return methodBuilder.build();
     }
 
-    private static MethodSpec toStringMethod(
-            ValueBuilder valueBuilder, Function<FieldModel, MemberGenerator> generator) {
+    private static MethodSpec toStringMethod(ValueBuilder valueBuilder, ImplType implType) {
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("toString")
                 .addAnnotation(Override.class)
                 .addModifiers(PUBLIC)
@@ -234,7 +247,7 @@ final class Generators {
         valueBuilder.model.fields().forEach(f -> {
             // plain java blocks to isolate variable namespaces
             methodBuilder.beginControlFlow("");
-            generator.apply(f).generateToString(valueBuilder, methodBuilder);
+            implType.getMemberGenerator(f).generateToString(valueBuilder, methodBuilder);
             methodBuilder.endControlFlow();
         });
         methodBuilder.addStatement("sb.setCharAt($L, '{')", modelName.length());
@@ -248,7 +261,7 @@ final class Generators {
         typeBuilder.addModifiers(PUBLIC);
         ValueBuilder valueBuilder = new ValueBuilder(model, heapClassName, typeBuilder);
         model.fields().forEach(f -> f.generateHeapMembers(valueBuilder));
-        generateValueCommons(valueBuilder, FieldModel::heapGenerator);
+        generateValueCommons(valueBuilder, ImplType.HEAP);
         if (Byteable.class.isAssignableFrom(model.valueType))
             typeBuilder.addSuperinterface(HeapByteable.class);
         valueBuilder.closeConstructorsAndInitializationBlocks();
