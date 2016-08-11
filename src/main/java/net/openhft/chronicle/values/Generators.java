@@ -151,6 +151,17 @@ final class Generators {
                 .addAnnotation(Override.class)
                 .addModifiers(PUBLIC)
                 .addParameter(valueBuilder.model.valueType, "from");
+        if (implType == ImplType.NATIVE) {
+            ClassName nativeClassName = ClassName.get(
+                    valueBuilder.model.valueType.getPackage().getName(), valueBuilder.className);
+            methodBuilder.beginControlFlow("if (from instanceof $T)", nativeClassName);
+            {
+                methodBuilder.addStatement(
+                        "bs.write(offset, (($T) from).bytesStore(), (($T) from).offset(), $L)",
+                        nativeClassName, nativeClassName, valueBuilder.model.sizeInBytes());
+            }
+            methodBuilder.nextControlFlow("else");
+        }
         valueBuilder.model.fields()
                 .forEach(f -> {
                     // plain java blocks to isolate variable namespaces
@@ -158,6 +169,9 @@ final class Generators {
                     implType.getMemberGenerator(f).generateCopyFrom(valueBuilder, methodBuilder);
                     methodBuilder.endControlFlow();
                 });
+        if (implType == ImplType.NATIVE) {
+            methodBuilder.endControlFlow();
+        }
         return methodBuilder.build();
     }
 
