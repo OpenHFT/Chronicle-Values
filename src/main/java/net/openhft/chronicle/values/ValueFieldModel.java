@@ -289,7 +289,7 @@ class ValueFieldModel extends ScalarFieldModel {
             void generateArrayElementFields(
                     ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder) {
                 field = FieldSpec.builder(ArrayTypeName.of(valueModel().heapClass()), fieldName())
-                        .addModifiers(PRIVATE)
+                        .addModifiers(PRIVATE, FINAL)
                         .initializer("new $T[$L]",
                                 valueModel().heapClass(), arrayFieldModel.array.length())
                         .build();

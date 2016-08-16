@@ -78,7 +78,7 @@ abstract class HeapMemberGenerator extends MemberGenerator {
     @Override
     void generateArrayElementFields(ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder) {
         field = FieldSpec.builder(ArrayTypeName.of(fieldType()), fieldModel.fieldName())
-                .addModifiers(PRIVATE)
+                .addModifiers(PRIVATE, FINAL)
                 .initializer("new $T[$L]", fieldType(), arrayFieldModel.array.length())
                 .build();
         valueBuilder.typeBuilder.addField(field);
