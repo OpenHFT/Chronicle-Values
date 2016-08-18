@@ -1,6 +1,6 @@
 <h1>Chronicle-Values
 <a href="https://maven-badges.herokuapp.com/maven-central/net.openhft/chronicle-values">
-<img src="https://maven-badges.herokuapp.com/maven-central/net.openhft/chronicle-values/badge.svg" />
+<img src="https://maven-badges.herokuapp.com/maven-central/net.openhft/chronicle-values/badge.svg"/>
 </a></h1>
 
 Poor man's value types, Java 8+
@@ -14,6 +14,17 @@ interfaces**.
 yet, please write the value interface according to the specification below, with the **unit tests
 for your interface**. If the generation from the value interface (according to spec) doesn't work,
 please report the case via issues on Github.
+
+### Contents
+ - [Value interface specification](#value-interface-specification)
+   - [Supported field types](#supported-field-types)
+   - [Supported methods](#supported-methods)
+   - [Table of supported methods (type of field × type of method)](
+      #table-of-supported-methods-type-of-field-type-of-method)
+   - [Field configuration via annotations](#field-configuration-via-annotations)
+ - [Use](#use)
+ - [Javadocs](http://javadoc.io/doc/net.openhft/chronicle-values)
+
 
 ## Value interface specification
 
@@ -58,19 +69,6 @@ interface Client {
 }
 ```
 
-#### Any Java `enum` type
-
-```
-interface Order {
-    enum State {NEW, CANCELLED, FILLED}
-
-    State getState();
-    void setState(@NotNull State state);
-}
-```
-
-#### `java.util.Date`
-
 #### Another value interface
 
 This allows to build nested structures:
@@ -96,9 +94,23 @@ interface Circle {
 
 Self-references are forbidden.
 
+#### Any Java `enum` type
+
+```
+interface Order {
+    enum State {NEW, CANCELLED, FILLED}
+
+    State getState();
+    void setState(@NotNull State state);
+}
+```
+
+#### `java.util.Date`
+
 #### Array fields
 
-Of any of the above types, with special syntax: `-At` suffix and first parameter of all methods should be `int index`.
+Of any of the above types, with special syntax: `-At` suffix and first parameter of all methods
+should be `int index`.
 
 ```java
 interface SomeStats {
@@ -109,7 +121,7 @@ interface SomeStats {
 }
 ```
 
-### More than 2 operations with fields
+### Supported methods
 
 #### Simple get/set
 
@@ -186,12 +198,72 @@ If the field type is another value interface field, `using` parameter type is th
 the return type of the method could be the interface or `void`. See `getUsingCenter(Point using)` in
 the example above.
 
+### Table of supported methods (type of field × type of method)
+
+<table>
+<tr><th></th>
+  <th>Integer type: <code>byte</code>..<code>long</code></th>
+  <th><code>float</code>, <code>double</code></th>
+  <th><code>boolean</code></th>
+  <th><a href="#string-or-charsequence">Char sequence</a></th>
+  <th><a href="#another-value-interface">Value interface</a></th>
+  <th><a href="#any-java-enum-type"><code>enum</code> type</a></th>
+  <th><code>Date</code></th>
+</tr>
+<tr><th><a href="#simple-getset">get/set</a></th>
+  <td>&#10004;</td>
+  <td>&#10004;</td>
+  <td>&#10004;</td>
+  <td>&#10004;</td>
+  <td>&#10004;</td>
+  <td>&#10004;</td>
+  <td>&#10004;</td>
+</tr>
+<tr><th><a href="#volatile-getset">Volatile get/set</a>,
+        <a href="#ordered-set">ordered set</a></th>
+  <td>&#10004;</td>
+  <td>&#10004;</td>
+  <td>&#10004;</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>&#10004;</td>
+  <td>&#10004;</td>
+</tr>
+<tr><th><a href="#compare-and-swap">Compare-and-swap</a></th>
+  <td>&#10004;</td>
+  <td>&#10004;</td>
+  <td>&#10004;</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>&#10004;</td>
+  <td>&#10004;</td>
+</tr>
+<tr><th><a href="#simple-add">Simple add</a>,<br><a href="#atomic-add">atomic add</a></th>
+  <td>&#10004;</td>
+  <td>&#10004;</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+</tr>
+<tr><th><a href="#getusing">getUsing</a></th>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td>&#10004;</td>
+  <td>&#10004;</td>
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+</tr>
+</table>
+
 ### Field configuration via annotations
 
 #### Field ordering in flyweight layout
 
-Field order is unspecified. To ensure some order, put `@Group` annotations on any of field's methods,
-for example:
+Field order is unspecified. To ensure some order, put `@Group` annotations on any of field's
+methods, for example:
 
 ```java
 interface Complex {
