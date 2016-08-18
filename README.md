@@ -20,7 +20,7 @@ please report the case via issues on Github.
    - [Supported field types](#supported-field-types)
    - [Supported methods](#supported-methods)
    - [Table of supported methods (type of field × type of method)](
-      #table-of-supported-methods-type-of-field-type-of-method)
+      #table-of-supported-methods-type-of-field--type-of-method)
    - [Field configuration via annotations](#field-configuration-via-annotations)
  - [Use](#use)
  - [Javadocs](http://javadoc.io/doc/net.openhft/chronicle-values)
