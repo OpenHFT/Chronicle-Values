@@ -42,6 +42,10 @@ class ValueBuilder {
         this.typeBuilder = typeBuilder;
     }
 
+    ClassName className() {
+        return ClassName.get(model.valueType.getPackage().getName(), className);
+    }
+
     FieldSpec unsafe() {
         if (unsafe == null) {
             unsafe = FieldSpec.builder(Unsafe.class, "UNSAFE", PRIVATE, STATIC, FINAL).build();

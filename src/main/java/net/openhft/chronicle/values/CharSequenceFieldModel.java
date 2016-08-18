@@ -17,6 +17,8 @@
 
 package net.openhft.chronicle.values;
 
+import com.squareup.javapoet.ArrayTypeName;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import net.openhft.chronicle.bytes.BytesUtil;
@@ -72,15 +74,33 @@ class CharSequenceFieldModel extends ScalarFieldModel {
         return Math.max(offsetAlignment, 1);
     }
 
+    @Override
+    void checkState() {
+        super.checkState();
+        checkUnsupported(getVolatile);
+        checkUnsupported(setVolatile);
+        checkUnsupported(setOrdered);
+        checkUnsupported(add);
+        checkUnsupported(addAtomic);
+        checkUnsupported(compareAndSwap);
+    }
+
+    private void checkUnsupported(Method m) {
+        if (m != null) {
+            throw new IllegalStateException(type.getSimpleName() + "-typed field " +
+                    name + "cannot have method " + m.getName());
+        }
+    }
+
     private String cachedStringBuilder() {
         return varName() + "Builder";
     }
 
-    private String cachedBuilderToSettable(Method set) {
-        if (set.getReturnType() == StringBuilder.class) {
-            return format("new StringBuilder(%s)", cachedStringBuilder());
-        } else {
+    private String cachedBuilderToSettable() {
+        if (type == String.class) {
             return cachedStringBuilder() + ".toString()";
+        } else {
+            return cachedStringBuilder();
         }
     }
 
@@ -281,7 +301,7 @@ class CharSequenceFieldModel extends ScalarFieldModel {
         @Override
         void generateReadMarshallable(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
             methodBuilder.addStatement("$N(bytes.readUtf8($N) ? $N : null)",
-                    set.getName(), cachedStringBuilder(), cachedBuilderToSettable(set));
+                    set.getName(), cachedStringBuilder(), cachedBuilderToSettable());
         }
 
         @Override
@@ -290,7 +310,7 @@ class CharSequenceFieldModel extends ScalarFieldModel {
                 MethodSpec.Builder methodBuilder) {
             methodBuilder.addStatement("$N(index, bytes.readUtf8($N) ? $N : null)",
                     arrayFieldModel.set.getName(), cachedStringBuilder(),
-                    cachedBuilderToSettable(arrayFieldModel.set));
+                    cachedBuilderToSettable());
         }
 
         @Override
@@ -414,16 +434,20 @@ class CharSequenceFieldModel extends ScalarFieldModel {
         }
     };
 
+    private void throwNullableGetUsingVoidReturn() {
+        throw new IllegalStateException(name + " field nullable " +
+                get.getName() + "() shouldn't return void, because null value is " +
+                "indistinguishable from empty string. Specify the parameter in " +
+                set.getName() + " method as @NotNull");
+    }
+
     private void nullGetBranch(MethodSpec.Builder methodBuilder, Method get) {
         methodBuilder.nextControlFlow("else");
         if (nullable()) {
             if (get.getReturnType() != void.class) {
                 methodBuilder.addStatement("return null");
             } else {
-                throw new IllegalStateException(name + " field nullable " +
-                        get.getName() + "() shouldn't return void, because null value is " +
-                        "indistinguishable from empty string. Specify the parameter in " +
-                        set.getName() + " method as @NotNull/@Nonnull");
+                throwNullableGetUsingVoidReturn();
             }
         } else {
             methodBuilder.addStatement("throw new $T($S)",
@@ -449,11 +473,22 @@ class CharSequenceFieldModel extends ScalarFieldModel {
         return nativeGenerator;
     }
 
-    private final MemberGenerator heapGenerator = new ObjectHeapMemberGenerator(this) {
+    private void checkHeapArgument(MethodSpec.Builder methodBuilder) {
+        if (!nullable())
+            checkArgumentNotNull(methodBuilder);
+        // Don't check the UTF-8 length, because this is an operation with linear complexity,
+        // while it adds only little extra safety - too long string will be found only when
+        // copied to native impl
+    }
+
+    private final MemberGenerator stringHeapGenerator = new ObjectHeapMemberGenerator(this) {
 
         @Override
         void generateFields(ValueBuilder valueBuilder) {
-            super.generateFields(valueBuilder);
+            field = FieldSpec.builder(String.class, fieldName(), PRIVATE)
+                    .initializer("$S", "")
+                    .build();
+            valueBuilder.typeBuilder.addField(field);
             addCachedStringBuilder(valueBuilder);
         }
 
@@ -461,16 +496,28 @@ class CharSequenceFieldModel extends ScalarFieldModel {
         void generateArrayElementFields(
                 ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder) {
             super.generateArrayElementFields(arrayFieldModel, valueBuilder);
+            MethodSpec.Builder constructor = valueBuilder.defaultConstructorBuilder();
+            constructor.beginControlFlow("for (int index = 0; index < $L; index++)",
+                    arrayFieldModel.array.length());
+            {
+                constructor.addStatement("$N[index] = $S", field, "");
+            }
+            constructor.endControlFlow();
+
             addCachedStringBuilder(valueBuilder);
         }
 
         @Override
         public void generateGetUsing(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
             methodBuilder.addStatement("$N.setLength(0)", usingName());
-            methodBuilder.beginControlFlow("if ($N != null)", field);
+            if (nullable()) {
+                methodBuilder.beginControlFlow("if ($N != null)", field);
+            }
             methodBuilder.addStatement("$N.append($N)", usingName(), field);
             returnNotNullGetUsing(methodBuilder);
-            nullGetBranch(methodBuilder, getUsing);
+            if (nullable()) {
+                nullGetBranch(methodBuilder, getUsing);
+            }
         }
 
         @Override
@@ -478,35 +525,48 @@ class CharSequenceFieldModel extends ScalarFieldModel {
                 ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
                 MethodSpec.Builder methodBuilder) {
             methodBuilder.addStatement("$N.setLength(0)", usingName());
-            methodBuilder.beginControlFlow("if ($N[index] != null)", field);
+            if (nullable()) {
+                methodBuilder.beginControlFlow("if ($N[index] != null)", field);
+            }
             methodBuilder.addStatement("$N.append($N[index])", usingName(), field);
             returnNotNullGetUsing(methodBuilder);
-            nullGetBranch(methodBuilder, arrayFieldModel.getUsing);
+            if (nullable()) {
+                nullGetBranch(methodBuilder, arrayFieldModel.getUsing);
+            }
+        }
+
+        @Override
+        public void generateSet(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            checkHeapArgument(methodBuilder);
+            methodBuilder.addStatement("this.$N = $N", field, varName());
+        }
+
+        @Override
+        public void generateArrayElementSet(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            checkHeapArgument(methodBuilder);
+            methodBuilder.addStatement("this.$N[index] = $N", field, varName());
         }
 
         @Override
         public void generateCopyFrom(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-            if (getUsing != null) {
+            if (get != null) {
+                methodBuilder.addStatement("this.$N(from.$N())", set.getName(), get.getName());
+            } else {
                 if (!nullable()) {
-                    methodBuilder.addStatement("from.$N($N)", getUsing.getName(),
-                            cachedStringBuilder());
-                    methodBuilder.addStatement("$N = $N", fieldName(),
-                            cachedBuilderToSettable(set));
+                    methodBuilder.addStatement(
+                            "from.$N($N)", getUsing.getName(), cachedStringBuilder());
+                    methodBuilder.addStatement(
+                            "this.$N($N.toString())", set.getName(), cachedStringBuilder());
                 } else {
-                    String getUsingResult = format("from.%s(%s)", getUsing.getName(),
-                            cachedStringBuilder());
+                    String getUsingResult =
+                            format("from.%s(%s)", getUsing.getName(), cachedStringBuilder());
                     methodBuilder.addStatement("$T $N = $N",
                             CharSequence.class, varName(), getUsingResult);
-                    if (type == StringBuilder.class) {
-                        methodBuilder.addStatement("$N = $N != null ? new $T($N) : null",
-                                fieldName(), varName(), StringBuilder.class, varName());
-                    } else {
-                        methodBuilder.addStatement("$N = $N != null ? $N.toString() : null",
-                                fieldName(), varName(), varName());
-                    }
+                    methodBuilder.addStatement("$N = $N != null ? $N.toString() : null",
+                            field, varName(), cachedStringBuilder());
                 }
-            } else {
-                methodBuilder.addStatement("$N = from.$N()", fieldName(), get.getName());
             }
         }
 
@@ -514,31 +574,23 @@ class CharSequenceFieldModel extends ScalarFieldModel {
         public void generateArrayElementCopyFrom(
                 ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
                 MethodSpec.Builder methodBuilder) {
-            Method getUsing = arrayFieldModel.getUsing;
-            if (getUsing != null) {
-                if (!nullable()) {
-                    methodBuilder.addStatement("from.$N(index, $N)", getUsing.getName(),
-                            cachedStringBuilder());
-                    methodBuilder.addStatement("$N[index] = $N",
-                            fieldName(), cachedBuilderToSettable(arrayFieldModel.set));
+            if (get != null) {
+                methodBuilder.addStatement(
+                        "this.$N(index, from.$N(index))", set.getName(), get.getName());
+            } else {
+                if (getUsing.getReturnType() == void.class) {
+                    methodBuilder.addStatement(
+                            "from.$N(index, $N)", getUsing.getName(), cachedStringBuilder());
+                    methodBuilder.addStatement(
+                            "this.$N(index, $N.toString())", set.getName(), cachedStringBuilder());
                 } else {
-                    String getUsingResult = format("from.%s(index, %s)", getUsing.getName(),
-                            cachedStringBuilder());
+                    String getUsingResult =
+                            format("from.%s(index, %s)", getUsing.getName(), cachedStringBuilder());
                     methodBuilder.addStatement("$T $N = $N",
                             CharSequence.class, varName(), getUsingResult);
-                    if (type == StringBuilder.class) {
-                        methodBuilder.addStatement(
-                                "$N[index] = $N != null ? new $T($N) : null",
-                                fieldName(), varName(), StringBuilder.class, varName());
-                    } else {
-                        methodBuilder.addStatement(
-                                "$N[index] = $N != null ? $N.toString() : null",
-                                fieldName(), varName(), varName());
-                    }
+                    methodBuilder.addStatement("$N[index] = $N != null ? $N.toString() : null",
+                            field, varName(), cachedStringBuilder());
                 }
-            } else {
-                methodBuilder.addStatement("$N[index] = from.$N(index)", fieldName(),
-                        arrayFieldModel.get.getName());
             }
         }
 
@@ -557,37 +609,49 @@ class CharSequenceFieldModel extends ScalarFieldModel {
 
         @Override
         void generateReadMarshallable(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-            methodBuilder.addStatement("$N = $N",
-                    fieldName(), stringToSettable("bytes.readUtf8()"));
+            methodBuilder.addStatement("this.$N(bytes.readUtf8($N) ? $N.toString() : null)",
+                    set.getName(), cachedStringBuilder(), cachedStringBuilder());
         }
 
         @Override
         void generateArrayElementReadMarshallable(
                 ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
                 MethodSpec.Builder methodBuilder) {
-            methodBuilder.addStatement("$N[index] = $N",
-                    fieldName(), stringToSettable("bytes.readUtf8()"));
-        }
-
-        private String stringToSettable(String s) {
-            return type == StringBuilder.class ? format("new StringBuilder(%s)", s) : s;
+            methodBuilder.addStatement("this.$N(index, bytes.readUtf8($N) ? $N.toString() : null)",
+                    set.getName(), cachedStringBuilder(), cachedStringBuilder());
         }
 
         @Override
         void generateEquals(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-            if (getUsing != null) {
-                if (!nullable()) {
-                    methodBuilder.addStatement("other.$N($N)",
-                            getUsing.getName(), cachedStringBuilder());
-                    methodBuilder.addCode("if (!$T.equals($N, $N)) return false;\n",
-                            CharSequences.class, field, cachedStringBuilder());
-                } else {
-                    methodBuilder.addCode("if (!$T.equals($N, other.$N($N))) return false;\n",
-                            CharSequences.class, field, getUsing.getName(), cachedStringBuilder());
+            if (get != null) {
+                boolean hasGetUsing = getUsing != null;
+                if (hasGetUsing) {
+                    ClassName heapClassName = valueBuilder.className();
+                    methodBuilder.beginControlFlow("if (other instanceof $T)", heapClassName);
                 }
-            } else {
                 methodBuilder.addCode("if (!$T.equals($N, other.$N())) return false;\n",
                         CharSequences.class, field, get.getName());
+                if (hasGetUsing) {
+                    methodBuilder.nextControlFlow("else");
+                    {
+                        equalsWithGetUsing(methodBuilder);
+                    }
+                    methodBuilder.endControlFlow();
+                }
+            } else {
+                equalsWithGetUsing(methodBuilder);
+            }
+        }
+
+        private void equalsWithGetUsing(MethodSpec.Builder methodBuilder) {
+            if (getUsing.getReturnType() == void.class) {
+                methodBuilder.addStatement("other.$N($N)",
+                        getUsing.getName(), cachedStringBuilder());
+                methodBuilder.addCode("if (!$T.equals($N, $N)) return false;\n",
+                        CharSequences.class, field, cachedStringBuilder());
+            } else {
+                methodBuilder.addCode("if (!$T.equals($N, other.$N($N))) return false;\n",
+                        CharSequences.class, field, getUsing.getName(), cachedStringBuilder());
             }
         }
 
@@ -595,21 +659,36 @@ class CharSequenceFieldModel extends ScalarFieldModel {
         void generateArrayElementEquals(
                 ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
                 MethodSpec.Builder methodBuilder) {
-            Method getUsing = arrayFieldModel.getUsing;
-            if (getUsing != null) {
-                if (!nullable()) {
-                    methodBuilder.addStatement("other.$N(index, $N)",
-                            getUsing.getName(), cachedStringBuilder());
-                    methodBuilder.addCode("if (!$T.equals($N[index], $N)) return false;\n",
-                            CharSequences.class, field, cachedStringBuilder());
-                } else {
-                    methodBuilder.addCode(
-                            "if (!$T.equals($N[index], other.$N(index, $N))) return false;\n",
-                            CharSequences.class, field, getUsing.getName(), cachedStringBuilder());
+            if (get != null) {
+                boolean hasGetUsing = getUsing != null;
+                if (hasGetUsing) {
+                    ClassName heapClassName = valueBuilder.className();
+                    methodBuilder.beginControlFlow("if (other instanceof $T)", heapClassName);
+                }
+                methodBuilder.addCode("if (!$T.equals($N[index], other.$N(index))) return false;\n",
+                        CharSequences.class, field, get.getName());
+                if (hasGetUsing) {
+                    methodBuilder.nextControlFlow("else");
+                    {
+                        equalsArrayElementWithGetUsing(methodBuilder);
+                    }
+                    methodBuilder.endControlFlow();
                 }
             } else {
-                methodBuilder.addCode("if (!$T.equals($N[index], other.$N(index))) return false;\n",
-                        CharSequences.class, field, arrayFieldModel.get.getName());
+                equalsArrayElementWithGetUsing(methodBuilder);
+            }
+        }
+
+        private void equalsArrayElementWithGetUsing(MethodSpec.Builder methodBuilder) {
+            if (getUsing.getReturnType() == void.class) {
+                methodBuilder.addStatement("other.$N(index, $N)",
+                        getUsing.getName(), cachedStringBuilder());
+                methodBuilder.addCode("if (!$T.equals($N[index], $N)) return false;\n",
+                        CharSequences.class, field, cachedStringBuilder());
+            } else {
+                methodBuilder.addCode(
+                        "if (!$T.equals($N[index], other.$N(index, $N))) return false;\n",
+                        CharSequences.class, field, getUsing.getName(), cachedStringBuilder());
             }
         }
 
@@ -626,8 +705,391 @@ class CharSequenceFieldModel extends ScalarFieldModel {
         }
     };
 
+
+    private final MemberGenerator charSequenceHeapGenerator = new ObjectHeapMemberGenerator(this) {
+
+        private String isNull() {
+            return fieldName() + "IsNull";
+        }
+
+        private void addCachedStringBuilderForCharSequenceHeapGenerator(ValueBuilder valueBuilder) {
+            if (get == null) {
+                // needed only when there is no get method, for equals()
+                addCachedStringBuilder(valueBuilder);
+            }
+        }
+
+        @Override
+        void generateFields(ValueBuilder valueBuilder) {
+            field = FieldSpec
+                    .builder(StringBuilder.class, fieldName(), PRIVATE, FINAL)
+                    .initializer("new $T($L)", StringBuilder.class, maxUtf8Length.value())
+                    .build();
+            valueBuilder.typeBuilder.addField(field);
+            if (nullable()) {
+                FieldSpec isNullField = FieldSpec.builder(boolean.class, isNull(), PRIVATE).build();
+                valueBuilder.typeBuilder.addField(isNullField);
+            }
+            addCachedStringBuilderForCharSequenceHeapGenerator(valueBuilder);
+        }
+
+        @Override
+        void generateArrayElementFields(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder) {
+            field = FieldSpec
+                    .builder(ArrayTypeName.of(StringBuilder.class), fieldName(), PRIVATE, FINAL)
+                    .initializer("new $T[$L]", StringBuilder.class, arrayFieldModel.array.length())
+                    .build();
+            valueBuilder.typeBuilder.addField(field);
+            MethodSpec.Builder constructorBuilder = valueBuilder.defaultConstructorBuilder();
+            constructorBuilder.beginControlFlow("for (int index = 0; index < $L; index++)");
+            {
+                constructorBuilder.addStatement("$N[index] = new $T($L)",
+                        field, StringBuilder.class, maxUtf8Length.value());
+            }
+            constructorBuilder.endControlFlow();
+            if (nullable()) {
+                FieldSpec isNullArrayField = FieldSpec
+                        .builder(ArrayTypeName.of(boolean.class), isNull(), PRIVATE, FINAL)
+                        .initializer("new boolean[$L]", arrayFieldModel.array.length())
+                        .build();
+                valueBuilder.typeBuilder.addField(isNullArrayField);
+            }
+            addCachedStringBuilderForCharSequenceHeapGenerator(valueBuilder);
+        }
+
+        @Override
+        public void generateGet(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            if (nullable()) {
+                methodBuilder.addStatement("return !$N ? $N : null", isNull(), field);
+            } else {
+                methodBuilder.addStatement("return $N", field);
+            }
+        }
+
+        @Override
+        public void generateArrayElementGet(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            if (nullable()) {
+                methodBuilder.addStatement("return !$N[index] ? $N[index] : null", isNull(), field);
+            } else {
+                methodBuilder.addStatement("return $N[index]", field);
+            }
+        }
+
+        @Override
+        public void generateGetUsing(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            if (nullable())
+                methodBuilder.beginControlFlow("if (!$N)", isNull());
+            methodBuilder.addStatement("$N.setLength(0)", usingName());
+            methodBuilder.addStatement("$N.append($N)", usingName(), field);
+            returnNotNullGetUsing(methodBuilder);
+            if (nullable())
+                nullGetBranch(methodBuilder, getUsing);
+        }
+
+        @Override
+        public void generateArrayElementGetUsing(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            if (nullable())
+                methodBuilder.beginControlFlow("if (!$N[index])", isNull());
+            methodBuilder.addStatement("$N.setLength(0)", usingName());
+            methodBuilder.addStatement("$N.append($N[index])", usingName(), field);
+            returnNotNullGetUsing(methodBuilder);
+            if (nullable())
+                nullGetBranch(methodBuilder, arrayFieldModel.getUsing);
+        }
+
+        @Override
+        public void generateSet(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            checkHeapArgument(methodBuilder);
+            if (nullable()) {
+                methodBuilder.beginControlFlow("if ($N != null)", varName());
+                {
+                    methodBuilder.addStatement("$N = false", isNull());
+                    methodBuilder.addStatement("$N.setLength(0)", field);
+                    methodBuilder.addStatement("$N.append($N)", field, varName());
+                }
+                methodBuilder.nextControlFlow("else");
+                {
+                    methodBuilder.addStatement("$N = true", isNull());
+                }
+                methodBuilder.endControlFlow();
+            } else {
+                methodBuilder.addStatement("$N.setLength(0)", field);
+                methodBuilder.addStatement("$N.append($N)", field, varName());
+            }
+        }
+
+        @Override
+        public void generateArrayElementSet(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            checkHeapArgument(methodBuilder);
+            if (nullable()) {
+                methodBuilder.beginControlFlow("if ($N != null)", varName());
+                {
+                    methodBuilder.addStatement("$N[index] = false", isNull());
+                    methodBuilder.addStatement("$N[index].setLength(0)", field);
+                    methodBuilder.addStatement("$N[index].append($N)", field, varName());
+                }
+                methodBuilder.nextControlFlow("else");
+                {
+                    methodBuilder.addStatement("$N[index] = true", isNull());
+                }
+                methodBuilder.endControlFlow();
+            } else {
+                methodBuilder.addStatement("$N[index].setLength(0)", field);
+                methodBuilder.addStatement("$N[index].append($N)", field, varName());
+            }
+        }
+
+        @Override
+        public void generateCopyFrom(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            if (get != null) {
+                // if there is a getUsing() method, the shortcut copy:
+                // this.setField(from.getField()) (*), when the from object is a native impl, does
+                // unnecessary double contents copy: from native memory to from's cached SB,
+                // then from that SB (which is returned from from.getField(), to the cached SB in
+                // this heap value. To avoid this, do shortcut copy (*), only if the from object is
+                // a heap impl:
+                boolean hasGetUsing = getUsing != null;
+                if (hasGetUsing) {
+                    ClassName heapClassName = valueBuilder.className();
+                    methodBuilder.beginControlFlow("if (from instanceof $T)", heapClassName);
+                }
+                // (*)
+                methodBuilder.addStatement("this.$N(from.$N())", set.getName(), get.getName());
+                if (hasGetUsing) {
+                    methodBuilder.nextControlFlow("else");
+                    {
+                        copyFromWithGetUsing(methodBuilder);
+                    }
+                    methodBuilder.endControlFlow();
+                }
+            } else {
+                copyFromWithGetUsing(methodBuilder);
+            }
+        }
+
+        private void copyFromWithGetUsing(MethodSpec.Builder methodBuilder) {
+            if (getUsing.getReturnType() == void.class) {
+                if (!nullable()) {
+                    methodBuilder.addStatement("from.$N($N)", getUsing.getName(), field);
+                } else {
+                    throwNullableGetUsingVoidReturn();
+                }
+            } else {
+                String getUsingResult =
+                        format("from.%s(%s)", getUsing.getName(), field.name);
+                methodBuilder.addStatement("$T $N = $N",
+                        CharSequence.class, varName(), getUsingResult);
+                methodBuilder.addStatement("$N = $N == null", isNull(), varName());
+            }
+        }
+
+        @Override
+        public void generateArrayElementCopyFrom(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            if (get != null) {
+                // if 1) type of field is not String (i. e. CharSequence or StringBuilder)
+                // and 2) there is a getUsing() method
+                // the shortcut copy: this.setField(from.getField()) (*), when the from object is
+                // a native impl, does double contents copy: from native memory to from's cached SB,
+                // then from that SB (which is returned from from.getField(), to the cached SB in
+                // this heap value. To avoid this, do shortcut copy (*), only if the from object is
+                // a heap impl:
+                boolean nonStringWithGetUsing = getUsing != null && type != String.class;
+                if (nonStringWithGetUsing) {
+                    ClassName heapClassName = valueBuilder.className();
+                    methodBuilder.beginControlFlow("if (from instanceof $T)", heapClassName);
+                }
+                // (*)
+                methodBuilder.addStatement(
+                        "this.$N(index, from.$N(index))", set.getName(), get.getName());
+                if (nonStringWithGetUsing) {
+                    methodBuilder.nextControlFlow("else");
+                    {
+                        arrayElementCopyFromWithGetUsing(methodBuilder);
+                    }
+                    methodBuilder.endControlFlow();
+                }
+            } else {
+                arrayElementCopyFromWithGetUsing(methodBuilder);
+            }
+        }
+
+        private void arrayElementCopyFromWithGetUsing(MethodSpec.Builder methodBuilder) {
+            if (getUsing.getReturnType() == void.class) {
+                if (!nullable()) {
+                    methodBuilder.addStatement("from.$N(index, $N)", getUsing.getName(), field);
+                } else {
+                    throwNullableGetUsingVoidReturn();
+                }
+            } else {
+                String getUsingResult =
+                        format("from.%s(index, %s)", getUsing.getName(), field.name);
+                methodBuilder.addStatement("$T $N = $N",
+                        CharSequence.class, varName(), getUsingResult);
+                methodBuilder.addStatement("$N[index] = $N == null", isNull(), varName());
+            }
+        }
+
+        @Override
+        void generateWriteMarshallable(
+                ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            if (nullable()) {
+                methodBuilder.addStatement("bytes.writeUtf8(!$N ? $N : null)", isNull(), field);
+            } else {
+                methodBuilder.addStatement("bytes.writeUtf8($N)", field);
+            }
+        }
+
+        @Override
+        void generateArrayElementWriteMarshallable(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            if (nullable()) {
+                methodBuilder.addStatement(
+                        "bytes.writeUtf8(!$N[index] ? $N[index] : null)", isNull(), field);
+            } else {
+                methodBuilder.addStatement("bytes.writeUtf8($N[index])", field);
+            }
+        }
+
+        @Override
+        void generateReadMarshallable(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            if (nullable()) {
+                methodBuilder.addStatement("$N = !bytes.readUtf8($N)", isNull(), field);
+            } else {
+                methodBuilder.beginControlFlow("if (!bytes.readUtf8($N))", field);
+                {
+                    methodBuilder.addStatement("throw new $T($S)",
+                            IllegalStateException.class, name + " shouldn't be null");
+                }
+                methodBuilder.endControlFlow();
+            }
+        }
+
+        @Override
+        void generateArrayElementReadMarshallable(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            if (nullable()) {
+                methodBuilder.addStatement(
+                        "$N[index] = !bytes.readUtf8($N[index])", isNull(), field);
+            } else {
+                methodBuilder.beginControlFlow("if (!bytes.readUtf8($N[index]))", field);
+                {
+                    methodBuilder.addStatement("throw new $T($S + index + $N)",
+                            IllegalStateException.class, name + " at ", " shouldn't be null");
+                }
+                methodBuilder.endControlFlow();
+            }
+        }
+
+        @Override
+        void generateEquals(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            if (get == null) {
+                if (!nullable()) {
+                    methodBuilder.addStatement("other.$N($N)",
+                            getUsing.getName(), cachedStringBuilder());
+                    methodBuilder.addCode("if (!$T.equals($N, $N)) return false;\n",
+                            CharSequences.class, field, cachedStringBuilder());
+                } else {
+                    if (getUsing.getReturnType() != void.class) {
+                        methodBuilder.addCode(
+                                "if (!$T.equals(!$N ? $N : null, other.$N($N))) return false;\n",
+                                CharSequences.class, isNull(), field, getUsing.getName(),
+                                cachedStringBuilder());
+                    } else {
+                        throwNullableGetUsingVoidReturn();
+                    }
+                }
+            } else {
+                methodBuilder.addCode("if (!$T.equals(this.$N(), other.$N())) return false;\n",
+                        CharSequences.class, get.getName(), get.getName());
+            }
+        }
+
+        @Override
+        void generateArrayElementEquals(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            Method getUsing = arrayFieldModel.getUsing;
+            if (get == null) {
+                if (!nullable()) {
+                    methodBuilder.addStatement("other.$N(index, $N)",
+                            getUsing.getName(), cachedStringBuilder());
+                    methodBuilder.addCode("if (!$T.equals($N[index], $N)) return false;\n",
+                            CharSequences.class, field, cachedStringBuilder());
+                } else {
+                    if (getUsing.getReturnType() != void.class) {
+                        methodBuilder.addCode(
+                                "if (!$T.equals(!$N[index] ? $N[index] : null, " +
+                                        "other.$N(index, $N))) return false;\n",
+                                CharSequences.class, isNull(), field, getUsing.getName(),
+                                cachedStringBuilder());
+                    } else {
+                        throwNullableGetUsingVoidReturn();
+                    }
+                }
+            } else {
+                methodBuilder.addCode(
+                        "if (!$T.equals(this.$N(index), other.$N(index))) return false;\n",
+                        CharSequences.class, get.getName(), get.getName());
+            }
+        }
+
+        @Override
+        String generateHashCode(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            String prefix = "net.openhft.chronicle.values.CharSequences.hashCode(";
+            if (nullable()) {
+                return "(!" + isNull() + " ? " + prefix + field.name + ") : 0)";
+            } else {
+                return prefix + field.name + ")";
+            }
+        }
+
+        @Override
+        String generateArrayElementHashCode(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            String prefix = "net.openhft.chronicle.values.CharSequences.hashCode(";
+            if (nullable()) {
+                return "(!" + isNull() + "[index] ? " + prefix + field.name + "[index]) : 0)";
+            } else {
+                return prefix + field.name + "[index])";
+            }
+        }
+
+        @Override
+        void generateToString(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+            if (nullable()) {
+                genToString(methodBuilder, format("!%s ? %s : null", isNull(), field.name));
+            } else {
+                genToString(methodBuilder, field.name);
+            }
+        }
+
+        @Override
+        void generateArrayElementToString(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder) {
+            if (nullable()) {
+                String value = format("!%s[index] ? %s[index] : null", isNull(), field.name);
+                genToString(methodBuilder, value);
+            } else {
+                genToString(methodBuilder, field.name + "[index]");
+            }
+        }
+    };
+
     @Override
     MemberGenerator heapGenerator() {
-        return heapGenerator;
+        return type == String.class ? stringHeapGenerator : charSequenceHeapGenerator;
     }
 }

@@ -152,8 +152,7 @@ final class Generators {
                 .addModifiers(PUBLIC)
                 .addParameter(valueBuilder.model.valueType, "from");
         if (implType == ImplType.NATIVE) {
-            ClassName nativeClassName = ClassName.get(
-                    valueBuilder.model.valueType.getPackage().getName(), valueBuilder.className);
+            ClassName nativeClassName = valueBuilder.className();
             methodBuilder.beginControlFlow("if (from instanceof $T)", nativeClassName);
             {
                 methodBuilder.addStatement(
