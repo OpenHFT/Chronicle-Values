@@ -303,7 +303,7 @@ class FloatingFieldModel extends PrimitiveFieldModel {
                 methodBuilder.addCode(
                         format("if ($N(%s) != $N(other.$N(index))) return false;\n",
                                 wrap(valueBuilder, methodBuilder, "$N[index]")),
-                        toBits(), field, toBits(), getOrGetVolatile().getName());
+                        toBits(), field, toBits(), arrayFieldModel.getOrGetVolatile().getName());
             }
         };
     }
