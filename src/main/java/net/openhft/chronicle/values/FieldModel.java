@@ -78,6 +78,10 @@ public abstract class FieldModel {
         this.offsetAlignment = offsetAlignment;
     }
 
+    void resetAlignment() {
+        alignmentSpecifiedExplicitly = false;
+    }
+
     void addTypeInfo(Method m, MethodTemplate template) {
         Class fieldType = template.fieldType.apply(m);
         if (type != null && type != fieldType) {

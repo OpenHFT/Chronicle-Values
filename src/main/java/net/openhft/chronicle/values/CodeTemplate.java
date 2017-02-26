@@ -121,6 +121,10 @@ enum CodeTemplate {
         if (methodsAndTemplates.get(0).template.type == SCALAR) {
             return scalarModel;
         } else {
+            // If the field turns out to be an array field, @Align applied to the element model belongs to the array
+            // model, and the element model is configured with Array.elementOffsetAlignment() and
+            // Array.elementDontCrossAlignment().
+            scalarModel.resetAlignment();
             ArrayFieldModel arrayModel = new ArrayFieldModel(scalarModel);
             configureModel(arrayModel, methodsAndTemplates);
             return arrayModel;
