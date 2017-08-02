@@ -92,10 +92,12 @@ class MyJavaFileManager implements JavaFileManager {
         this.fileManager = fileManager;
     }
 
+    @Override
     public ClassLoader getClassLoader(Location location) {
         return fileManager.getClassLoader(location);
     }
 
+    @Override
     public Iterable<JavaFileObject> list(
             Location location, String packageName, Set<Kind> kinds, boolean recurse)
             throws IOException {
@@ -111,6 +113,7 @@ class MyJavaFileManager implements JavaFileManager {
         }
     }
 
+    @Override
     public String inferBinaryName(Location location, JavaFileObject file) {
         if (file instanceof SimpleURIClassObject) {
             return ((SimpleURIClassObject) file).c.getName();
@@ -119,24 +122,29 @@ class MyJavaFileManager implements JavaFileManager {
         }
     }
 
+    @Override
     public boolean isSameFile(FileObject a, FileObject b) {
         return fileManager.isSameFile(a, b);
     }
 
+    @Override
     public boolean handleOption(String current, Iterator<String> remaining) {
         return fileManager.handleOption(current, remaining);
     }
 
+    @Override
     public boolean hasLocation(Location location) {
         return fileManager.hasLocation(location);
     }
 
+    @Override
     public JavaFileObject getJavaFileForInput(Location location, String className, Kind kind)
             throws IOException {
         if (location == StandardLocation.CLASS_OUTPUT && buffers.containsKey(className) &&
                 kind == Kind.CLASS) {
             final byte[] bytes = buffers.get(className).toByteArray();
             return new SimpleJavaFileObject(URI.create(className), kind) {
+                @Override
                 @NotNull
                 public InputStream openInputStream() {
                     return new ByteArrayInputStream(bytes);
@@ -146,11 +154,13 @@ class MyJavaFileManager implements JavaFileManager {
         return fileManager.getJavaFileForInput(location, className, kind);
     }
 
+    @Override
     @NotNull
     public JavaFileObject getJavaFileForOutput(
             Location location, final String className, Kind kind, FileObject sibling)
             throws IOException {
         return new SimpleJavaFileObject(URI.create(className), kind) {
+            @Override
             @NotNull
             public OutputStream openOutputStream() {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -160,25 +170,30 @@ class MyJavaFileManager implements JavaFileManager {
         };
     }
 
+    @Override
     public FileObject getFileForInput(
             Location location, String packageName, String relativeName) throws IOException {
         return fileManager.getFileForInput(location, packageName, relativeName);
     }
 
+    @Override
     public FileObject getFileForOutput(
             Location location, String packageName, String relativeName, FileObject sibling)
             throws IOException {
         return fileManager.getFileForOutput(location, packageName, relativeName, sibling);
     }
 
+    @Override
     public void flush() throws IOException {
         // Do nothing
     }
 
+    @Override
     public void close() throws IOException {
         fileManager.close();
     }
 
+    @Override
     public int isSupportedOption(String option) {
         return fileManager.isSupportedOption(option);
     }
