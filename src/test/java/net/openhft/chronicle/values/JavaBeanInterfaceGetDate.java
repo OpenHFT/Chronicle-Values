@@ -18,7 +18,7 @@ package net.openhft.chronicle.values;
 
 import java.util.Date;
 
-/**
+/*
  * Created by pct25 on 6/4/2015.
  */
 public interface JavaBeanInterfaceGetDate {

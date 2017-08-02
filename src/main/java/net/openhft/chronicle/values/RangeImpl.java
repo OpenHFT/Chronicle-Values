@@ -19,6 +19,7 @@ package net.openhft.chronicle.values;
 
 import java.lang.annotation.Annotation;
 
+@SuppressWarnings("ClassExplicitlyAnnotation")
 final class RangeImpl implements Range {
     static final Range DEFAULT_BYTE_RANGE = new RangeImpl(Byte.MIN_VALUE, Byte.MAX_VALUE);
     static final Range DEFAULT_CHAR_RANGE = new RangeImpl(Character.MIN_VALUE, Character.MAX_VALUE);

@@ -16,7 +16,7 @@
 
 package net.openhft.chronicle.values;
 
-/**
+/*
  * Created by pct25 on 6/4/2015.
  */
 public interface JavaBeanInterfaceGetMyEnum {

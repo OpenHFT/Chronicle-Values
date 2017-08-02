@@ -27,7 +27,7 @@ import static net.openhft.chronicle.values.Values.newNativeReference;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-/**
+/*
  * Created by daniel on 11/06/2014.
  */
 public class VolatileTest {
