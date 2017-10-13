@@ -22,6 +22,7 @@ package net.openhft.chronicle.values;
  * Date: 08/10/13
  * Time: 07:45
  */
+@FunctionalInterface
 public interface Copyable<T> {
     /**
      * Copy from this type.
