@@ -70,7 +70,7 @@ public class PointerTest {
 
 
     private static long getAddress(Byteable byteable) {
-        return byteable.bytesStore().address(byteable.offset());
+        return byteable.bytesStore().addressForRead( byteable.offset());
     }
 
     @NotNull
