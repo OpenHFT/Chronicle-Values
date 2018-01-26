@@ -71,7 +71,7 @@ final class PointerFieldModel extends IntegerBackedFieldModel {
             methodBuilder.endControlFlow();
 
             methodBuilder.addStatement(
-                    "$N = (($T) $N).bytesStore().address((($T) $N).offset())",
+                    "$N = (($T) $N).bytesStore().addressForRead((($T) $N).offset())",
                     addressVariable, Byteable.class, value, Byteable.class, value);
         }
         methodBuilder.nextControlFlow("else");
