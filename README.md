@@ -1,7 +1,9 @@
 <h1>Chronicle-Values
+</h1>
+
 <a href="https://maven-badges.herokuapp.com/maven-central/net.openhft/chronicle-values">
 <img src="https://maven-badges.herokuapp.com/maven-central/net.openhft/chronicle-values/badge.svg"/>
-</a></h1>
+</a>
 
 Poor man's value types, Java 8+
 
