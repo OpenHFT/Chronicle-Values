@@ -181,6 +181,7 @@ public class ValueModel {
             groupFields.sort(
                     comparing(FieldModel::maxAlignmentInBytes)
                             .thenComparing(FieldModel::sizeInBits)
+                            .thenComparing(FieldModel::name)
                             .reversed());
             // Preserve holes to be sorted from smallest to highest, to fill smallest
             // by the subsequent fields

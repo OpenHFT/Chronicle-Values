@@ -30,12 +30,18 @@ import static java.util.Collections.emptyList;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
 
-final class Generators {
+public final class Generators {
 
     private Generators() {
     }
 
-    static String generateNativeClass(ValueModel model, String nativeClassName) {
+    /**
+     * Generates the Native Class
+     * @param model
+     * @param nativeClassName
+     * @return
+     */
+    public static String generateNativeClass(ValueModel model, String nativeClassName) {
         TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(nativeClassName);
         typeBuilder.addModifiers(PUBLIC);
         ValueBuilder valueBuilder = new ValueBuilder(model, nativeClassName, typeBuilder);
@@ -269,7 +275,13 @@ final class Generators {
         return methodBuilder.build();
     }
 
-    static String generateHeapClass(ValueModel model, String heapClassName) {
+    /**
+     * Generates the heap class
+     * @param model
+     * @param heapClassName
+     * @return
+     */
+    public static String generateHeapClass(ValueModel model, String heapClassName) {
         TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(heapClassName);
         typeBuilder.addModifiers(PUBLIC);
         ValueBuilder valueBuilder = new ValueBuilder(model, heapClassName, typeBuilder);

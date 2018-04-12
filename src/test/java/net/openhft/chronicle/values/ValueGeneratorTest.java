@@ -101,7 +101,7 @@ public class ValueGeneratorTest {
         String actual = generateNativeClass(ValueModel.acquire(JavaBeanInterfaceGetUsing.class),
                 ValueModel.simpleName(JavaBeanInterfaceGetUsing.class) + "$$Native");
         System.out.println(actual);
-        CachedCompiler cc = new CachedCompiler();
+        CachedCompiler cc = CompilerUtils.CACHED_COMPILER;
         Class aClass = cc.loadFromJava(JavaBeanInterfaceGetUsing.class,
                 BytecodeGen.getClassLoader(JavaBeanInterfaceGetUsing.class),
                 JavaBeanInterfaceGetUsing.class.getName() + "$$Native", actual);
