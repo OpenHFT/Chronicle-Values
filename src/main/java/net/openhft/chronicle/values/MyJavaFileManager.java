@@ -32,6 +32,40 @@ import java.util.*;
 @SuppressWarnings("RefusedBequest")
 class MyJavaFileManager implements JavaFileManager {
 
+    private static final Map<String, Set<JavaFileObject>> dependencyFileObjects = new HashMap<>();
+
+    static {
+        Arrays.asList(
+                // Values classes and interfaces
+                Enums.class, CharSequences.class, ValueModel.class,
+                Values.class, FieldModel.class, ArrayFieldModel.class, Copyable.class,
+
+                // Values annotations
+                Align.class, Array.class, Group.class, MaxUtf8Length.class,
+                net.openhft.chronicle.values.NotNull.class, Range.class,
+
+                // Bytes classes and interfaces
+                Bytes.class, BytesStore.class, BytesUtil.class,
+                Byteable.class, BytesMarshallable.class,
+
+                // Core exception
+                IORuntimeException.class
+
+        ).forEach(c -> addFileObjects(dependencyFileObjects, c));
+    }
+
+    private final Map<String, Set<JavaFileObject>> fileObjects;
+    private final StandardJavaFileManager fileManager;
+    private final Map<String, ByteArrayOutputStream> buffers = new LinkedHashMap<>();
+    MyJavaFileManager(Class valueType, StandardJavaFileManager fileManager) {
+        // deep clone dependencyFileObjects
+        fileObjects = new HashMap<>(dependencyFileObjects);
+        fileObjects.replaceAll((p, objects) -> new HashSet<>(objects));
+        // enrich with valueType's fileObjects
+        addFileObjects(fileObjects, valueType);
+        this.fileManager = fileManager;
+    }
+
     private static void addFileObjects(Map<String, Set<JavaFileObject>> fileObjects, Class<?> c) {
         fileObjects.compute(c.getPackage().getName(), (p, objects) -> {
             if (objects == null)
@@ -56,40 +90,6 @@ class MyJavaFileManager implements JavaFileManager {
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static final Map<String, Set<JavaFileObject>> dependencyFileObjects = new HashMap<>();
-    static {
-        Arrays.asList(
-                // Values classes and interfaces
-                Enums.class, CharSequences.class, ValueModel.class,
-                Values.class, FieldModel.class, ArrayFieldModel.class, Copyable.class,
-
-                // Values annotations
-                Align.class, Array.class, Group.class, MaxUtf8Length.class,
-                net.openhft.chronicle.values.NotNull.class, Range.class,
-
-                // Bytes classes and interfaces
-                Bytes.class, BytesStore.class, BytesUtil.class,
-                Byteable.class, BytesMarshallable.class,
-
-                // Core exception
-                IORuntimeException.class
-
-        ).forEach(c -> addFileObjects(dependencyFileObjects, c));
-    }
-
-    private final Map<String, Set<JavaFileObject>> fileObjects;
-    private final StandardJavaFileManager fileManager;
-    private final Map<String, ByteArrayOutputStream> buffers = new LinkedHashMap<>();
-
-    MyJavaFileManager(Class valueType, StandardJavaFileManager fileManager) {
-        // deep clone dependencyFileObjects
-        fileObjects = new HashMap<>(dependencyFileObjects);
-        fileObjects.replaceAll((p, objects) -> new HashSet<>(objects));
-        // enrich with valueType's fileObjects
-        addFileObjects(fileObjects, valueType);
-        this.fileManager = fileManager;
     }
 
     @Override

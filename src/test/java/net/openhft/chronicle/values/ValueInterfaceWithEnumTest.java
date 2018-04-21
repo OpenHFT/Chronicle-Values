@@ -63,16 +63,20 @@ public class ValueInterfaceWithEnumTest {
     }
 
     public interface SimpleValueInterface extends Copyable<SimpleValueInterface> {
-        enum SVIEnum {
-            ONE, TWO, THREE, FOUR, FIVE, SIX
-        }
-
         int getId();
+
         void setId(int id);
+
         boolean getTruth();
+
         void setTruth(boolean truth);
 
         SVIEnum getSVIEnum();
+
         void setSVIEnum(SVIEnum val);
+
+        enum SVIEnum {
+            ONE, TWO, THREE, FOUR, FIVE, SIX
+        }
     }
 }

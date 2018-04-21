@@ -60,7 +60,7 @@ class SimpleURIClassObject implements JavaFileObject {
         if (charContent == null)
             throw new UnsupportedOperationException();
         if (charContent instanceof CharBuffer) {
-            CharBuffer buffer = (CharBuffer)charContent;
+            CharBuffer buffer = (CharBuffer) charContent;
             if (buffer.hasArray())
                 return new CharArrayReader(buffer.array());
         }

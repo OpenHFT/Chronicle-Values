@@ -20,13 +20,24 @@ import net.openhft.chronicle.bytes.Byteable;
 import net.openhft.chronicle.bytes.Bytes;
 import net.openhft.chronicle.values.Values;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class PointerTest {
 
+    private static long getAddress(Byteable byteable) {
+        return byteable.bytesStore().addressForRead(byteable.offset());
+    }
+
+    @NotNull
+    private static PointedInterface getPointed() {
+        PointedInterface pointed1 = Values.newNativeReference(PointedInterface.class);
+        long pointedSize = pointed1.maxSize();
+        //noinspection unchecked
+        pointed1.bytesStore(Bytes.allocateDirect(pointedSize), 0, pointedSize);
+        return pointed1;
+    }
 
     @Test
     public void testPointer() {
@@ -65,20 +76,5 @@ public class PointerTest {
         assertEquals(barAddress, getAddress(heapPointing.getPoint()));
 
         Values.nativeClassFor(PointedInterface.class);
-    }
-
-
-
-    private static long getAddress(Byteable byteable) {
-        return byteable.bytesStore().addressForRead( byteable.offset());
-    }
-
-    @NotNull
-    private static PointedInterface getPointed() {
-        PointedInterface pointed1 = Values.newNativeReference(PointedInterface.class);
-        long pointedSize = pointed1.maxSize();
-        //noinspection unchecked
-        pointed1.bytesStore(Bytes.allocateDirect(pointedSize), 0, pointedSize);
-        return pointed1;
     }
 }

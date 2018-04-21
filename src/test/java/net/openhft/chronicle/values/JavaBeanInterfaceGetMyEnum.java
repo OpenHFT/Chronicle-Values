@@ -21,7 +21,7 @@ package net.openhft.chronicle.values;
  */
 public interface JavaBeanInterfaceGetMyEnum {
 
-    void setMyEnum(MyEnum myEnum);
-
     MyEnum getMyEnum();
+
+    void setMyEnum(MyEnum myEnum);
 }

@@ -29,13 +29,35 @@ import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static net.openhft.chronicle.values.Align.NO_ALIGNMENT;
-import static net.openhft.chronicle.values.Utils.roundUp;
 import static net.openhft.chronicle.values.CompilerUtils.CACHED_COMPILER;
+import static net.openhft.chronicle.values.Utils.roundUp;
 
 public class ValueModel {
 
     public static final String $$NATIVE = "$$Native";
     public static final String $$HEAP = "$$Heap";
+    private static ClassValue<Object> classValueModel = new ClassValue<Object>() {
+        @Override
+        protected Object computeValue(Class<?> valueType) {
+            try {
+                return CodeTemplate.createValueModel(valueType);
+            } catch (Exception e) {
+                return e;
+            }
+        }
+    };
+    final Class<?> valueType;
+    private final Map<FieldModel, FieldData> fieldData = new HashMap<>();
+    private final List<FieldModel> orderedFields;
+    private final int sizeInBytes;
+    private volatile Class nativeClass;
+    private volatile Class heapClass;
+
+    ValueModel(Class<?> valueType, Stream<FieldModel> fields) {
+        this.valueType = valueType;
+        orderedFields = new ArrayList<>();
+        sizeInBytes = arrangeFields(fields);
+    }
 
     /**
      * Returns a {@code ValueModel} for the given {@code valueType}, if the latter is a value
@@ -43,13 +65,13 @@ public class ValueModel {
      * {@code ValueModel} for that value interface.
      *
      * @param valueType a value interface or the heap or native implementation class for some
-     * value interface
+     *                  value interface
      * @return a ValueModel for the given value interface, or if the given {@code valueType} is
      * the heap or native implementation for some value interface, returns the ValueModel of that
      * value interface
      * @throws IllegalArgumentException if the given valueType is not a <i>value interface</i>,
-     * or the heap or native implementation of some value interface, or the Chronicle Values library
-     * is not able to construct a ValueModel from this interface
+     *                                  or the heap or native implementation of some value interface, or the Chronicle Values library
+     *                                  is not able to construct a ValueModel from this interface
      */
     public static ValueModel acquire(Class<?> valueType) {
         if (valueType.isInterface()) {
@@ -61,7 +83,9 @@ public class ValueModel {
             throw new IllegalArgumentException((Exception) valueModelOrException);
         }
         return doSomethingForInterfaceOr(valueType, ValueModel::acquire,
-                () -> { throw notValueInterfaceOfImpl(valueType); });
+                () -> {
+                    throw notValueInterfaceOfImpl(valueType);
+                });
     }
 
     private static IllegalArgumentException notValueInterfaceOfImpl(Class<?> valueType) {
@@ -109,60 +133,20 @@ public class ValueModel {
         }
     }
 
-    private static ClassValue<Object> classValueModel = new ClassValue<Object>() {
-        @Override
-        protected Object computeValue(Class<?> valueType) {
-            try {
-                return CodeTemplate.createValueModel(valueType);
-            } catch (Exception e) {
-                return e;
-            }
-        }
-    };
-
-    private static class FieldData {
-        int bitOffset;
-        int bitExtent;
-
-        private FieldData(int bitOffset, int bitExtent) {
-            this.bitOffset = bitOffset;
-            this.bitExtent = bitExtent;
-        }
+    private static boolean dontCross(int from, int size, int alignment) {
+        return alignment == NO_ALIGNMENT || from / alignment == (from + size - 1) / alignment;
     }
 
-    final Class<?> valueType;
-    private final Map<FieldModel, FieldData> fieldData = new HashMap<>();
-    private final List<FieldModel> orderedFields;
-    private final int sizeInBytes;
-
-    private volatile Class nativeClass;
-    private volatile Class heapClass;
-
-    ValueModel(Class<?> valueType, Stream<FieldModel> fields) {
-        this.valueType = valueType;
-        orderedFields = new ArrayList<>();
-        sizeInBytes = arrangeFields(fields);
-    }
-
-    private static class BitRange {
-        int from;
-        int to;
-
-        BitRange(int from, int to) {
-            this.from = from;
-            this.to = to;
-        }
-
-        int size() {
-            return to - from;
-        }
+    static String simpleName(Class<?> type) {
+        String name = type.getName();
+        return name.substring(name.lastIndexOf('.') + 1);
     }
 
     /**
      * Greedy algorithm, tries to arrange most coarse-aligned fields (if equally aligned,
      * biggest) first, if holes appear due to alignment, tries to fill holes (from smallest to
      * biggest) on each step.
-     *
+     * <p>
      * <p>Sure this is a suboptimal algorithm, optimal algorithm is NP hard and rather complex
      * (unless try all combinations), but the user could always arrange the fields by hand,
      * providing @Group annotation to each field.
@@ -240,10 +224,6 @@ public class ValueModel {
         return byteRoundedWatermark / 8;
     }
 
-    private static boolean dontCross(int from, int size, int alignment) {
-        return alignment == NO_ALIGNMENT || from / alignment == (from + size - 1) / alignment;
-    }
-
     public Stream<FieldModel> fields() {
         return orderedFields.stream();
     }
@@ -259,7 +239,7 @@ public class ValueModel {
      * Returns the recommended alignment of a flyweight bytes offset, to satisfy alignments of all
      * the fields. It is the most coarse among all of it's fields' {@linkplain Align#offset()
      * offset} and {@linkplain Align#dontCross() don't cross} alignments.
-     *
+     * <p>
      * <p>Returns a positive integer >= 1.
      *
      * @return the alignment of the flyweight value itself, to satisfy fields' alignments
@@ -331,11 +311,6 @@ public class ValueModel {
         return simpleName(valueType);
     }
 
-    static String simpleName(Class<?> type) {
-        String name = type.getName();
-        return name.substring(name.lastIndexOf('.') + 1);
-    }
-
     private Class createClass(
             String className, BiFunction<ValueModel, String, String> generateClass) {
         String classNameWithPackage = valueType.getPackage().getName() + "." + className;
@@ -349,6 +324,30 @@ public class ValueModel {
             } catch (ClassNotFoundException e) {
                 throw new ImplGenerationFailedException(e);
             }
+        }
+    }
+
+    private static class FieldData {
+        int bitOffset;
+        int bitExtent;
+
+        private FieldData(int bitOffset, int bitExtent) {
+            this.bitOffset = bitOffset;
+            this.bitExtent = bitExtent;
+        }
+    }
+
+    private static class BitRange {
+        int from;
+        int to;
+
+        BitRange(int from, int to) {
+            this.from = from;
+            this.to = to;
+        }
+
+        int size() {
+            return to - from;
         }
     }
 }

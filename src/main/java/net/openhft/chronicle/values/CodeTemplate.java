@@ -42,7 +42,7 @@ import static net.openhft.chronicle.values.Primitives.isPrimitiveIntegerType;
 
 enum CodeTemplate {
     ;
-	
+
     public static final Function<Method, Parameter> NO_ANNOTATED_PARAM = m -> null;
     static final List<Class<?>> NON_MODEL_TYPES = asList(
             Object.class, Serializable.class, Externalizable.class, BytesMarshallable.class,
@@ -194,35 +194,23 @@ enum CodeTemplate {
                 "or another value interface");
     }
 
-    static class MethodAndTemplate {
-        final Method method;
-        final MethodTemplate template;
-        final String fieldName;
-
-        MethodAndTemplate(Method method, MethodTemplate template, String fieldName) {
-            this.method = method;
-            this.template = template;
-            this.fieldName = fieldName;
-        }
-    }
-
     private static Map<String, List<MethodAndTemplate>> methodsAndTemplatesByField(
             Class<?> valueType) {
         return Stream.of(valueType.getMethods())
-                    .filter(m -> (m.getModifiers() & Modifier.ABSTRACT) != 0)
-                    .filter(m -> NON_MODEL_TYPES.stream().noneMatch(t -> hasMethod(t, m)))
-                    .map(m -> {
-                        MethodTemplate methodTemplate = METHOD_TEMPLATES.stream()
-                                .filter(t -> t.parameters == m.getParameterCount())
-                                .filter(t -> m.getName().matches(t.regex))
-                                .findFirst().orElseThrow(IllegalStateException::new);
-                        Matcher matcher = Pattern.compile(methodTemplate.regex)
-                                .matcher(m.getName());
-                        if (!matcher.find())
-                            throw new AssertionError();
-                        String fieldName = convertFieldName(matcher.group(1));
-                        return new MethodAndTemplate(m, methodTemplate, fieldName);
-                    }).collect(groupingBy(mt -> mt.fieldName));
+                .filter(m -> (m.getModifiers() & Modifier.ABSTRACT) != 0)
+                .filter(m -> NON_MODEL_TYPES.stream().noneMatch(t -> hasMethod(t, m)))
+                .map(m -> {
+                    MethodTemplate methodTemplate = METHOD_TEMPLATES.stream()
+                            .filter(t -> t.parameters == m.getParameterCount())
+                            .filter(t -> m.getName().matches(t.regex))
+                            .findFirst().orElseThrow(IllegalStateException::new);
+                    Matcher matcher = Pattern.compile(methodTemplate.regex)
+                            .matcher(m.getName());
+                    if (!matcher.find())
+                        throw new AssertionError();
+                    String fieldName = convertFieldName(matcher.group(1));
+                    return new MethodAndTemplate(m, methodTemplate, fieldName);
+                }).collect(groupingBy(mt -> mt.fieldName));
     }
 
     private static boolean hasMethod(Class<?> type, Method m) {
@@ -235,5 +223,17 @@ enum CodeTemplate {
         if (name.length() > 1 && Character.isUpperCase(name.charAt(1))) return name;
         if (Character.isLowerCase(name.charAt(0))) return name;
         return Character.toLowerCase(name.charAt(0)) + name.substring(1);
+    }
+
+    static class MethodAndTemplate {
+        final Method method;
+        final MethodTemplate template;
+        final String fieldName;
+
+        MethodAndTemplate(Method method, MethodTemplate template, String fieldName) {
+            this.method = method;
+            this.template = template;
+            this.fieldName = fieldName;
+        }
     }
 }

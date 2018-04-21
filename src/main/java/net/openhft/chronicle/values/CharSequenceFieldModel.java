@@ -34,84 +34,6 @@ import static net.openhft.chronicle.values.Nullability.NULLABLE;
 class CharSequenceFieldModel extends ScalarFieldModel {
     final FieldNullability nullability = new FieldNullability(this);
     MaxUtf8Length maxUtf8Length;
-
-    @Override
-    void addTypeInfo(Method m, MethodTemplate template) {
-        if (!template.regex.startsWith("getUsing"))
-            super.addTypeInfo(m, template);
-        nullability.addInfo(m, template);
-        Parameter annotatedParameter = template.annotatedParameter.apply(m);
-        if (annotatedParameter == null)
-            return;
-        MaxUtf8Length paramMaxUtf8Length = annotatedParameter.getAnnotation(MaxUtf8Length.class);
-        if (paramMaxUtf8Length != null) {
-            if (maxUtf8Length != null) {
-                throw new IllegalStateException(
-                        "@MaxUtf8Length should be specified only once for " + name + " field. " +
-                                "Specified " + maxUtf8Length + " and " + paramMaxUtf8Length);
-            }
-            if (paramMaxUtf8Length.value() <= 0)
-                throw new IllegalStateException(
-                        paramMaxUtf8Length + " max size should be positive");
-            maxUtf8Length = paramMaxUtf8Length;
-        }
-    }
-
-    @Override
-    int sizeInBits() {
-        if (maxUtf8Length == null)
-            throw new IllegalStateException("@MaxUtf8Length must be specified for a field " + name);
-        int sizeInBytes = BytesUtil.stopBitLength(maxUtf8Length.value()) + maxUtf8Length.value();
-        return sizeInBytes * 8;
-    }
-
-    @Override
-    int offsetAlignmentInBytes() {
-        if (offsetAlignment == Align.DEFAULT) {
-            throw new IllegalStateException("Default offset alignment doesn't make sense for " +
-                    "CharSequence field " + name);
-        }
-        return Math.max(offsetAlignment, 1);
-    }
-
-    @Override
-    void checkState() {
-        super.checkState();
-        checkUnsupported(getVolatile);
-        checkUnsupported(setVolatile);
-        checkUnsupported(setOrdered);
-        checkUnsupported(add);
-        checkUnsupported(addAtomic);
-        checkUnsupported(compareAndSwap);
-    }
-
-    private void checkUnsupported(Method m) {
-        if (m != null) {
-            throw new IllegalStateException(type.getSimpleName() + "-typed field " +
-                    name + "cannot have method " + m.getName());
-        }
-    }
-
-    private String cachedStringBuilder() {
-        return varName() + "Builder";
-    }
-
-    private String cachedBuilderToSettable() {
-        if (type == String.class) {
-            return cachedStringBuilder() + ".toString()";
-        } else {
-            return cachedStringBuilder();
-        }
-    }
-
-    private void addCachedStringBuilder(ValueBuilder valueBuilder) {
-        FieldSpec cachedStringBuilder = FieldSpec
-                .builder(StringBuilder.class, cachedStringBuilder(), PRIVATE, FINAL)
-                .initializer("new $T($L)", StringBuilder.class, maxUtf8Length.value())
-                .build();
-        valueBuilder.typeBuilder.addField(cachedStringBuilder);
-    }
-
     private final MemberGenerator nativeGenerator = new MemberGenerator(this) {
 
         @Override
@@ -433,54 +355,6 @@ class CharSequenceFieldModel extends ScalarFieldModel {
             methodBuilder.endControlFlow();
         }
     };
-
-    private void throwNullableGetUsingVoidReturn() {
-        throw new IllegalStateException(name + " field nullable " +
-                get.getName() + "() shouldn't return void, because null value is " +
-                "indistinguishable from empty string. Specify the parameter in " +
-                set.getName() + " method as @NotNull");
-    }
-
-    private void nullGetBranch(MethodSpec.Builder methodBuilder, Method get) {
-        methodBuilder.nextControlFlow("else");
-        if (nullable()) {
-            if (get.getReturnType() != void.class) {
-                methodBuilder.addStatement("return null");
-            } else {
-                throwNullableGetUsingVoidReturn();
-            }
-        } else {
-            methodBuilder.addStatement("throw new $T($S)",
-                    IllegalStateException.class, name + " shouldn't be null");
-        }
-        methodBuilder.endControlFlow();
-    }
-
-    private boolean nullable() {
-        return nullability.nullability() == NULLABLE;
-    }
-
-    private void returnNotNullGetUsing(MethodSpec.Builder methodBuilder) {
-        if (getUsing.getReturnType() == String.class) {
-            methodBuilder.addStatement("return $N.toString()", usingName());
-        } else if (getUsing.getReturnType() != void.class) {
-            methodBuilder.addStatement("return $N", usingName());
-        }
-    }
-
-    @Override
-    MemberGenerator nativeGenerator() {
-        return nativeGenerator;
-    }
-
-    private void checkHeapArgument(MethodSpec.Builder methodBuilder) {
-        if (!nullable())
-            checkArgumentNotNull(methodBuilder);
-        // Don't check the UTF-8 length, because this is an operation with linear complexity,
-        // while it adds only little extra safety - too long string will be found only when
-        // copied to native impl
-    }
-
     private final MemberGenerator stringHeapGenerator = new ObjectHeapMemberGenerator(this) {
 
         @Override
@@ -704,8 +578,6 @@ class CharSequenceFieldModel extends ScalarFieldModel {
             return "net.openhft.chronicle.values.CharSequences.hashCode(" + field.name + "[index])";
         }
     };
-
-
     private final MemberGenerator charSequenceHeapGenerator = new ObjectHeapMemberGenerator(this) {
 
         private String isNull() {
@@ -1087,6 +959,130 @@ class CharSequenceFieldModel extends ScalarFieldModel {
             }
         }
     };
+
+    @Override
+    void addTypeInfo(Method m, MethodTemplate template) {
+        if (!template.regex.startsWith("getUsing"))
+            super.addTypeInfo(m, template);
+        nullability.addInfo(m, template);
+        Parameter annotatedParameter = template.annotatedParameter.apply(m);
+        if (annotatedParameter == null)
+            return;
+        MaxUtf8Length paramMaxUtf8Length = annotatedParameter.getAnnotation(MaxUtf8Length.class);
+        if (paramMaxUtf8Length != null) {
+            if (maxUtf8Length != null) {
+                throw new IllegalStateException(
+                        "@MaxUtf8Length should be specified only once for " + name + " field. " +
+                                "Specified " + maxUtf8Length + " and " + paramMaxUtf8Length);
+            }
+            if (paramMaxUtf8Length.value() <= 0)
+                throw new IllegalStateException(
+                        paramMaxUtf8Length + " max size should be positive");
+            maxUtf8Length = paramMaxUtf8Length;
+        }
+    }
+
+    @Override
+    int sizeInBits() {
+        if (maxUtf8Length == null)
+            throw new IllegalStateException("@MaxUtf8Length must be specified for a field " + name);
+        int sizeInBytes = BytesUtil.stopBitLength(maxUtf8Length.value()) + maxUtf8Length.value();
+        return sizeInBytes * 8;
+    }
+
+    @Override
+    int offsetAlignmentInBytes() {
+        if (offsetAlignment == Align.DEFAULT) {
+            throw new IllegalStateException("Default offset alignment doesn't make sense for " +
+                    "CharSequence field " + name);
+        }
+        return Math.max(offsetAlignment, 1);
+    }
+
+    @Override
+    void checkState() {
+        super.checkState();
+        checkUnsupported(getVolatile);
+        checkUnsupported(setVolatile);
+        checkUnsupported(setOrdered);
+        checkUnsupported(add);
+        checkUnsupported(addAtomic);
+        checkUnsupported(compareAndSwap);
+    }
+
+    private void checkUnsupported(Method m) {
+        if (m != null) {
+            throw new IllegalStateException(type.getSimpleName() + "-typed field " +
+                    name + "cannot have method " + m.getName());
+        }
+    }
+
+    private String cachedStringBuilder() {
+        return varName() + "Builder";
+    }
+
+    private String cachedBuilderToSettable() {
+        if (type == String.class) {
+            return cachedStringBuilder() + ".toString()";
+        } else {
+            return cachedStringBuilder();
+        }
+    }
+
+    private void addCachedStringBuilder(ValueBuilder valueBuilder) {
+        FieldSpec cachedStringBuilder = FieldSpec
+                .builder(StringBuilder.class, cachedStringBuilder(), PRIVATE, FINAL)
+                .initializer("new $T($L)", StringBuilder.class, maxUtf8Length.value())
+                .build();
+        valueBuilder.typeBuilder.addField(cachedStringBuilder);
+    }
+
+    private void throwNullableGetUsingVoidReturn() {
+        throw new IllegalStateException(name + " field nullable " +
+                get.getName() + "() shouldn't return void, because null value is " +
+                "indistinguishable from empty string. Specify the parameter in " +
+                set.getName() + " method as @NotNull");
+    }
+
+    private void nullGetBranch(MethodSpec.Builder methodBuilder, Method get) {
+        methodBuilder.nextControlFlow("else");
+        if (nullable()) {
+            if (get.getReturnType() != void.class) {
+                methodBuilder.addStatement("return null");
+            } else {
+                throwNullableGetUsingVoidReturn();
+            }
+        } else {
+            methodBuilder.addStatement("throw new $T($S)",
+                    IllegalStateException.class, name + " shouldn't be null");
+        }
+        methodBuilder.endControlFlow();
+    }
+
+    private boolean nullable() {
+        return nullability.nullability() == NULLABLE;
+    }
+
+    private void returnNotNullGetUsing(MethodSpec.Builder methodBuilder) {
+        if (getUsing.getReturnType() == String.class) {
+            methodBuilder.addStatement("return $N.toString()", usingName());
+        } else if (getUsing.getReturnType() != void.class) {
+            methodBuilder.addStatement("return $N", usingName());
+        }
+    }
+
+    @Override
+    MemberGenerator nativeGenerator() {
+        return nativeGenerator;
+    }
+
+    private void checkHeapArgument(MethodSpec.Builder methodBuilder) {
+        if (!nullable())
+            checkArgumentNotNull(methodBuilder);
+        // Don't check the UTF-8 length, because this is an operation with linear complexity,
+        // while it adds only little extra safety - too long string will be found only when
+        // copied to native impl
+    }
 
     @Override
     MemberGenerator heapGenerator() {

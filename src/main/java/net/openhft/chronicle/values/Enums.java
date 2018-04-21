@@ -34,6 +34,9 @@ public final class Enums {
         }
     }
 
+    private Enums() {
+    }
+
     public static <E extends Enum<E>> E[] getUniverse(Class<E> enumType) {
         try {
             //noinspection unchecked
@@ -46,6 +49,4 @@ public final class Enums {
     public static <E extends Enum<E>> int numberOfConstants(Class<E> enumType) {
         return getUniverse(enumType).length;
     }
-
-    private Enums() {}
 }

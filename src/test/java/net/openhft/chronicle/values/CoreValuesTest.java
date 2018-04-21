@@ -19,7 +19,6 @@ package net.openhft.chronicle.values;
 import net.openhft.chronicle.bytes.Byteable;
 import net.openhft.chronicle.bytes.BytesStore;
 import net.openhft.chronicle.core.values.*;
-import org.jetbrains.annotations.*;
 import org.junit.Test;
 
 import static net.openhft.chronicle.bytes.NativeBytesStore.nativeStoreWithFixedCapacity;

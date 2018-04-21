@@ -8,5 +8,6 @@ public interface ChronicleValueType<C extends ChronicleValueType<C>>
         extends Byteable, BytesMarshallable, Copyable<C> {
 
     int getValue();
+
     void setValue(int value);
 }

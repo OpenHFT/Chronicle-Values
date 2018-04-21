@@ -114,23 +114,6 @@ final class Generators {
         }
     }
 
-    private enum ImplType {
-        HEAP {
-            @Override
-            MemberGenerator getMemberGenerator(FieldModel fieldModel) {
-                return fieldModel.heapGenerator();
-            }
-        },
-        NATIVE {
-            @Override
-            MemberGenerator getMemberGenerator(FieldModel fieldModel) {
-                return fieldModel.nativeGenerator();
-            }
-        };
-
-        abstract MemberGenerator getMemberGenerator(FieldModel fieldModel);
-    }
-
     private static void generateValueCommons(ValueBuilder valueBuilder, ImplType implType) {
         Class<?> valueType = valueBuilder.model.valueType;
         valueBuilder.typeBuilder
@@ -299,5 +282,22 @@ final class Generators {
             builder.addParameter(ParameterSpec.builder(p.getType(), paramNames.get(i)).build());
         }
         return builder;
+    }
+
+    private enum ImplType {
+        HEAP {
+            @Override
+            MemberGenerator getMemberGenerator(FieldModel fieldModel) {
+                return fieldModel.heapGenerator();
+            }
+        },
+        NATIVE {
+            @Override
+            MemberGenerator getMemberGenerator(FieldModel fieldModel) {
+                return fieldModel.nativeGenerator();
+            }
+        };
+
+        abstract MemberGenerator getMemberGenerator(FieldModel fieldModel);
     }
 }

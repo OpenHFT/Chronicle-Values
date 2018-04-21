@@ -26,14 +26,6 @@ import static net.openhft.chronicle.values.IntegerFieldModel.NORMAL_ACCESS_TYPE;
 
 class DateFieldModel extends IntegerBackedFieldModel {
 
-    @Override
-    void postProcess() {
-        super.postProcess();
-        backend.type = long.class;
-        backend.range = RangeImpl.DEFAULT_LONG_RANGE;
-        backend.postProcess();
-    }
-
     final MemberGenerator nativeGenerator = new IntegerBackedNativeMemberGenerator(this, backend) {
 
         @Override
@@ -84,6 +76,14 @@ class DateFieldModel extends IntegerBackedFieldModel {
             return format("java.lang.Long.hashCode(%s)", time);
         }
     };
+
+    @Override
+    void postProcess() {
+        super.postProcess();
+        backend.type = long.class;
+        backend.range = RangeImpl.DEFAULT_LONG_RANGE;
+        backend.postProcess();
+    }
 
     @Override
     MemberGenerator nativeGenerator() {

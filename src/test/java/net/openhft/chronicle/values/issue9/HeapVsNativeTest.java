@@ -7,7 +7,6 @@ import net.openhft.chronicle.values.NotNull;
 import net.openhft.chronicle.values.Values;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -38,6 +37,7 @@ public class HeapVsNativeTest {
 
     public interface Entity {
         CharSequence getSymbol();
+
         void setSymbol(@NotNull @MaxUtf8Length(6) CharSequence symbol);
     }
 }

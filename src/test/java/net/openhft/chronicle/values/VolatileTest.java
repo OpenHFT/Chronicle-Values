@@ -49,61 +49,61 @@ public class VolatileTest {
         }
 */
         //Test the heap interface
-        try{
+        try {
             GoodInterface jbi = newHeapInstance(GoodInterface.class);
 
             jbi.setOrderedY(5);
             assertEquals(5, jbi.getVolatileY());
-            jbi.setOrderedIntAt(0,0);
-            jbi.setOrderedIntAt(1,1);
-            jbi.setOrderedIntAt(2,2);
-            jbi.setOrderedIntAt(3,3);
+            jbi.setOrderedIntAt(0, 0);
+            jbi.setOrderedIntAt(1, 1);
+            jbi.setOrderedIntAt(2, 2);
+            jbi.setOrderedIntAt(3, 3);
 
             assertEquals(0, jbi.getVolatileIntAt(0));
             assertEquals(1, jbi.getVolatileIntAt(1));
             assertEquals(2, jbi.getVolatileIntAt(2));
             assertEquals(3, jbi.getVolatileIntAt(3));
-        }catch(AssertionError e){
+        } catch (AssertionError e) {
             e.printStackTrace();
             assertFalse("Throws an IllegalArgumentException", true);
         }
 
         //Test the native interface
-        try{
+        try {
             GoodInterface jbi = newNativeReference(GoodInterface.class);
             BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
             ((Byteable) jbi).bytesStore(bytes, 0L, ((Byteable) jbi).maxSize());
 
             jbi.setOrderedY(5);
             assertEquals(5, jbi.getVolatileY());
-            jbi.setOrderedIntAt(0,0);
-            jbi.setOrderedIntAt(1,1);
-            jbi.setOrderedIntAt(2,2);
-            jbi.setOrderedIntAt(3,3);
+            jbi.setOrderedIntAt(0, 0);
+            jbi.setOrderedIntAt(1, 1);
+            jbi.setOrderedIntAt(2, 2);
+            jbi.setOrderedIntAt(3, 3);
 
             assertEquals(0, jbi.getVolatileIntAt(0));
             assertEquals(1, jbi.getVolatileIntAt(1));
             assertEquals(2, jbi.getVolatileIntAt(2));
             assertEquals(3, jbi.getVolatileIntAt(3));
-        }catch(AssertionError e){
+        } catch (AssertionError e) {
             e.printStackTrace();
             assertFalse("Throws an IllegalArgumentException", true);
         }
     }
 
-    public interface BadInterface1{
+    public interface BadInterface1 {
         int getX();
 
         void setOrderedX(int x);
     }
 
-    public interface BadInterface2{
+    public interface BadInterface2 {
         int getVolatileX();
 
         void setX(int x);
     }
 
-    public interface GoodInterface{
+    public interface GoodInterface {
         int getX();
 
         void setX(int x);
@@ -118,6 +118,7 @@ public class VolatileTest {
 
         @Array(length = 4)
         void setOrderedIntAt(int idx, int i);
+
         int getVolatileIntAt(int idx);
     }
 }

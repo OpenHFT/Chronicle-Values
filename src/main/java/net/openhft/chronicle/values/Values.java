@@ -22,6 +22,9 @@ package net.openhft.chronicle.values;
  */
 public final class Values {
 
+    private Values() {
+    }
+
     public static boolean isValueInterfaceOrImplClass(Class<?> valueTypeOrImplClass) {
         return ValueModel.isValueInterfaceOrImplClass(valueTypeOrImplClass);
     }
@@ -29,7 +32,7 @@ public final class Values {
     /**
      * Equivalent for {@link #heapClassFor(Class) heapClassFor(valueType)}{@code .newInstance()}.
      *
-     * @throws IllegalArgumentException if the given {@code valueType} is not a value interface
+     * @throws IllegalArgumentException      if the given {@code valueType} is not a value interface
      * @throws ImplGenerationFailedException if generation of a heap implementation failed
      */
     public static <T> T newHeapInstance(Class<T> valueType) {
@@ -43,7 +46,7 @@ public final class Values {
     /**
      * Equivalent for {@link #nativeClassFor nativeClassFor(valueType)}{@code .newInstance()}.
      *
-     * @throws IllegalArgumentException if the given {@code valueType} is not a value interface
+     * @throws IllegalArgumentException      if the given {@code valueType} is not a value interface
      * @throws ImplGenerationFailedException if generation of a native implementation failed
      */
     public static <T> T newNativeReference(Class<T> valueType) {
@@ -58,9 +61,9 @@ public final class Values {
      * Generates (if not yet) and returns a heap implementation for the given value interface.
      *
      * @param valueType the value interface to return a heap implementation for
-     * @param <T> the value interface as a type parameter
+     * @param <T>       the value interface as a type parameter
      * @return a heap implementation class for the given value interface
-     * @throws IllegalArgumentException if the given {@code valueType} is not a value interface
+     * @throws IllegalArgumentException      if the given {@code valueType} is not a value interface
      * @throws ImplGenerationFailedException if generation of a heap implementation failed
      */
     public static <T> Class<T> heapClassFor(Class<T> valueType) {
@@ -73,15 +76,13 @@ public final class Values {
      * interface.
      *
      * @param valueType the value interface to return a native implementation for
-     * @param <T> the value interface as a type parameter
+     * @param <T>       the value interface as a type parameter
      * @return a native (flyweight) implementation class for the given value interface
-     * @throws IllegalArgumentException if the given {@code valueType} is not a value interface
+     * @throws IllegalArgumentException      if the given {@code valueType} is not a value interface
      * @throws ImplGenerationFailedException if generation of a native implementation failed
      */
     public static <T> Class<T> nativeClassFor(Class<T> valueType) {
         //noinspection unchecked
         return ValueModel.acquire(valueType).nativeClass();
     }
-
-    private Values() {}
 }

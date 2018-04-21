@@ -22,11 +22,11 @@ package net.openhft.chronicle.values;
  * Time: 09:09
  */
 public interface StringInterface {
-    void setString(@MaxUtf8Length(64) String s);
-
     String getString();
 
-    void setText(@MaxUtf8Length(64) String s);
+    void setString(@MaxUtf8Length(64) String s);
 
     String getText();
+
+    void setText(@MaxUtf8Length(64) String s);
 }

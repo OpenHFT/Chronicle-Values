@@ -28,7 +28,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * Changes the serialization order fields. Multiple fields can be in the same group and groups will
  * be ordered by their {@linkplain #value() values}, smallest first. This annotation should be put
  * on any single method accessing the field: getter, or setter, or adder, etc.
- *
+ * <p>
  * <p>If you don't provide a group for a field, it is considered to be a part of the "default
  * group", which is always the first group in the serialization order, regardless {@linkplain
  * #value() values} of other groups in the interface.
@@ -40,7 +40,7 @@ public @interface Group {
     /**
      * The value is used to order groups within the interface. Groups with smaller values are
      * serialized (and arranged in native implementation) before groups with bigger values.
-     *
+     * <p>
      * <p>This field should be named "order", it is "value" to allow concise declaration form
      * like {@code @Group(1) int getFoo();}.
      *

@@ -49,6 +49,15 @@ public abstract class FieldModel {
     Method add;
     Method addAtomic;
     Method compareAndSwap;
+    private MemberGenerator heapGenerator;
+
+    static void genVerifiedElementOffset(
+            ArrayFieldModel arrayField, MethodSpec.Builder methodBuilder) {
+        int elemBitExtent = arrayField.elemBitExtent();
+        assert elemBitExtent % 8 == 0;
+        int elemByteExtent = elemBitExtent / 8;
+        methodBuilder.addStatement("long elementOffset = index * $LL", elemByteExtent);
+    }
 
     void addLayoutInfo(Method m, MethodTemplate template) {
         Group group = m.getAnnotation(Group.class);
@@ -61,8 +70,8 @@ public abstract class FieldModel {
         if (align != null) {
             // if both specified
             if (align.offset() > 0 && align.dontCross() >= 0 && align.dontCross() % align.offset() != 0) {
-                    throw new IllegalStateException(align + " dontCross alignment should be " +
-                            "a multiple of offset alignment, field " + name);
+                throw new IllegalStateException(align + " dontCross alignment should be " +
+                        "a multiple of offset alignment, field " + name);
             }
             setOffsetAlignmentExplicitly(align.offset());
             dontCrossAlignment = align.dontCross();
@@ -172,8 +181,6 @@ public abstract class FieldModel {
     MemberGenerator createHeapGenerator() {
         throw new UnsupportedOperationException(getClass() + "");
     }
-
-    private MemberGenerator heapGenerator;
 
     MemberGenerator heapGenerator() {
         if (heapGenerator == null)
@@ -353,7 +360,7 @@ public abstract class FieldModel {
         if (this.compareAndSwap != null) {
             throw new IllegalStateException(
                     "CompareAndSwap is already declared for the field " +
-                    name + ": " + this.compareAndSwap.getName() + ", " + compareAndSwap.getName());
+                            name + ": " + this.compareAndSwap.getName() + ", " + compareAndSwap.getName());
         }
         this.compareAndSwap = compareAndSwap;
     }
@@ -370,14 +377,6 @@ public abstract class FieldModel {
         builder.addStatement("throw new $T($S)",
                 IllegalArgumentException.class, name + " shouldn't be null");
         builder.endControlFlow();
-    }
-
-    static void genVerifiedElementOffset(
-            ArrayFieldModel arrayField, MethodSpec.Builder methodBuilder) {
-        int elemBitExtent = arrayField.elemBitExtent();
-        assert elemBitExtent % 8 == 0;
-        int elemByteExtent = elemBitExtent / 8;
-        methodBuilder.addStatement("long elementOffset = index * $LL", elemByteExtent);
     }
 
     public Method getOrGetVolatile() {

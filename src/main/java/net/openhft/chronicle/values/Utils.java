@@ -19,6 +19,9 @@ package net.openhft.chronicle.values;
 
 final class Utils {
 
+    private Utils() {
+    }
+
     public static int roundUp(int divident, int divisor) {
         return ((divident + divisor - 1) / divisor) * divisor;
     }
@@ -32,6 +35,4 @@ final class Utils {
             return v + "";
         return v + "L";
     }
-
-    private Utils() {}
 }

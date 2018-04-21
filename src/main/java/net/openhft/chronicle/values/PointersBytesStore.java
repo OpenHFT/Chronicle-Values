@@ -23,12 +23,12 @@ public final class PointersBytesStore extends NativeBytesStore<Void> {
 
     private static final PointersBytesStore INSTANCE = new PointersBytesStore();
 
-    public static NativeBytesStore<Void> instance() {
-        return INSTANCE;
-    }
-
     public PointersBytesStore() {
         super(0, Long.MAX_VALUE, null, false);
+    }
+
+    public static NativeBytesStore<Void> instance() {
+        return INSTANCE;
     }
 
     @Override

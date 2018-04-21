@@ -31,31 +31,6 @@ import static net.openhft.chronicle.values.Nullability.NULLABLE;
 class EnumFieldModel extends IntegerBackedFieldModel {
 
     final FieldNullability nullability = new FieldNullability(this);
-
-    @Override
-    void addTypeInfo(Method m, MethodTemplate template) {
-        super.addTypeInfo(m, template);
-        nullability.addInfo(m, template);
-    }
-
-    @Override
-    void postProcess() {
-        super.postProcess();
-        int min = nullable() ? -1 : 0;
-        int constants = Enums.numberOfConstants(type);
-        if (constants == 0) {
-            throw new IllegalStateException(
-                    name + "field type is a enum with zero constants: " + type);
-        }
-        backend.type = int.class;
-        backend.range = new RangeImpl(min, constants - 1);
-        backend.postProcess();
-    }
-
-    private boolean nullable() {
-        return nullability.nullability() == NULLABLE;
-    }
-
     final MemberGenerator nativeGenerator = new IntegerBackedNativeMemberGenerator(this, backend) {
 
         @Override
@@ -115,6 +90,30 @@ class EnumFieldModel extends IntegerBackedFieldModel {
             return format("java.util.Objects.hashCode(%s)", value);
         }
     };
+
+    @Override
+    void addTypeInfo(Method m, MethodTemplate template) {
+        super.addTypeInfo(m, template);
+        nullability.addInfo(m, template);
+    }
+
+    @Override
+    void postProcess() {
+        super.postProcess();
+        int min = nullable() ? -1 : 0;
+        int constants = Enums.numberOfConstants(type);
+        if (constants == 0) {
+            throw new IllegalStateException(
+                    name + "field type is a enum with zero constants: " + type);
+        }
+        backend.type = int.class;
+        backend.range = new RangeImpl(min, constants - 1);
+        backend.postProcess();
+    }
+
+    private boolean nullable() {
+        return nullability.nullability() == NULLABLE;
+    }
 
     private String universeName() {
         return name + "Universe";

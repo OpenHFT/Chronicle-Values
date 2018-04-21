@@ -19,7 +19,8 @@ package net.openhft.chronicle.values;
 
 final class Primitives {
 
-    private Primitives() {}
+    private Primitives() {
+    }
 
     static boolean isPrimitiveIntegerType(Class type) {
         return type == byte.class || type == short.class || type == char.class ||

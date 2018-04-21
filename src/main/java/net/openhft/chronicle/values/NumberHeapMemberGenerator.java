@@ -20,8 +20,6 @@ package net.openhft.chronicle.values;
 import com.squareup.javapoet.MethodSpec;
 import sun.misc.Unsafe;
 
-import static java.lang.String.format;
-
 class NumberHeapMemberGenerator extends PrimitiveBackedHeapMemberGenerator {
 
     NumberHeapMemberGenerator(FieldModel fieldModel) {

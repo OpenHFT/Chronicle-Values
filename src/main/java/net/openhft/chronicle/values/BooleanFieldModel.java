@@ -23,24 +23,6 @@ import static java.lang.String.format;
 
 class BooleanFieldModel extends PrimitiveFieldModel {
 
-    @Override
-    int offsetAlignmentInBytes() {
-        if (offsetAlignment == Align.DEFAULT) {
-            throw new IllegalStateException("Default offset alignment doesn't make sense for " +
-                    "boolean field " + name);
-        }
-        return offsetAlignment;
-    }
-
-    @Override
-    int dontCrossAlignmentInBytes() {
-        if (dontCrossAlignment == Align.DEFAULT) {
-            throw new IllegalStateException("Default dontCross alignment doesn't make sense for " +
-                    "boolean field " + name);
-        }
-        return dontCrossAlignment;
-    }
-
     private MemberGenerator nativeGenerator = new MemberGenerator(BooleanFieldModel.this) {
 
         @Override
@@ -298,6 +280,24 @@ class BooleanFieldModel extends PrimitiveFieldModel {
                     arrayFieldModel.getOrGetVolatile().getName());
         }
     };
+
+    @Override
+    int offsetAlignmentInBytes() {
+        if (offsetAlignment == Align.DEFAULT) {
+            throw new IllegalStateException("Default offset alignment doesn't make sense for " +
+                    "boolean field " + name);
+        }
+        return offsetAlignment;
+    }
+
+    @Override
+    int dontCrossAlignmentInBytes() {
+        if (dontCrossAlignment == Align.DEFAULT) {
+            throw new IllegalStateException("Default dontCross alignment doesn't make sense for " +
+                    "boolean field " + name);
+        }
+        return dontCrossAlignment;
+    }
 
     @Override
     MemberGenerator nativeGenerator() {

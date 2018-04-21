@@ -29,6 +29,7 @@ public class ArrayFieldModel extends FieldModel {
 
     private final ScalarFieldModel elemModel;
     Array array;
+    private MemberGenerator nativeGenerator;
 
     public ArrayFieldModel(ScalarFieldModel elemModel) {
         this.elemModel = elemModel;
@@ -107,6 +108,35 @@ public class ArrayFieldModel extends FieldModel {
     void checkState() {
         super.checkState();
         elemModel.checkState();
+    }
+
+    @NotNull
+    private ArrayFieldModel self() {
+        return ArrayFieldModel.this;
+    }
+
+    @Override
+    MemberGenerator nativeGenerator() {
+        if (nativeGenerator == null)
+            nativeGenerator = new ArrayMemberGenerator(this, elemModel.nativeGenerator());
+        return nativeGenerator;
+    }
+
+    @Override
+    MemberGenerator createHeapGenerator() {
+        return new ArrayMemberGenerator(this, elemModel.heapGenerator());
+    }
+
+    void checkBounds(MethodSpec.Builder methodBuilder) {
+        methodBuilder.beginControlFlow("if (index < 0 || index >= $L)", array.length());
+        methodBuilder.addStatement("throw new $T(index + $S)",
+                ArrayIndexOutOfBoundsException.class,
+                " is out of bounds, array length " + array.length());
+        methodBuilder.endControlFlow();
+    }
+
+    public Array array() {
+        return array;
     }
 
     private class ArrayMemberGenerator extends MemberGenerator {
@@ -245,36 +275,5 @@ public class ArrayFieldModel extends FieldModel {
                 MethodSpec.Builder methodBuilder) {
             throw new UnsupportedOperationException();
         }
-    }
-
-    @NotNull
-    private ArrayFieldModel self() {
-        return ArrayFieldModel.this;
-    }
-
-    private MemberGenerator nativeGenerator;
-
-    @Override
-    MemberGenerator nativeGenerator() {
-        if (nativeGenerator == null)
-            nativeGenerator = new ArrayMemberGenerator(this, elemModel.nativeGenerator());
-        return nativeGenerator;
-    }
-
-    @Override
-    MemberGenerator createHeapGenerator() {
-        return new ArrayMemberGenerator(this, elemModel.heapGenerator());
-    }
-
-    void checkBounds(MethodSpec.Builder methodBuilder) {
-        methodBuilder.beginControlFlow("if (index < 0 || index >= $L)", array.length());
-        methodBuilder.addStatement("throw new $T(index + $S)",
-                ArrayIndexOutOfBoundsException.class,
-                " is out of bounds, array length " + array.length());
-        methodBuilder.endControlFlow();
-    }
-
-    public Array array() {
-        return array;
     }
 }

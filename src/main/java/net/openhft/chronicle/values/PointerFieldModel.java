@@ -28,107 +28,6 @@ import static net.openhft.chronicle.values.Utils.capitalize;
 final class PointerFieldModel extends IntegerBackedFieldModel {
 
     private final ValueFieldModel pointedModel;
-
-    PointerFieldModel(ValueFieldModel pointedModel) {
-        this.pointedModel = pointedModel;
-    }
-
-    @Override
-    void postProcess() {
-        super.postProcess();
-        pointedModel.postProcess();
-        backend.type = long.class;
-        backend.range = RangeImpl.DEFAULT_LONG_RANGE;
-        backend.postProcess();
-    }
-
-    @Override
-    void checkState() {
-        super.checkState();
-        pointedModel.checkState();
-    }
-
-    private FieldSpec cachedValue() {
-        return pointedModel.nativeGenerator().cachedValue;
-    }
-
-    private void initCachedValue(
-            ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder, String address) {
-        methodBuilder.addStatement("$N.bytesStore($N, $N, $L)", cachedValue(),
-                valueBuilder.bytesStoreForPointers(), address, pointedModel.sizeInBytes());
-    }
-
-    private String extractAddress(MethodSpec.Builder methodBuilder, String value) {
-        String addressVariable = value + "Address";
-        methodBuilder.addStatement("long $N", addressVariable);
-        methodBuilder.beginControlFlow("if ($N != null)", value);
-        {
-            methodBuilder.beginControlFlow("if (!($N instanceof $T))", value, Byteable.class);
-            String message =
-                    "\"$N should be instance of $T, \" + $N.getClass() + \" is given\"";
-            methodBuilder.addStatement("throw new $T(" + message + ")",
-                    IllegalArgumentException.class, name, Byteable.class, value);
-            methodBuilder.endControlFlow();
-
-            methodBuilder.addStatement(
-                    "$N = (($T) $N).bytesStore().addressForRead((($T) $N).offset())",
-                    addressVariable, Byteable.class, value, Byteable.class, value);
-        }
-        methodBuilder.nextControlFlow("else");
-        {
-            methodBuilder.addStatement("$N = 0L", addressVariable);
-        }
-        methodBuilder.endControlFlow();
-        return addressVariable;
-    }
-
-    private void genWriteMarshallable(
-            ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder,
-            String address, Object value) {
-        String addressVariable = name + "Address";
-        methodBuilder.addStatement("long $N = $N", addressVariable, address);
-        methodBuilder.beginControlFlow("if ($N != 0)", addressVariable);
-        {
-            initCachedValue(valueBuilder, methodBuilder, address);
-            methodBuilder.addStatement("bytes.writeBoolean(true)");
-            methodBuilder.addStatement("$N.writeMarshallable(bytes)", value);
-        }
-        methodBuilder.nextControlFlow("else");
-        {
-            methodBuilder.addStatement("bytes.writeBoolean(false)");
-        }
-        methodBuilder.endControlFlow();
-    }
-
-    private void genReadMarshallable(
-            ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder,
-            String address, Object value, Runnable setNull) {
-        String present = name + "Present";
-        methodBuilder.addStatement("boolean $N = bytes.readBoolean()", present);
-        methodBuilder.beginControlFlow("if ($N)", present);
-        {
-            String addressVariable = name + "Address";
-            methodBuilder.addStatement("long $N = $N", addressVariable, address);
-            methodBuilder.beginControlFlow("if ($N != 0)", addressVariable);
-            {
-                initCachedValue(valueBuilder, methodBuilder, address);
-                methodBuilder.addStatement("$N.readMarshallable(bytes)", value);
-            }
-            methodBuilder.nextControlFlow("else");
-            {
-                methodBuilder.addStatement("throw new $T($S)", IllegalStateException.class,
-                        name + " field should be initialized to some pointer when reading " +
-                                "non-null value from marshalled bytes");
-            }
-            methodBuilder.endControlFlow();
-        }
-        methodBuilder.nextControlFlow("else");
-        {
-            setNull.run();
-        }
-        methodBuilder.endControlFlow();
-    }
-
     final MemberGenerator nativeGenerator = new IntegerBackedNativeMemberGenerator(this, backend) {
 
         @Override
@@ -239,6 +138,106 @@ final class PointerFieldModel extends IntegerBackedFieldModel {
             return format("Long.hashCode(%s)", address);
         }
     };
+
+    PointerFieldModel(ValueFieldModel pointedModel) {
+        this.pointedModel = pointedModel;
+    }
+
+    @Override
+    void postProcess() {
+        super.postProcess();
+        pointedModel.postProcess();
+        backend.type = long.class;
+        backend.range = RangeImpl.DEFAULT_LONG_RANGE;
+        backend.postProcess();
+    }
+
+    @Override
+    void checkState() {
+        super.checkState();
+        pointedModel.checkState();
+    }
+
+    private FieldSpec cachedValue() {
+        return pointedModel.nativeGenerator().cachedValue;
+    }
+
+    private void initCachedValue(
+            ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder, String address) {
+        methodBuilder.addStatement("$N.bytesStore($N, $N, $L)", cachedValue(),
+                valueBuilder.bytesStoreForPointers(), address, pointedModel.sizeInBytes());
+    }
+
+    private String extractAddress(MethodSpec.Builder methodBuilder, String value) {
+        String addressVariable = value + "Address";
+        methodBuilder.addStatement("long $N", addressVariable);
+        methodBuilder.beginControlFlow("if ($N != null)", value);
+        {
+            methodBuilder.beginControlFlow("if (!($N instanceof $T))", value, Byteable.class);
+            String message =
+                    "\"$N should be instance of $T, \" + $N.getClass() + \" is given\"";
+            methodBuilder.addStatement("throw new $T(" + message + ")",
+                    IllegalArgumentException.class, name, Byteable.class, value);
+            methodBuilder.endControlFlow();
+
+            methodBuilder.addStatement(
+                    "$N = (($T) $N).bytesStore().addressForRead((($T) $N).offset())",
+                    addressVariable, Byteable.class, value, Byteable.class, value);
+        }
+        methodBuilder.nextControlFlow("else");
+        {
+            methodBuilder.addStatement("$N = 0L", addressVariable);
+        }
+        methodBuilder.endControlFlow();
+        return addressVariable;
+    }
+
+    private void genWriteMarshallable(
+            ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder,
+            String address, Object value) {
+        String addressVariable = name + "Address";
+        methodBuilder.addStatement("long $N = $N", addressVariable, address);
+        methodBuilder.beginControlFlow("if ($N != 0)", addressVariable);
+        {
+            initCachedValue(valueBuilder, methodBuilder, address);
+            methodBuilder.addStatement("bytes.writeBoolean(true)");
+            methodBuilder.addStatement("$N.writeMarshallable(bytes)", value);
+        }
+        methodBuilder.nextControlFlow("else");
+        {
+            methodBuilder.addStatement("bytes.writeBoolean(false)");
+        }
+        methodBuilder.endControlFlow();
+    }
+
+    private void genReadMarshallable(
+            ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder,
+            String address, Object value, Runnable setNull) {
+        String present = name + "Present";
+        methodBuilder.addStatement("boolean $N = bytes.readBoolean()", present);
+        methodBuilder.beginControlFlow("if ($N)", present);
+        {
+            String addressVariable = name + "Address";
+            methodBuilder.addStatement("long $N = $N", addressVariable, address);
+            methodBuilder.beginControlFlow("if ($N != 0)", addressVariable);
+            {
+                initCachedValue(valueBuilder, methodBuilder, address);
+                methodBuilder.addStatement("$N.readMarshallable(bytes)", value);
+            }
+            methodBuilder.nextControlFlow("else");
+            {
+                methodBuilder.addStatement("throw new $T($S)", IllegalStateException.class,
+                        name + " field should be initialized to some pointer when reading " +
+                                "non-null value from marshalled bytes");
+            }
+            methodBuilder.endControlFlow();
+        }
+        methodBuilder.nextControlFlow("else");
+        {
+            setNull.run();
+        }
+        methodBuilder.endControlFlow();
+    }
 
     @Override
     MemberGenerator nativeGenerator() {

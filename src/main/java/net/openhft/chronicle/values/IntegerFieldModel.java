@@ -45,98 +45,7 @@ class IntegerFieldModel extends PrimitiveFieldModel {
      * ValueModel} it should know the outer model.
      */
     final FieldModel outerModel;
-
-    IntegerFieldModel() {
-        outerModel = this;
-    }
-
-    IntegerFieldModel(FieldModel outerModel) {
-        this.outerModel = outerModel;
-    }
-
     Range range;
-
-    @Override
-    void addTypeInfo(Method m, MethodTemplate template) {
-        super.addTypeInfo(m, template);
-
-        Parameter annotatedParameter = template.annotatedParameter.apply(m);
-        if (annotatedParameter == null)
-            return;
-        Range paramRange = annotatedParameter.getAnnotation(Range.class);
-        if (paramRange != null) {
-            if (range != null) {
-                throw new IllegalStateException("@Range should be specified only once for " + name +
-                        " field. Specified " + range + " and " + paramRange);
-            }
-            long min = paramRange.min();
-            long max = paramRange.max();
-            if (min >= max) {
-                throw new IllegalStateException(paramRange +
-                        ": min should be less than max, field " + name);
-            }
-            if (min < defaultRange().min() || max > defaultRange().max()) {
-                throw new IllegalStateException(range + " out of extent of " + type + " type " +
-                        "of the field " + name);
-            }
-            range = paramRange;
-        }
-    }
-
-    private Range defaultRange() {
-        if (type == byte.class) return DEFAULT_BYTE_RANGE;
-        if (type == char.class) return DEFAULT_CHAR_RANGE;
-        if (type == short.class) return DEFAULT_SHORT_RANGE;
-        if (type == int.class) return DEFAULT_INT_RANGE;
-        if (type == long.class) return DEFAULT_LONG_RANGE;
-        throw new AssertionError("not an integer type: " + type);
-    }
-
-    private Range range() {
-        return range != null ? range : defaultRange();
-    }
-
-    @Override
-    int sizeInBits() {
-        Range range = range();
-        int coverBits;
-        long options = range.max() - range.min() + 1;
-        if (options <= 0) {
-            coverBits = 64;
-        } else {
-            coverBits = coverBits(options);
-        }
-        if (coverBits > widthInBits(type))
-            throw new IllegalStateException(range + " too wide for " + type + " type");
-        return sizeInBitsConsideringVolatileOrOrderedPuts(coverBits);
-    }
-
-    private static int coverBits(long options) {
-        assert options > 0;
-        if (options == 1)
-            return 1;
-        return Maths.intLog2(options - 1) + 1;
-    }
-
-    private static String read(String offset, int bitsToRead, Function<String, String> accessType) {
-        return format("bs.read%s(%s)",
-                accessType.apply(integerBytesMethodSuffix(bitsToRead)), offset);
-    }
-
-    private static String integerBytesMethodSuffix(int bitsToRead) {
-        return capitalize(integerBytesIoType(bitsToRead).getSimpleName());
-    }
-
-    private static Class integerBytesIoType(int bits) {
-        switch (bits) {
-            case 8: return byte.class;
-            case 16: return short.class;
-            case 32: return int.class;
-            case 64: return long.class;
-            default: throw new AssertionError("cannot read/write " + bits + " bits");
-        }
-    }
-
     final MemberGenerator nativeGenerator = new IntegerBackedNativeMemberGenerator(this, this) {
 
         @Override
@@ -274,8 +183,108 @@ class IntegerFieldModel extends PrimitiveFieldModel {
         }
     };
 
+    IntegerFieldModel() {
+        outerModel = this;
+    }
+
+    IntegerFieldModel(FieldModel outerModel) {
+        this.outerModel = outerModel;
+    }
+
+    private static int coverBits(long options) {
+        assert options > 0;
+        if (options == 1)
+            return 1;
+        return Maths.intLog2(options - 1) + 1;
+    }
+
+    private static String read(String offset, int bitsToRead, Function<String, String> accessType) {
+        return format("bs.read%s(%s)",
+                accessType.apply(integerBytesMethodSuffix(bitsToRead)), offset);
+    }
+
+    private static String integerBytesMethodSuffix(int bitsToRead) {
+        return capitalize(integerBytesIoType(bitsToRead).getSimpleName());
+    }
+
+    private static Class integerBytesIoType(int bits) {
+        switch (bits) {
+            case 8:
+                return byte.class;
+            case 16:
+                return short.class;
+            case 32:
+                return int.class;
+            case 64:
+                return long.class;
+            default:
+                throw new AssertionError("cannot read/write " + bits + " bits");
+        }
+    }
+
+    private static String repeat(char c, int n) {
+        char[] chars = new char[n];
+        Arrays.fill(chars, c);
+        return new String(chars);
+    }
+
+    @Override
+    void addTypeInfo(Method m, MethodTemplate template) {
+        super.addTypeInfo(m, template);
+
+        Parameter annotatedParameter = template.annotatedParameter.apply(m);
+        if (annotatedParameter == null)
+            return;
+        Range paramRange = annotatedParameter.getAnnotation(Range.class);
+        if (paramRange != null) {
+            if (range != null) {
+                throw new IllegalStateException("@Range should be specified only once for " + name +
+                        " field. Specified " + range + " and " + paramRange);
+            }
+            long min = paramRange.min();
+            long max = paramRange.max();
+            if (min >= max) {
+                throw new IllegalStateException(paramRange +
+                        ": min should be less than max, field " + name);
+            }
+            if (min < defaultRange().min() || max > defaultRange().max()) {
+                throw new IllegalStateException(range + " out of extent of " + type + " type " +
+                        "of the field " + name);
+            }
+            range = paramRange;
+        }
+    }
+
+    private Range defaultRange() {
+        if (type == byte.class) return DEFAULT_BYTE_RANGE;
+        if (type == char.class) return DEFAULT_CHAR_RANGE;
+        if (type == short.class) return DEFAULT_SHORT_RANGE;
+        if (type == int.class) return DEFAULT_INT_RANGE;
+        if (type == long.class) return DEFAULT_LONG_RANGE;
+        throw new AssertionError("not an integer type: " + type);
+    }
+
+    private Range range() {
+        return range != null ? range : defaultRange();
+    }
+
     // The methods below are named with "gen" prefix instead of "generate" to avoid confusion
     // and possible bugs when called from MemberGenerator methods, that have the same names
+
+    @Override
+    int sizeInBits() {
+        Range range = range();
+        int coverBits;
+        long options = range.max() - range.min() + 1;
+        if (options <= 0) {
+            coverBits = 64;
+        } else {
+            coverBits = coverBits(options);
+        }
+        if (coverBits > widthInBits(type))
+            throw new IllegalStateException(range + " too wide for " + type + " type");
+        return sizeInBitsConsideringVolatileOrOrderedPuts(coverBits);
+    }
 
     String genGet(ValueBuilder valueBuilder, Function<String, String> accessType) {
         int bitOffset = valueBuilder.model.fieldBitOffset(outerModel);
@@ -468,11 +477,5 @@ class IntegerFieldModel extends PrimitiveFieldModel {
     @Override
     MemberGenerator createHeapGenerator() {
         return new NumberHeapMemberGenerator(this);
-    }
-
-    private static String repeat(char c, int n) {
-        char[] chars = new char[n];
-        Arrays.fill(chars, c);
-        return new String(chars);
     }
 }

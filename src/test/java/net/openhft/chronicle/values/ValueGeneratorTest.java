@@ -35,7 +35,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class ValueGeneratorTest {
     @Test
-    public void testGenerateJavaCode()   {
+    public void testGenerateJavaCode() {
 //        JavaBeanInterface jbi = Values.newHeapInstance(JavaBeanInterface.class);
 //        jbi.setByte((byte) 1);
 //        jbi.setChar('2');
@@ -57,7 +57,7 @@ public class ValueGeneratorTest {
     }
 
     @Test
-    public void testGenerateJavaCode2()   {
+    public void testGenerateJavaCode2() {
         MinimalInterface mi = newHeapInstance(MinimalInterface.class);
 
         mi.byte$((byte) 1);
@@ -107,7 +107,7 @@ public class ValueGeneratorTest {
                 JavaBeanInterfaceGetUsing.class.getName() + "$$Native", actual);
         JavaBeanInterfaceGetUsing jbi = (JavaBeanInterfaceGetUsing) aClass.asSubclass(JavaBeanInterfaceGetUsing.class).newInstance();
         BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
-                ((Byteable) jbi).bytesStore(bytes, 0L, ((Byteable) jbi).maxSize());
+        ((Byteable) jbi).bytesStore(bytes, 0L, ((Byteable) jbi).maxSize());
 
         jbi.setString("G'day");
 
@@ -194,13 +194,13 @@ public class ValueGeneratorTest {
     }
 
     @Test
-    public void testGenerateInterfaceWithEnumOnHeap()   {
+    public void testGenerateInterfaceWithEnumOnHeap() {
         JavaBeanInterfaceGetMyEnum jbie = newHeapInstance(JavaBeanInterfaceGetMyEnum.class);
         jbie.setMyEnum(MyEnum.B);
     }
 
     @Test
-    public void testGenerateInterfaceWithEnumNativeInstance()   {
+    public void testGenerateInterfaceWithEnumNativeInstance() {
         JavaBeanInterfaceGetMyEnum jbie = newNativeReference(JavaBeanInterfaceGetMyEnum.class);
         BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
         ((Byteable) jbie).bytesStore(bytes, 0L, ((Byteable) jbie).maxSize());
@@ -208,14 +208,14 @@ public class ValueGeneratorTest {
     }
 
     @Test
-    public void testGenerateInterfaceWithDateOnHeap()   {
+    public void testGenerateInterfaceWithDateOnHeap() {
         //dvg.setDumpCode(true);
         JavaBeanInterfaceGetDate jbid = newHeapInstance(JavaBeanInterfaceGetDate.class);
         jbid.setDate(new Date());
     }
 
     @Test
-    public void testGenerateInterfaceWithDateNativeInstace()   {
+    public void testGenerateInterfaceWithDateNativeInstace() {
         //dvg.setDumpCode(true);
         JavaBeanInterfaceGetDate jbid = newNativeReference(JavaBeanInterfaceGetDate.class);
         BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
@@ -226,7 +226,7 @@ public class ValueGeneratorTest {
     }
 
     @Test
-    public void testGenerateInterfaceWithMoreThanOneEnums()   {
+    public void testGenerateInterfaceWithMoreThanOneEnums() {
         //dvg.setDumpCode(true);
         JavaBeanInterfaceMoreThanOneEnums jbid = newNativeReference(JavaBeanInterfaceMoreThanOneEnums.class);
         BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));

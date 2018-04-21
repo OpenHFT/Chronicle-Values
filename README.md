@@ -27,7 +27,6 @@ please report the case via issues on Github.
  - [Use](#use)
  - [Javadocs](http://javadoc.io/doc/net.openhft/chronicle-values)
 
-
 ## Value interface specification
 
 An important pre-requirement for value interfaces: they should belong to some package with

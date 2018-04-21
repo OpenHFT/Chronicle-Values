@@ -27,6 +27,7 @@ import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 
 class ValueFieldModel extends ScalarFieldModel {
+    private final NativeMemberGenerator nativeGenerator = new NativeMemberGenerator();
     private ValueModel valueModel;
 
     private ValueModel valueModel() {
@@ -48,12 +49,154 @@ class ValueFieldModel extends ScalarFieldModel {
         return Math.max(1, offsetAlignment);
     }
 
-    private final NativeMemberGenerator nativeGenerator = new NativeMemberGenerator();
+    @Override
+    NativeMemberGenerator nativeGenerator() {
+        return nativeGenerator;
+    }
+
+    @Override
+    MemberGenerator createHeapGenerator() {
+        return new ObjectHeapMemberGenerator(this) {
+
+            @Override
+            void generateFields(ValueBuilder valueBuilder) {
+                field = FieldSpec.builder(valueModel().heapClass(), fieldName(), PRIVATE)
+                        .initializer("new $T()", valueModel().heapClass())
+                        .build();
+                valueBuilder.typeBuilder.addField(field);
+            }
+
+            @Override
+            void generateArrayElementFields(
+                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder) {
+                field = FieldSpec.builder(ArrayTypeName.of(valueModel().heapClass()), fieldName())
+                        .addModifiers(PRIVATE, FINAL)
+                        .initializer("new $T[$L]",
+                                valueModel().heapClass(), arrayFieldModel.array.length())
+                        .build();
+                valueBuilder.typeBuilder.addField(field);
+                MethodSpec.Builder constructor = valueBuilder.defaultConstructorBuilder();
+                constructor.beginControlFlow("for (int index = 0; index < $L; index++)",
+                        arrayFieldModel.array.length());
+                constructor.addStatement("$N[index] = new $T()",
+                        fieldName(), valueModel().heapClass());
+                constructor.endControlFlow();
+            }
+
+            @Override
+            public void generateSet(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("$N.copyFrom($N)", field, varName());
+            }
+
+            @Override
+            public void generateArrayElementSet(
+                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                    MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("$N[index].copyFrom($N)", field, varName());
+            }
+
+            @Override
+            public void generateSetVolatile(
+                    ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("$N.copyFrom($N)", field, varName());
+                methodBuilder.addStatement("$N.storeFence()", valueBuilder.unsafe());
+            }
+
+            @Override
+            public void generateArrayElementSetVolatile(
+                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                    MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("$N[index].copyFrom($N)", field, varName());
+                methodBuilder.addStatement("$N.storeFence()", valueBuilder.unsafe());
+            }
+
+            @Override
+            public void generateSetOrdered(
+                    ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+                generateSetVolatile(valueBuilder, methodBuilder);
+            }
+
+            @Override
+            public void generateArrayElementSetOrdered(
+                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                    MethodSpec.Builder methodBuilder) {
+                generateArrayElementSetVolatile(arrayFieldModel, valueBuilder, methodBuilder);
+            }
+
+            @Override
+            public void generateCompareAndSwap(
+                    ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+                throw new UnsupportedOperationException(
+                        "compareAndSwap() is not supported by value field " + name);
+            }
+
+            @Override
+            public void generateArrayElementCompareAndSwap(
+                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                    MethodSpec.Builder methodBuilder) {
+                throw new UnsupportedOperationException(
+                        "compareAndSwap() is not supported by value field " + name);
+            }
+
+            @Override
+            public void generateCopyFrom(
+                    ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("$N.copyFrom(from.$N())",
+                        field, fieldModel.getOrGetVolatile().getName());
+            }
+
+            @Override
+            public void generateArrayElementCopyFrom(
+                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                    MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("this.$N[index].copyFrom(from.$N(index))",
+                        field, arrayFieldModel.getOrGetVolatile().getName());
+            }
+
+            @Override
+            void generateWriteMarshallable(
+                    ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("$N.writeMarshallable(bytes)", fieldName());
+            }
+
+            @Override
+            void generateArrayElementWriteMarshallable(
+                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                    MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("$N[index].writeMarshallable(bytes)", fieldName());
+            }
+
+            @Override
+            void generateReadMarshallable(
+                    ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("$N.readMarshallable(bytes)", fieldName());
+            }
+
+            @Override
+            void generateArrayElementReadMarshallable(
+                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                    MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("$N[index].readMarshallable(bytes)", fieldName());
+            }
+
+            @Override
+            String generateHashCode(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
+                return field.name + ".hashCode()";
+            }
+
+            @Override
+            String generateArrayElementHashCode(
+                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                    MethodSpec.Builder methodBuilder) {
+                return field.name + "[index].hashCode()";
+            }
+        };
+    }
 
     final class NativeMemberGenerator extends MemberGenerator {
 
-        private Class nativeType;
         FieldSpec cachedValue;
+        private Class nativeType;
 
         NativeMemberGenerator() {
             super(ValueFieldModel.this);
@@ -266,149 +409,5 @@ class ValueFieldModel extends ScalarFieldModel {
             initArrayElementCachedValue(arrayFieldModel, valueBuilder, methodBuilder);
             genArrayElementToString(methodBuilder, cachedValue.name);
         }
-    }
-
-    @Override
-    NativeMemberGenerator nativeGenerator() {
-        return nativeGenerator;
-    }
-
-    @Override
-    MemberGenerator createHeapGenerator() {
-        return new ObjectHeapMemberGenerator(this) {
-
-            @Override
-            void generateFields(ValueBuilder valueBuilder) {
-                field = FieldSpec.builder(valueModel().heapClass(), fieldName(), PRIVATE)
-                        .initializer("new $T()", valueModel().heapClass())
-                        .build();
-                valueBuilder.typeBuilder.addField(field);
-            }
-
-            @Override
-            void generateArrayElementFields(
-                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder) {
-                field = FieldSpec.builder(ArrayTypeName.of(valueModel().heapClass()), fieldName())
-                        .addModifiers(PRIVATE, FINAL)
-                        .initializer("new $T[$L]",
-                                valueModel().heapClass(), arrayFieldModel.array.length())
-                        .build();
-                valueBuilder.typeBuilder.addField(field);
-                MethodSpec.Builder constructor = valueBuilder.defaultConstructorBuilder();
-                constructor.beginControlFlow("for (int index = 0; index < $L; index++)",
-                        arrayFieldModel.array.length());
-                constructor.addStatement("$N[index] = new $T()",
-                        fieldName(), valueModel().heapClass());
-                constructor.endControlFlow();
-            }
-
-            @Override
-            public void generateSet(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-                methodBuilder.addStatement("$N.copyFrom($N)", field, varName());
-            }
-
-            @Override
-            public void generateArrayElementSet(
-                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
-                    MethodSpec.Builder methodBuilder) {
-                methodBuilder.addStatement("$N[index].copyFrom($N)", field, varName());
-            }
-
-            @Override
-            public void generateSetVolatile(
-                    ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-                methodBuilder.addStatement("$N.copyFrom($N)", field, varName());
-                methodBuilder.addStatement("$N.storeFence()", valueBuilder.unsafe());
-            }
-
-            @Override
-            public void generateArrayElementSetVolatile(
-                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
-                    MethodSpec.Builder methodBuilder) {
-                methodBuilder.addStatement("$N[index].copyFrom($N)", field, varName());
-                methodBuilder.addStatement("$N.storeFence()", valueBuilder.unsafe());
-            }
-
-            @Override
-            public void generateSetOrdered(
-                    ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-                generateSetVolatile(valueBuilder, methodBuilder);
-            }
-
-            @Override
-            public void generateArrayElementSetOrdered(
-                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
-                    MethodSpec.Builder methodBuilder) {
-                generateArrayElementSetVolatile(arrayFieldModel, valueBuilder, methodBuilder);
-            }
-
-            @Override
-            public void generateCompareAndSwap(
-                    ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-                throw new UnsupportedOperationException(
-                        "compareAndSwap() is not supported by value field " + name);
-            }
-
-            @Override
-            public void generateArrayElementCompareAndSwap(
-                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
-                    MethodSpec.Builder methodBuilder) {
-                throw new UnsupportedOperationException(
-                        "compareAndSwap() is not supported by value field " + name);
-            }
-
-            @Override
-            public void generateCopyFrom(
-                    ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-                methodBuilder.addStatement("$N.copyFrom(from.$N())",
-                        field, fieldModel.getOrGetVolatile().getName());
-            }
-
-            @Override
-            public void generateArrayElementCopyFrom(
-                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
-                    MethodSpec.Builder methodBuilder) {
-                methodBuilder.addStatement("this.$N[index].copyFrom(from.$N(index))",
-                        field, arrayFieldModel.getOrGetVolatile().getName());
-            }
-
-            @Override
-            void generateWriteMarshallable(
-                    ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-                methodBuilder.addStatement("$N.writeMarshallable(bytes)", fieldName());
-            }
-
-            @Override
-            void generateArrayElementWriteMarshallable(
-                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
-                    MethodSpec.Builder methodBuilder) {
-                methodBuilder.addStatement("$N[index].writeMarshallable(bytes)", fieldName());
-            }
-
-            @Override
-            void generateReadMarshallable(
-                    ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-                methodBuilder.addStatement("$N.readMarshallable(bytes)", fieldName());
-            }
-
-            @Override
-            void generateArrayElementReadMarshallable(
-                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
-                    MethodSpec.Builder methodBuilder) {
-                methodBuilder.addStatement("$N[index].readMarshallable(bytes)", fieldName());
-            }
-
-            @Override
-            String generateHashCode(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-                return field.name + ".hashCode()";
-            }
-
-            @Override
-            String generateArrayElementHashCode(
-                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
-                    MethodSpec.Builder methodBuilder) {
-                return field.name + "[index].hashCode()";
-            }
-        };
     }
 }

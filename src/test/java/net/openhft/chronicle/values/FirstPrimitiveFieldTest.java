@@ -22,6 +22,30 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
+interface FiveLongValues {
+    @Array(length = 5)
+    void setValueAt(int i, long v);
+
+    long getValueAt(int i);
+}
+
+interface FiveBooleanValues {
+    @Array(length = 5)
+    void setValueAt(int i, boolean v);
+
+    boolean getValueAt(int i);
+}
+
+interface FiveLongAndBooleanValues {
+    FiveLongValues getLongValues();
+
+    void setLongValues(FiveLongValues values);
+
+    FiveBooleanValues getBooleanValues();
+
+    void setBooleanValues(FiveBooleanValues values);
+}
+
 public class FirstPrimitiveFieldTest {
 
     @Test
@@ -38,23 +62,4 @@ public class FirstPrimitiveFieldTest {
         assertEquals(long.class,
                 ValueModel.acquire(FiveLongAndBooleanValues.class).firstPrimitiveFieldType());
     }
-}
-
-interface FiveLongValues {
-    @Array(length = 5)
-    void setValueAt(int i, long v);
-    long getValueAt(int i);
-}
-
-interface FiveBooleanValues {
-    @Array(length = 5)
-    void setValueAt(int i, boolean v);
-    boolean getValueAt(int i);
-}
-
-interface FiveLongAndBooleanValues {
-    void setLongValues(FiveLongValues values);
-    FiveLongValues getLongValues();
-    void setBooleanValues(FiveBooleanValues values);
-    FiveBooleanValues getBooleanValues();
 }

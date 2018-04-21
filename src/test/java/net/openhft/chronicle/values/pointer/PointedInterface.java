@@ -22,5 +22,6 @@ import net.openhft.chronicle.values.MaxUtf8Length;
 public interface PointedInterface extends Byteable {
 
     String getString();
+
     void setString(@MaxUtf8Length(20) String s);
 }

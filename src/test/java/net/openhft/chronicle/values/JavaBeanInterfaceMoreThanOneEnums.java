@@ -18,15 +18,15 @@ package net.openhft.chronicle.values;
 
 public interface JavaBeanInterfaceMoreThanOneEnums {
 
-    void setMyEnum1(MyEnum myEnum);
-
     MyEnum getMyEnum1();
 
-    void setMyEnum2(MyEnum myEnum);
+    void setMyEnum1(MyEnum myEnum);
 
     MyEnum getMyEnum2();
 
-    void setBuySell(BuySell myEnum);
+    void setMyEnum2(MyEnum myEnum);
 
     BuySell getBuySell();
+
+    void setBuySell(BuySell myEnum);
 }

@@ -30,11 +30,11 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * #offset()}, the range of the field's bytes offsets don't cross the specified {@link #dontCross()}
  * boundary. This annotation should be put on any single method accessing the field: getter, or
  * setter, or adder, etc.
- *
+ * <p>
  * <p>This annotation guarantees alignment from the beginning of the instance, so to ensure
  * alignment in the native memory, the instance as a whole should be aligned by native memory
  * addresses to the most coarse alignment of it's fields.
- *
+ * <p>
  * <p>The default alignment depends on the field type, see {@link #DEFAULT}.
  */
 @Target(METHOD)
@@ -43,22 +43,22 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface Align {
     /**
      * <ul>
-     *     <li>If the field type is an integer or a floating point primitive, default {@link
-     *     #dontCross()} alignment is equivalent to 1-byte for fields which take <= 8 bits, 2-byte
-     *     for fields which take <= 16 bits, 4-byte for fields which take <= 32 bits, 8-byte for
-     *     fields which take <= 64 bits. {@link #offset()} alignment is 1-byte for such fields.</li>
-     *     <li>If the field is another value interface, default {@code offset} alignment is
-     *     {@link ValueModel#recommendedOffsetAlignment()} for this sub-value interface. {@code
-     *     dontCross} default alignment for Value fields is {@link #NO_ALIGNMENT}.</li>
-     *     <li>If the field is an array, default {@code offset} alignment is equivalent to the
-     *     maximum of it's element {@code offset} or {@code dontCross} alignment, default {@code
-     *     dontCross} for array fields is {@code NO_ALIGNMENT}.
-     *     </li>
-     *     <li>If the field is of {@link CharSequence} type, default {@code dontCross} alignment
-     *     is {@link #NO_ALIGNMENT}. Default {@code offset} alignment is not applicable for
-     *     {@code CharSequence} fields, must be specified explicitly.</li>
-     *     <li>If the field is of {@code boolean} type, default alignment is not applicable, both
-     *     {@code offset} and {@code dontCross} alignment values must be specified explicitly.</li>
+     * <li>If the field type is an integer or a floating point primitive, default {@link
+     * #dontCross()} alignment is equivalent to 1-byte for fields which take <= 8 bits, 2-byte
+     * for fields which take <= 16 bits, 4-byte for fields which take <= 32 bits, 8-byte for
+     * fields which take <= 64 bits. {@link #offset()} alignment is 1-byte for such fields.</li>
+     * <li>If the field is another value interface, default {@code offset} alignment is
+     * {@link ValueModel#recommendedOffsetAlignment()} for this sub-value interface. {@code
+     * dontCross} default alignment for Value fields is {@link #NO_ALIGNMENT}.</li>
+     * <li>If the field is an array, default {@code offset} alignment is equivalent to the
+     * maximum of it's element {@code offset} or {@code dontCross} alignment, default {@code
+     * dontCross} for array fields is {@code NO_ALIGNMENT}.
+     * </li>
+     * <li>If the field is of {@link CharSequence} type, default {@code dontCross} alignment
+     * is {@link #NO_ALIGNMENT}. Default {@code offset} alignment is not applicable for
+     * {@code CharSequence} fields, must be specified explicitly.</li>
+     * <li>If the field is of {@code boolean} type, default alignment is not applicable, both
+     * {@code offset} and {@code dontCross} alignment values must be specified explicitly.</li>
      * </ul>
      */
     int DEFAULT = -1;
