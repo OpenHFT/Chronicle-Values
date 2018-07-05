@@ -19,6 +19,7 @@ package net.openhft.chronicle.values;
 import net.openhft.chronicle.bytes.Byteable;
 import net.openhft.chronicle.bytes.Bytes;
 import net.openhft.chronicle.bytes.BytesStore;
+import net.openhft.compiler.CachedCompiler;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
@@ -101,9 +102,8 @@ public class ValueGeneratorTest {
         String actual = generateNativeClass(ValueModel.acquire(JavaBeanInterfaceGetUsing.class),
                 ValueModel.simpleName(JavaBeanInterfaceGetUsing.class) + "$$Native");
         System.out.println(actual);
-        CachedCompiler cc = new CachedCompiler();
-        Class aClass = cc.loadFromJava(JavaBeanInterfaceGetUsing.class,
-                BytecodeGen.getClassLoader(JavaBeanInterfaceGetUsing.class),
+        CachedCompiler cc = new CachedCompiler(null, null);
+        Class aClass = cc.loadFromJava(BytecodeGen.getClassLoader(JavaBeanInterfaceGetUsing.class),
                 JavaBeanInterfaceGetUsing.class.getName() + "$$Native", actual);
         JavaBeanInterfaceGetUsing jbi = (JavaBeanInterfaceGetUsing) aClass.asSubclass(JavaBeanInterfaceGetUsing.class).newInstance();
         BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
