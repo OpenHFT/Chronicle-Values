@@ -17,6 +17,7 @@
 
 package net.openhft.chronicle.values;
 
+import net.openhft.chronicle.core.Jvm;
 import org.jetbrains.annotations.NotNull;
 
 import javax.tools.Diagnostic;
@@ -28,8 +29,9 @@ class CachedCompiler {
     private static final Map<ClassLoader, Map<String, Class>> loadedClassesMap =
             new WeakHashMap<>();
 
-    private static final List<String> options =
+    private static final List<String> java8Options =
             Arrays.asList("-XDenableSunApiLintControl", "-Xlint:-sunapi");
+    private static final List<String> java9PlusOptions = new ArrayList<>();
 
     private final Map<String, JavaFileObject> javaFileObjects = new HashMap<>();
     private boolean errors;
@@ -44,12 +46,20 @@ class CachedCompiler {
         MyJavaFileManager fileManager =
                 new MyJavaFileManager(valueType, CompilerUtils.s_standardJavaFileManager);
         errors = false;
+
+        List<String> compilerOptions;
+        if(Jvm.isJava9Plus()) {
+            compilerOptions = java9PlusOptions;
+        } else {
+            compilerOptions = java8Options;
+        }
+
         CompilerUtils.s_compiler.getTask(null, fileManager, diagnostic -> {
             if (diagnostic.getKind() == Diagnostic.Kind.ERROR) {
                 errors = true;
                 System.err.println(diagnostic);
             }
-        }, options, null, compilationUnits).call();
+        }, compilerOptions, null, compilationUnits).call();
         Map<String, byte[]> result = fileManager.getAllBuffers();
         if (errors) {
             // compilation error, so we want to exclude this file from future compilation passes
