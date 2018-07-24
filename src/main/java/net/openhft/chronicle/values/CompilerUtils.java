@@ -17,6 +17,7 @@
 
 package net.openhft.chronicle.values;
 
+import net.openhft.chronicle.core.Jvm;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +42,7 @@ enum CompilerUtils {
         try {
             DEFINE_CLASS_METHOD = ClassLoader.class.getDeclaredMethod(
                     "defineClass", String.class, byte[].class, int.class, int.class);
-            DEFINE_CLASS_METHOD.setAccessible(true);
+            Jvm.setAccessible(DEFINE_CLASS_METHOD);
         } catch (NoSuchMethodException e) {
             throw new AssertionError(e);
         }

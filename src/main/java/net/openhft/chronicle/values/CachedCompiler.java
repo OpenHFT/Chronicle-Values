@@ -31,7 +31,7 @@ class CachedCompiler {
 
     private static final List<String> java8Options =
             Arrays.asList("-XDenableSunApiLintControl", "-Xlint:-sunapi");
-    private static final List<String> java9PlusOptions = new ArrayList<>();
+    private static final List<String> java9PlusOptions = null;
 
     private final Map<String, JavaFileObject> javaFileObjects = new HashMap<>();
     private boolean errors;
