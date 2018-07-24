@@ -49,7 +49,7 @@ class CachedCompiler {
                 errors = true;
                 System.err.println(diagnostic);
             }
-        }, options, null, compilationUnits).call();
+        }, null, null, compilationUnits).call();
         Map<String, byte[]> result = fileManager.getAllBuffers();
         if (errors) {
             // compilation error, so we want to exclude this file from future compilation passes

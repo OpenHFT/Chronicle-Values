@@ -18,12 +18,15 @@
 package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.bytes.*;
+import net.openhft.chronicle.core.Jvm;
 import net.openhft.chronicle.core.io.IORuntimeException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.tools.*;
 import javax.tools.JavaFileObject.Kind;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -205,5 +208,63 @@ class MyJavaFileManager implements JavaFileManager {
             ret.put(entry.getKey(), entry.getValue().toByteArray());
         }
         return ret;
+    }
+
+    /*
+     * Java 9+
+     */
+
+    public Location getLocationForModule(Location location, String moduleName) {
+        try {
+            Method getLocationForModule = Jvm.getMethod(JavaFileManager.class, "getLocationForModule", Location.class, String.class);
+            return (Location) getLocationForModule.invoke(fileManager, location, moduleName);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    public Location getLocationForModule(Location location, JavaFileObject fo) {
+        try {
+            Method getLocationForModule = Jvm.getMethod(JavaFileManager.class, "getLocationForModule", Location.class, JavaFileObject.class);
+            return (Location) getLocationForModule.invoke(fileManager, location, fo);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    public <S> ServiceLoader<S> getServiceLoader(Location location, Class<S> service) {
+        try {
+            Method getServiceLoader = Jvm.getMethod(JavaFileManager.class, "getServiceLoader", Location.class, Class.class);
+            return (ServiceLoader<S>) getServiceLoader.invoke(fileManager, location, service);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    public String inferModuleName(Location location) {
+        try {
+            Method inferModuleName = Jvm.getMethod(JavaFileManager.class, "inferModuleName", Location.class);
+            return (String) inferModuleName.invoke(fileManager, location);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    public Iterable<Set<Location>> listLocationsForModules(Location location) {
+        try {
+            Method listLocationsForModules = Jvm.getMethod(JavaFileManager.class, "listLocationsForModules", Location.class);
+            return (Iterable<Set<Location>>) listLocationsForModules.invoke(fileManager, location);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    public boolean contains(Location location, FileObject fo) {
+        try {
+            Method contains = Jvm.getMethod(JavaFileManager.class, "contains", Location.class, JavaFileObject.class);
+            return (Boolean) contains.invoke(fileManager, location, fo);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new AssertionError(e);
+        }
     }
 }
