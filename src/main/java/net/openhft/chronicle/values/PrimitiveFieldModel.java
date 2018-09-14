@@ -59,7 +59,9 @@ abstract class PrimitiveFieldModel extends ScalarFieldModel {
 
     @Override
     int offsetAlignmentInBytes() {
-        return offsetAlignment != Align.DEFAULT ? offsetAlignment : 1;
+        if (offsetAlignment == Align.DEFAULT)
+            return Maths.nextPower2(sizeInBits(), 8) / 8;
+        return offsetAlignment;
     }
 
     @Override
