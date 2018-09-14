@@ -82,10 +82,10 @@ public class ArrayFieldModel extends FieldModel {
         if (offsetAlignment == Align.DEFAULT) {
             return elementAlignment;
         }
-        if (offsetAlignment == 0 && elementAlignment == 1) {
+        if (offsetAlignment == 0 && elementAlignment > 0) {
             // Special case, to avoid ISE below, because offset alignment of 1 of the element model
             // could be implicit (element is CharSequence or another value)
-            return 1;
+            return elementAlignment;
         }
         if (offsetAlignment < elementAlignment ||
                 (elementAlignment > 0 && offsetAlignment % elementAlignment != 0)) {
