@@ -60,6 +60,7 @@ class MyJavaFileManager implements JavaFileManager {
     private final Map<String, Set<JavaFileObject>> fileObjects;
     private final StandardJavaFileManager fileManager;
     private final Map<String, ByteArrayOutputStream> buffers = new LinkedHashMap<>();
+
     MyJavaFileManager(Class valueType, StandardJavaFileManager fileManager) {
         // deep clone dependencyFileObjects
         fileObjects = new HashMap<>(dependencyFileObjects);

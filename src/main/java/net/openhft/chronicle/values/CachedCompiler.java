@@ -48,7 +48,7 @@ class CachedCompiler {
         errors = false;
 
         List<String> compilerOptions;
-        if(Jvm.isJava9Plus()) {
+        if (Jvm.isJava9Plus()) {
             compilerOptions = java9PlusOptions;
         } else {
             compilerOptions = java8Options;
