@@ -97,7 +97,7 @@ Self-references are forbidden.
 
 #### Any Java `enum` type
 
-```
+```java
 interface Order {
     enum State {NEW, CANCELLED, FILLED}
 
