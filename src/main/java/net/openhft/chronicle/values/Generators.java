@@ -19,6 +19,7 @@ package net.openhft.chronicle.values;
 
 import com.squareup.javapoet.*;
 import net.openhft.chronicle.bytes.*;
+import net.openhft.chronicle.core.Jvm;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -47,7 +48,7 @@ final class Generators {
                 .builder(model.valueType.getPackage().getName(), nativeType)
                 .build()
                 .toString();
-        if (Boolean.getBoolean("chronicle.values.dumpCode"))
+        if (Jvm.getBoolean("chronicle.values.dumpCode"))
             System.out.println(result);
         return result;
     }
@@ -266,7 +267,7 @@ final class Generators {
                 .builder(model.valueType.getPackage().getName(), heapType)
                 .build()
                 .toString();
-        if (Boolean.getBoolean("chronicle.values.dumpCode"))
+        if (Jvm.getBoolean("chronicle.values.dumpCode"))
             System.out.println(result);
         return result;
     }
