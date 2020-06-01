@@ -18,6 +18,7 @@
 package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.core.Jvm;
+import net.openhft.chronicle.core.util.WeakIdentityHashMap;
 import org.jetbrains.annotations.NotNull;
 
 import javax.tools.Diagnostic;
@@ -27,7 +28,7 @@ import java.util.*;
 @SuppressWarnings("StaticNonFinalField")
 class CachedCompiler {
     private static final Map<ClassLoader, Map<String, Class>> loadedClassesMap =
-            new WeakHashMap<>();
+            new WeakIdentityHashMap<>();
 
     private static final List<String> java8Options =
             Arrays.asList("-XDenableSunApiLintControl", "-Xlint:-sunapi");

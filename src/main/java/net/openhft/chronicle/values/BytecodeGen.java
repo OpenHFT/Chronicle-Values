@@ -19,13 +19,14 @@
 package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.bytes.Bytes;
+import net.openhft.chronicle.core.util.WeakIdentityHashMap;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Modifier;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
-import java.util.WeakHashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -78,8 +79,8 @@ final class BytecodeGen {
      * Weak cache of bridge class loaders that make the Chronicle Values implementation
      * classes visible to various code-generated proxies of client classes.
      */
-    private static final WeakHashMap<ClassLoader, WeakReference<ClassLoader>> CLASS_LOADER_CACHE =
-            new WeakHashMap<>();
+    private static final Map<ClassLoader, WeakReference<ClassLoader>> CLASS_LOADER_CACHE =
+            new WeakIdentityHashMap<>();
 
     public static CustomClassLoadingOption getCustomClassLoadingOption() {
         return CUSTOM_CLASS_LOADING;
