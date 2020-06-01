@@ -126,7 +126,7 @@
                         <exclude>net/openhft/chronicle/values/HeapByteable.java</exclude>
                     </sourceFileExcludes>
                     <failOnError>false</failOnError>
-                    <additionalparam>-Xdoclint:none</additionalparam>
+                    <additionalOptions>-Xdoclint:none</additionalOptions>
                 </configuration>
             </plugin>
 
