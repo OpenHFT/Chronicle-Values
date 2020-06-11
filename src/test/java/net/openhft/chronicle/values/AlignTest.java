@@ -6,7 +6,7 @@ import org.junit.Test;
 
 import static net.openhft.chronicle.values.Values.newNativeReference;
 
-public class AlignTest {
+public class AlignTest extends ValuesTestCommon {
     @Test
     public void testAlign() {
         DemoOrderVOInterface value = newNativeReference(DemoOrderVOInterface.class);
@@ -15,7 +15,7 @@ public class AlignTest {
         value.bytesStore(bs, 0, size);
         value.addAtomicOrderQty(10.0);
         System.out.println(value);
-        bs.release();
+        bs.releaseLast();
     }
 
     interface DemoOrderVOInterface extends Byteable {

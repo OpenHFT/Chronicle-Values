@@ -27,7 +27,7 @@ import static org.junit.Assert.assertEquals;
  * @author ges
  * @since 3/2/16.
  */
-public class ValueInterfaceWithEnumTest {
+public class ValueInterfaceWithEnumTest extends ValuesTestCommon {
 
     /**
      * This test will throw an {@link ArrayIndexOutOfBoundsException}. This seems to occur only with Enums having even number of

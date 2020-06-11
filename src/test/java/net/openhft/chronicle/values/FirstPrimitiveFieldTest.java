@@ -46,7 +46,7 @@ interface FiveLongAndBooleanValues {
     void setBooleanValues(FiveBooleanValues values);
 }
 
-public class FirstPrimitiveFieldTest {
+public class FirstPrimitiveFieldTest extends ValuesTestCommon {
 
     @Test
     public void firstPrimitiveFieldTest() {

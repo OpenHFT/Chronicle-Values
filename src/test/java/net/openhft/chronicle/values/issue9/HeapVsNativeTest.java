@@ -5,12 +5,13 @@ import net.openhft.chronicle.bytes.BytesStore;
 import net.openhft.chronicle.values.MaxUtf8Length;
 import net.openhft.chronicle.values.NotNull;
 import net.openhft.chronicle.values.Values;
+import net.openhft.chronicle.values.ValuesTestCommon;
 import org.junit.Test;
 
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
-public class HeapVsNativeTest {
+public class HeapVsNativeTest extends ValuesTestCommon {
     public static final String SYMBOL = "symbol";
 
     @Test

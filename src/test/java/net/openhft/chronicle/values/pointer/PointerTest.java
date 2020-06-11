@@ -19,12 +19,13 @@ package net.openhft.chronicle.values.pointer;
 import net.openhft.chronicle.bytes.Byteable;
 import net.openhft.chronicle.bytes.Bytes;
 import net.openhft.chronicle.values.Values;
+import net.openhft.chronicle.values.ValuesTestCommon;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class PointerTest {
+public class PointerTest extends ValuesTestCommon {
 
     private static long getAddress(Byteable byteable) {
         return byteable.bytesStore().addressForRead(byteable.offset());
@@ -76,5 +77,7 @@ public class PointerTest {
         assertEquals(barAddress, getAddress(heapPointing.getPoint()));
 
         Values.nativeClassFor(PointedInterface.class);
+        pointedFoo.bytesStore().releaseLast();
+        pointedBar.bytesStore().releaseLast();
     }
 }

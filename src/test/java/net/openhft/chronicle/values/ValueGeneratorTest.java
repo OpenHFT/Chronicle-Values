@@ -33,7 +33,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * User: peter.lawrey Date: 06/10/13 Time: 20:13
  */
-public class ValueGeneratorTest {
+public class ValueGeneratorTest extends ValuesTestCommon {
     @Test
     public void testGenerateJavaCode() {
 //        JavaBeanInterface jbi = Values.newHeapInstance(JavaBeanInterface.class);

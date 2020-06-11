@@ -19,13 +19,13 @@ package net.openhft.chronicle.values;
 import net.openhft.chronicle.bytes.Byteable;
 import net.openhft.chronicle.bytes.BytesStore;
 import net.openhft.chronicle.core.values.*;
-import org.junit.Test;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 import static net.openhft.chronicle.bytes.NativeBytesStore.nativeStoreWithFixedCapacity;
 import static org.junit.Assert.*;
 
-public class CoreValuesTest {
+public class CoreValuesTest extends ValuesTestCommon {
 
     @Test
     public void testHeapIntValue() {
