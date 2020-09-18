@@ -59,6 +59,11 @@
 
         <dependency>
             <groupId>net.openhft</groupId>
+            <artifactId>chronicle-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>net.openhft</groupId>
             <artifactId>chronicle-bytes</artifactId>
         </dependency>
 
@@ -83,14 +88,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.openhft</groupId>
-            <artifactId>chronicle-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>net.openhft</groupId>
-            <artifactId>chronicle-core</artifactId>
         </dependency>
     </dependencies>
 
