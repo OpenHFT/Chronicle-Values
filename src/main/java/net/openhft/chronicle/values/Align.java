@@ -44,9 +44,9 @@ public @interface Align {
     /**
      * <ul>
      * <li>If the field type is an integer or a floating point primitive, default {@link
-     * #dontCross()} alignment is equivalent to 1-byte for fields which take <= 8 bits, 2-byte
-     * for fields which take <= 16 bits, 4-byte for fields which take <= 32 bits, 8-byte for
-     * fields which take <= 64 bits. {@link #offset()} alignment is 1-byte for such fields.</li>
+     * #dontCross()} alignment is equivalent to 1-byte for fields which take {@code <=} 8 bits, 2-byte
+     * for fields which take {@code <=} 16 bits, 4-byte for fields which take {@code <=} 32 bits, 8-byte for
+     * fields which take {@code <= } 64 bits. {@link #offset()} alignment is 1-byte for such fields.</li>
      * <li>If the field is another value interface, default {@code offset} alignment is
      * {@link ValueModel#recommendedOffsetAlignment()} for this sub-value interface. {@code
      * dontCross} default alignment for Value fields is {@link #NO_ALIGNMENT}.</li>

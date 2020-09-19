@@ -240,7 +240,7 @@ public class ValueModel {
      * the fields. It is the most coarse among all of it's fields' {@linkplain Align#offset()
      * offset} and {@linkplain Align#dontCross() don't cross} alignments.
      * <p>
-     * <p>Returns a positive integer >= 1.
+     * <p>Returns a positive integer {@code >=} 1.
      *
      * @return the alignment of the flyweight value itself, to satisfy fields' alignments
      */
