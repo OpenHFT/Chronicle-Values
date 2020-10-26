@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2015, 2016  higherfrequencytrading.com
+ *      Copyright (C) 2015, 2016-2020 chronicle.software
  *      Copyright (C) 2016 Roman Leventov
  *
  *      This program is free software: you can redistribute it and/or modify
