@@ -4,6 +4,9 @@
 <a href="https://maven-badges.herokuapp.com/maven-central/net.openhft/chronicle-values">
 <img src="https://maven-badges.herokuapp.com/maven-central/net.openhft/chronicle-values/badge.svg"/>
 </a>
+<a href="https://javadoc.io/doc/net.openhft/chronicle-values">
+<img src="https://javadoc.io/badge2/net.openhft/chronicle-values/javadoc.svg"/>
+</a>
 
 Poor man's value types, Java 8+
 
