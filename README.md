@@ -15,7 +15,7 @@ https://github.com/OpenHFT/Chronicle-Bytes) and simple bean-style on-heap implem
 interfaces. Interfaces, that could be processed by Chronicle-Values generation, are called **value
 interfaces**.
 
-**Project status: Alpha**, the feature matrix (see below) is very wast and not fully implemented
+**Project status: Alpha**, the feature matrix (see below) is very vast and not fully implemented
 yet, please write the value interface according to the specification below, with the **unit tests
 for your interface**. If the generation from the value interface (according to spec) doesn't work,
 please report the case via issues on Github.
