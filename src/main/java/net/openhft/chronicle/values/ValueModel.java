@@ -17,6 +17,8 @@
 
 package net.openhft.chronicle.values;
 
+import net.openhft.chronicle.core.Jvm;
+
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
@@ -322,6 +324,7 @@ public class ValueModel {
             try {
                 return CACHED_COMPILER.loadFromJava(valueType, cl, classNameWithPackage, javaCode);
             } catch (ClassNotFoundException e) {
+                Jvm.warn().on(ValueModel.class, "Failed to compile " + e + "\n" + javaCode);
                 throw new ImplGenerationFailedException(e);
             }
         }

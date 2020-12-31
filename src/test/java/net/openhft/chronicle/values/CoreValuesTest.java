@@ -39,6 +39,7 @@ public class CoreValuesTest extends ValuesTestCommon {
         assertEquals(4, bs.capacity());
         ((Byteable) intValue).bytesStore(bs, 0, ((Byteable) intValue).maxSize());
         testIntValue(intValue);
+        bs.releaseLast();
     }
 
     public void testIntValue(IntValue v) {
@@ -74,6 +75,7 @@ public class CoreValuesTest extends ValuesTestCommon {
         assertEquals(4, bs.capacity());
         ((Byteable) unsignedIntValue).bytesStore(bs, 0, ((Byteable) unsignedIntValue).maxSize());
         testUnsignedIntValue(unsignedIntValue);
+        bs.releaseLast();
     }
 
     public void testUnsignedIntValue(UnsignedIntValue v) {
@@ -98,6 +100,7 @@ public class CoreValuesTest extends ValuesTestCommon {
         assertEquals(1, bs.capacity());
         ((Byteable) byteValue).bytesStore(bs, 0, ((Byteable) byteValue).maxSize());
         testByteValue(byteValue);
+        bs.releaseLast();
     }
 
     public void testByteValue(ByteValue v) {
@@ -122,6 +125,7 @@ public class CoreValuesTest extends ValuesTestCommon {
         assertEquals(2, bs.capacity());
         ((Byteable) charValue).bytesStore(bs, 0, ((Byteable) charValue).maxSize());
         testCharValue(charValue);
+        bs.releaseLast();
     }
 
     public void testCharValue(CharValue v) {
@@ -143,6 +147,7 @@ public class CoreValuesTest extends ValuesTestCommon {
         assertEquals(8, bs.capacity());
         ((Byteable) longValue).bytesStore(bs, 0, ((Byteable) longValue).maxSize());
         testLongValue(longValue);
+        bs.releaseLast();
     }
 
     public void testLongValue(LongValue v) {
@@ -178,6 +183,7 @@ public class CoreValuesTest extends ValuesTestCommon {
         assertEquals(4, bs.capacity());
         ((Byteable) floatValue).bytesStore(bs, 0, ((Byteable) floatValue).maxSize());
         testFloatValue(floatValue);
+        bs.releaseLast();
     }
 
     public void testFloatValue(FloatValue v) {
@@ -206,6 +212,7 @@ public class CoreValuesTest extends ValuesTestCommon {
     public void testNativeDoubleValue() {
         DoubleValue doubleValue = newBackedNativeDoubleValue();
         testDoubleValue(doubleValue);
+        ((Byteable) doubleValue).bytesStore().releaseLast();
     }
     
     @NotNull
@@ -224,6 +231,7 @@ public class CoreValuesTest extends ValuesTestCommon {
         nativeDoubleValue.setValue(11.0);
         heapDoubleValue.setValue(11.0);
         assertEquals(nativeDoubleValue, heapDoubleValue);
+        ((Byteable) nativeDoubleValue).bytesStore().releaseLast();
     }
 
     public void testDoubleValue(DoubleValue v) {
@@ -255,6 +263,7 @@ public class CoreValuesTest extends ValuesTestCommon {
         assertEquals(2, bs.capacity());
         ((Byteable) shortValue).bytesStore(bs, 0, ((Byteable) shortValue).maxSize());
         testShortValue(shortValue);
+        bs.releaseLast();
     }
 
     public void testShortValue(ShortValue v) {
@@ -279,6 +288,7 @@ public class CoreValuesTest extends ValuesTestCommon {
         assertEquals(1, bs.capacity());
         ((Byteable) booleanValue).bytesStore(bs, 0, ((Byteable) booleanValue).maxSize());
         testBooleanValue(booleanValue);
+        bs.releaseLast();
     }
 
     public void testBooleanValue(BooleanValue v) {
