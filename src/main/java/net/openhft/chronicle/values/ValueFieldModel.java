@@ -22,6 +22,7 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
@@ -57,6 +58,7 @@ class ValueFieldModel extends ScalarFieldModel {
     @Override
     MemberGenerator createHeapGenerator() {
         return new ObjectHeapMemberGenerator(this) {
+            FieldSpec usingValue;
 
             @Override
             void generateFields(ValueBuilder valueBuilder) {
@@ -75,12 +77,27 @@ class ValueFieldModel extends ScalarFieldModel {
                                 valueModel().heapClass(), arrayFieldModel.array.length())
                         .build();
                 valueBuilder.typeBuilder.addField(field);
+                usingValue = FieldSpec.builder(valueModel().heapClass(), fieldName() + "Value", PRIVATE)
+                        .initializer("new $T()", valueModel().heapClass())
+                        .build();
+                valueBuilder.typeBuilder.addField(usingValue);
                 MethodSpec.Builder constructor = valueBuilder.defaultConstructorBuilder();
                 constructor.beginControlFlow("for (int index = 0; index < $L; index++)",
                         arrayFieldModel.array.length());
                 constructor.addStatement("$N[index] = new $T()",
                         fieldName(), valueModel().heapClass());
                 constructor.endControlFlow();
+            }
+
+            @Override
+            void generateArrayElementGetUsing(
+                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                    MethodSpec.Builder methodBuilder) {
+                methodBuilder.addStatement("(($T) $N).copyFrom($N[index])",
+                        Copyable.class, usingName(), field);
+                if (arrayFieldModel.getUsing.getReturnType() != void.class) {
+                    methodBuilder.addStatement("return $N", usingName());
+                }
             }
 
             @Override
@@ -146,11 +163,31 @@ class ValueFieldModel extends ScalarFieldModel {
             }
 
             @Override
+            void generateArrayElementEquals(
+                    ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                    MethodSpec.Builder methodBuilder) {
+                if (arrayFieldModel.getUsing != null) {
+                    methodBuilder.addStatement("other.$N(index, this.$N)",
+                            arrayFieldModel.getUsing.getName(), usingValue);
+                    methodBuilder.addCode("if (!$T.equals($N[index], this.$N)) return false;\n",
+                            Objects.class, field, usingValue);
+                } else {
+                    methodBuilder.addCode("if (!$T.equals($N[index], other.$N(index))) return false;\n",
+                            Objects.class, field, arrayFieldModel.getOrGetVolatile().getName());
+                }
+            }
+
+            @Override
             public void generateArrayElementCopyFrom(
                     ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
                     MethodSpec.Builder methodBuilder) {
-                methodBuilder.addStatement("this.$N[index].copyFrom(from.$N(index))",
-                        field, arrayFieldModel.getOrGetVolatile().getName());
+                if (arrayFieldModel.getUsing != null) {
+                    methodBuilder.addStatement("from.$N(index, this.$N[index])",
+                            arrayFieldModel.getUsing.getName(), field);
+                } else {
+                    methodBuilder.addStatement("this.$N[index].copyFrom(from.$N(index))",
+                            field, arrayFieldModel.getOrGetVolatile().getName());
+                }
             }
 
             @Override
@@ -196,6 +233,7 @@ class ValueFieldModel extends ScalarFieldModel {
     final class NativeMemberGenerator extends MemberGenerator {
 
         FieldSpec cachedValue;
+        FieldSpec otherCachedValue;
         private Class nativeType;
 
         NativeMemberGenerator() {
@@ -210,6 +248,11 @@ class ValueFieldModel extends ScalarFieldModel {
                     .initializer("new $T()", nativeType)
                     .build();
             valueBuilder.typeBuilder.addField(cachedValue);
+            otherCachedValue = FieldSpec
+                    .builder(nativeType, name + "OtherCachedValue", PRIVATE, FINAL)
+                    .initializer("new $T()", nativeType)
+                    .build();
+            valueBuilder.typeBuilder.addField(otherCachedValue);
         }
 
         @Override
@@ -268,17 +311,17 @@ class ValueFieldModel extends ScalarFieldModel {
         public void generateArrayElementGetUsing(
                 ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
                 MethodSpec.Builder methodBuilder) {
-            methodBuilder.beginControlFlow("if ($N instanceof $T)", varName(), nativeType);
+            methodBuilder.beginControlFlow("if ($N instanceof $T)", usingName(), nativeType);
             genVerifiedElementOffset(arrayFieldModel, methodBuilder);
             int arrayByteOffset = arrayFieldModel.verifiedByteOffset(valueBuilder);
             methodBuilder.addStatement("(($T) $N).bytesStore(bs, offset + $L + elementOffset, $L)",
-                    nativeType, varName(), arrayByteOffset, valueModel().sizeInBytes());
+                    nativeType, usingName(), arrayByteOffset, valueModel().sizeInBytes());
             methodBuilder.nextControlFlow("else");
             initArrayElementCachedValue(arrayFieldModel, valueBuilder, methodBuilder);
             methodBuilder.addStatement(
-                    "(($T) $N).copyFrom($N)", Copyable.class, varName(), cachedValue);
+                    "(($T) $N).copyFrom($N)", Copyable.class, usingName(), cachedValue);
             methodBuilder.endControlFlow();
-            methodBuilder.addStatement("return $N", varName());
+            methodBuilder.addStatement("return $N", usingName());
         }
 
         @Override
@@ -378,8 +421,18 @@ class ValueFieldModel extends ScalarFieldModel {
                 ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
                 MethodSpec.Builder methodBuilder) {
             initArrayElementCachedValue(arrayFieldModel, valueBuilder, methodBuilder);
-            methodBuilder.addCode("if (!$N.equals(other.$N(index))) return false;\n",
-                    cachedValue, arrayFieldModel.get.getName());
+            Method getUsing = arrayFieldModel.getUsing;
+            if (getUsing != null) {
+                methodBuilder.addStatement("$T $N = this.$N",
+                        type, otherCachedValue, otherCachedValue);
+                methodBuilder.addStatement("other.$N(index, $N)",
+                        getUsing.getName(), otherCachedValue);
+                methodBuilder.addCode("if (!$N.equals($N)) return false;\n",
+                        cachedValue, otherCachedValue);
+            } else {
+                methodBuilder.addCode("if (!$N.equals(other.$N(index))) return false;\n",
+                        cachedValue, arrayFieldModel.get.getName());
+            }
         }
 
         @Override

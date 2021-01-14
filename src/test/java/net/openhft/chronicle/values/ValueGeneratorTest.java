@@ -19,15 +19,19 @@ package net.openhft.chronicle.values;
 import net.openhft.chronicle.bytes.Byteable;
 import net.openhft.chronicle.bytes.Bytes;
 import net.openhft.chronicle.bytes.BytesStore;
+import net.openhft.chronicle.core.values.LongValue;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
 import java.util.Date;
 
+import static net.openhft.chronicle.values.Generators.generateHeapClass;
 import static net.openhft.chronicle.values.Generators.generateNativeClass;
 import static net.openhft.chronicle.values.Values.newHeapInstance;
 import static net.openhft.chronicle.values.Values.newNativeReference;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -115,7 +119,107 @@ public class ValueGeneratorTest extends ValuesTestCommon {
     }
 
     @Test
-    public void testGenerateNativeWithHasArrays() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    public void testGenerateNativeWithGetUsingAt() throws IllegalAccessException, InstantiationException {
+        JavaBeanInterfaceGetUsingAt jbi = loadNativeTypeAndCreateValue(JavaBeanInterfaceGetUsingAt.class);
+        JavaBeanInterfaceGetUsingAt jbi2 = loadNativeTypeAndCreateValue(JavaBeanInterfaceGetUsingAt.class);
+
+        LongValue val = Values.newHeapInstance(LongValue.class);
+        val.setValue(2L);
+        jbi.setItemAt(0, val);
+
+        LongValue ret = jbi.getUsingItemAt(0, val);
+        assertNotNull(ret);
+        assertEquals(2L, val.getValue());
+        ret = jbi.getUsingItemAt(1, val);
+        assertEquals(0L, ret.getValue());
+
+        assertNotEquals(jbi, jbi2);
+        val.setValue(2L);
+        jbi2.setItemAt(0, val);
+        assertEquals(jbi, jbi2);
+    }
+
+    @Test
+    public void testGenerateHeapWithGetUsingAt() throws IllegalAccessException, InstantiationException {
+        JavaBeanInterfaceGetUsingAt jbi = loadHeapTypeAndCreateValue(JavaBeanInterfaceGetUsingAt.class);
+        JavaBeanInterfaceGetUsingAt jbi2 = loadHeapTypeAndCreateValue(JavaBeanInterfaceGetUsingAt.class);
+
+        LongValue val = Values.newHeapInstance(LongValue.class);
+        val.setValue(2L);
+        jbi.setItemAt(0, val);
+
+        LongValue ret = jbi.getUsingItemAt(0, val);
+        assertNotNull(ret);
+        assertEquals(2L, val.getValue());
+        ret = jbi.getUsingItemAt(1, val);
+        assertEquals(0L, ret.getValue());
+
+        assertNotEquals(jbi, jbi2);
+        val.setValue(2L);
+        jbi2.setItemAt(0, val);
+        assertEquals(jbi, jbi2);
+    }
+
+    @Test
+    public void testGenerateNativeWithGetAt() throws IllegalAccessException, InstantiationException {
+        JavaBeanInterfaceGetAt jbi = loadNativeTypeAndCreateValue(JavaBeanInterfaceGetAt.class);
+        JavaBeanInterfaceGetAt jbi2 = loadNativeTypeAndCreateValue(JavaBeanInterfaceGetAt.class);
+
+        LongValue val = Values.newHeapInstance(LongValue.class);
+        val.setValue(2L);
+        jbi.setItemAt(0, val);
+
+        LongValue ret = jbi.getItemAt(0);
+        assertEquals(2L, ret.getValue());
+        ret = jbi.getItemAt(1);
+        assertEquals(0L, ret.getValue());
+
+        assertNotEquals(jbi, jbi2);
+        jbi2.setItemAt(0, val);
+        assertEquals(jbi, jbi2);
+    }
+
+    @Test
+    public void testGenerateHeapWithGetAt() throws IllegalAccessException, InstantiationException {
+        JavaBeanInterfaceGetAt jbi = loadHeapTypeAndCreateValue(JavaBeanInterfaceGetAt.class);
+        JavaBeanInterfaceGetAt jbi2 = loadHeapTypeAndCreateValue(JavaBeanInterfaceGetAt.class);
+
+        LongValue val = Values.newHeapInstance(LongValue.class);
+        val.setValue(2L);
+        jbi.setItemAt(0, val);
+
+        LongValue ret = jbi.getItemAt(0);
+        assertEquals(2L, ret.getValue());
+        ret = jbi.getItemAt(1);
+        assertEquals(0L, ret.getValue());
+
+        assertNotEquals(jbi, jbi2);
+        jbi2.setItemAt(0, val);
+        assertEquals(jbi, jbi2);
+    }
+
+    private <T> T loadNativeTypeAndCreateValue(Class<T> type) throws InstantiationException, IllegalAccessException {
+        String actual = generateNativeClass(ValueModel.acquire(type),
+                ValueModel.simpleName(type) + "$$Native");
+        System.out.println(actual);
+        Class aClass = Values.nativeClassFor(type);
+        T jbi = (T) aClass.asSubclass(type).newInstance();
+        BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
+        ((Byteable) jbi).bytesStore(bytes, 0L, ((Byteable) jbi).maxSize());
+        return jbi;
+    }
+
+    private <T> T loadHeapTypeAndCreateValue(Class<T> type) throws InstantiationException, IllegalAccessException {
+        String actual = generateHeapClass(ValueModel.acquire(type),
+                ValueModel.simpleName(type) + "$$Heap");
+        System.out.println(actual);
+        Class aClass = Values.heapClassFor(type);
+        T jbi = (T) aClass.asSubclass(type).newInstance();
+        return jbi;
+    }
+
+    @Test
+    public void testGenerateNativeWithHasArrays() {
         HasArraysInterface hai = Values.newNativeReference(HasArraysInterface.class);
         BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(152));
         ((Byteable) hai).bytesStore(bytes, 0L, ((Byteable) hai).maxSize());
