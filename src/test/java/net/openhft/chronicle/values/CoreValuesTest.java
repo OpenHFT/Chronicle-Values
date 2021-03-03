@@ -142,12 +142,14 @@ public class CoreValuesTest extends ValuesTestCommon {
 
     @Test
     public void testNativeLongValue() {
-        LongValue longValue = Values.newNativeReference(LongValue.class);
-        BytesStore bs = nativeStoreWithFixedCapacity(((Byteable) longValue).maxSize());
-        assertEquals(8, bs.capacity());
-        ((Byteable) longValue).bytesStore(bs, 0, ((Byteable) longValue).maxSize());
-        testLongValue(longValue);
-        bs.releaseLast();
+        try (LongValue longValue = Values.newNativeReference(LongValue.class)) {
+            Byteable longByteableValue = (Byteable) longValue;
+            BytesStore bs = nativeStoreWithFixedCapacity(longByteableValue.maxSize());
+            assertEquals(8, bs.capacity());
+            longByteableValue.bytesStore(bs, 0, longByteableValue.maxSize());
+            testLongValue(longValue);
+            bs.releaseLast();
+        }
     }
 
     public void testLongValue(LongValue v) {
