@@ -20,6 +20,7 @@ package net.openhft.chronicle.values;
 import net.openhft.chronicle.bytes.NativeBytesStore;
 
 // TODO REPLACE WITH PointerBytesStore in bytes.
+@Deprecated(/* to be removed in x.22*/)
 public final class PointersBytesStore extends NativeBytesStore<Void> {
 
     private static final PointersBytesStore INSTANCE = new PointersBytesStore();
