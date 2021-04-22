@@ -1,8 +1,4 @@
 /*
- *     Copyright (C) 2015-2020 chronicle.software
- *
- *     This program is free software: you can redistribute it and/or modify
- *   /*
  * Copyright 2016-2021 chronicle.software
  *
  * https://chronicle.software

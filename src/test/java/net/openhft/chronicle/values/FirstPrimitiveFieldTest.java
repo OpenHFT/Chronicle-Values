@@ -20,10 +20,6 @@ package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.core.values.IntValue;
 import net.openhft.chronicle.core.values.LongValue;
-import net.openhft.chronicle.values.Array;
-import net.openhft.chronicle.values.ValueModel;
-import net.openhft.chronicle.values.Values;
-import net.openhft.chronicle.values.ValuesTestCommon;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
