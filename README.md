@@ -333,7 +333,7 @@ for more information.
 
 ```java
 // flyweight
-Point offHeapPoint = Values.newDirectReference(Point.class);
+Point offHeapPoint = Values.newNativeReference(Point.class);
 ((Byteable) offHeapPoint).bytesStore(bytesStore, offset, 16);
 offHeapPoint.setX(0);
 offHeapPoint.setY(0);
@@ -356,7 +356,7 @@ to avoid casting:
 ```java
 interface Point extends Byteable, BytesMarshallable, Copyable { ... }
 
-Point offHeapPoint = Values.newDirectReference(Point.class);
+Point offHeapPoint = Values.newNativeReference(Point.class);
 // no cast
 offHeapPoint.bytesStore(bytesStore, offset, offHeapPoint.maxSize());
 ```
