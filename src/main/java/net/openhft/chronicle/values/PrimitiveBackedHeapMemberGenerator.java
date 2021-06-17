@@ -19,7 +19,6 @@
 package net.openhft.chronicle.values;
 
 import com.squareup.javapoet.MethodSpec;
-import sun.misc.Unsafe;
 
 import static net.openhft.chronicle.values.Primitives.boxed;
 import static net.openhft.chronicle.values.Utils.capitalize;
@@ -140,10 +139,11 @@ class PrimitiveBackedHeapMemberGenerator extends HeapMemberGenerator {
             MethodSpec.Builder methodBuilder) {
         arrayFieldModel.checkBounds(methodBuilder);
         String rawValue = "raw" + capitalize(field.name) + "Value";
+        Class type = Utils.UNSAFE_CLASS;
         methodBuilder.addStatement("$T $N = $N.$N($N, (long) $T.$N + (index * (long) $T.$N))",
                 fieldType(), rawValue,
-                valueBuilder.unsafe(), getVolatile(), field, Unsafe.class, arrayBase(),
-                Unsafe.class, arrayScale());
+                valueBuilder.unsafe(), getVolatile(), field, type, arrayBase(),
+                type, arrayScale());
         methodBuilder.addStatement("return $N", wrap(valueBuilder, methodBuilder, rawValue));
     }
 

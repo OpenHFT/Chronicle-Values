@@ -19,7 +19,6 @@
 package net.openhft.chronicle.values;
 
 import com.squareup.javapoet.MethodSpec;
-import sun.misc.Unsafe;
 
 import static java.lang.String.format;
 import static net.openhft.chronicle.values.Primitives.boxed;
@@ -272,18 +271,19 @@ class FloatingFieldModel extends PrimitiveFieldModel {
                     MethodSpec.Builder methodBuilder) {
                 arrayFieldModel.checkBounds(methodBuilder);
                 methodBuilder.beginControlFlow("while (true)");
+                Class type = Utils.UNSAFE_CLASS;
                 methodBuilder.addStatement(
                         "$T $N = " + wrap(valueBuilder, methodBuilder,
                                 "$N.$N($N, (long) $T.$N + (index * (long) $T.$N))"),
-                        type, oldName(),
-                        valueBuilder.unsafe(), getVolatile(), field, Unsafe.class, arrayBase(),
-                        Unsafe.class, arrayScale());
-                methodBuilder.addStatement("$T $N = $N + addition", type, newName(), oldName());
+                        FloatingFieldModel.this.type, oldName(),
+                        valueBuilder.unsafe(), getVolatile(), field, type, arrayBase(),
+                        type, arrayScale());
+                methodBuilder.addStatement("$T $N = $N + addition", FloatingFieldModel.this.type, newName(), oldName());
                 methodBuilder.beginControlFlow(
                         format("if ($N.$N($N, (long) $T.$N + (index * (long) $T.$N), %s, %s))",
                                 unwrap(methodBuilder, "$N"), unwrap(methodBuilder, "$N")),
-                        valueBuilder.unsafe(), compareAndSwap(), field, Unsafe.class, arrayBase(),
-                        Unsafe.class, arrayScale(), oldName(), newName());
+                        valueBuilder.unsafe(), compareAndSwap(), field, type, arrayBase(),
+                        type, arrayScale(), oldName(), newName());
                 methodBuilder.addStatement("return $N", newName());
                 methodBuilder.endControlFlow();
                 methodBuilder.endControlFlow();

@@ -18,7 +18,6 @@
 package net.openhft.chronicle.values;
 
 import com.squareup.javapoet.MethodSpec;
-import sun.misc.Unsafe;
 
 import java.util.Objects;
 
@@ -76,10 +75,11 @@ class ObjectHeapMemberGenerator extends HeapMemberGenerator {
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
         arrayFieldModel.checkBounds(methodBuilder);
+        Class type = Utils.UNSAFE_CLASS;
         methodBuilder.addStatement("return ($T) $N.getObjectVolatile($N, " +
                         "(long) $T.ARRAY_OBJECT_BASE_OFFSET + " +
                         "(index * (long) $T.ARRAY_OBJECT_INDEX_SCALE))",
-                fieldModel.type, valueBuilder.unsafe(), field, Unsafe.class, Unsafe.class);
+                fieldModel.type, valueBuilder.unsafe(), field, type, type);
     }
 
     @Override

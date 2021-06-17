@@ -22,7 +22,6 @@ import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import net.openhft.chronicle.core.Jvm;
-import sun.misc.Unsafe;
 
 import static java.lang.String.format;
 import static javax.lang.model.element.Modifier.*;
@@ -127,11 +126,12 @@ abstract class HeapMemberGenerator extends MemberGenerator {
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
         arrayFieldModel.checkBounds(methodBuilder);
+        Class type = Utils.UNSAFE_CLASS;
         methodBuilder.addStatement(
                 format("$N.$N($N, (long) $T.$N + (index * (long) $T.$N), %s)",
                         unwrap(methodBuilder, fieldModel.varName())),
-                valueBuilder.unsafe(), putVolatile(), field, Unsafe.class, arrayBase(),
-                Unsafe.class, arrayScale());
+                valueBuilder.unsafe(), putVolatile(), field, type, arrayBase(),
+                type, arrayScale());
     }
 
     @Override
@@ -146,10 +146,11 @@ abstract class HeapMemberGenerator extends MemberGenerator {
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
         arrayFieldModel.checkBounds(methodBuilder);
+        Class type = Utils.UNSAFE_CLASS;
         methodBuilder.addStatement(
                 format("$N.$N($N, (long) $T.$N + (index * (long) $T.$N), %s)",
                         unwrap(methodBuilder, fieldModel.varName())),
-                valueBuilder.unsafe(), putOrdered(), field, Unsafe.class, arrayBase(), Unsafe.class,
+                valueBuilder.unsafe(), putOrdered(), field, type, arrayBase(), type,
                 arrayScale());
     }
 
@@ -170,10 +171,11 @@ abstract class HeapMemberGenerator extends MemberGenerator {
         arrayFieldModel.checkBounds(methodBuilder);
         String unwrappedOld = unwrap(methodBuilder, fieldModel.oldName());
         String unwrappedNew = unwrap(methodBuilder, fieldModel.newName());
+        Class type = Utils.UNSAFE_CLASS;
         methodBuilder.addStatement(
                 "return $N.$N($N, (long) $T.$N + (index * (long) $T.$N), $N, $N)",
-                valueBuilder.unsafe(), compareAndSwap(), field, Unsafe.class, arrayBase(),
-                Unsafe.class, arrayScale(), unwrappedOld, unwrappedNew);
+                valueBuilder.unsafe(), compareAndSwap(), field, type, arrayBase(),
+                type, arrayScale(), unwrappedOld, unwrappedNew);
     }
 
     @Override

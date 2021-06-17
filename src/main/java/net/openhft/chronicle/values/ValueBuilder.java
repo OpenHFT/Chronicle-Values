@@ -21,7 +21,6 @@ package net.openhft.chronicle.values;
 import com.squareup.javapoet.*;
 import net.openhft.chronicle.bytes.NativeBytesStore;
 import net.openhft.chronicle.core.Jvm;
-import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
 
@@ -49,14 +48,16 @@ class ValueBuilder {
 
     FieldSpec unsafe() {
         if (unsafe == null) {
-            unsafe = FieldSpec.builder(Unsafe.class, "UNSAFE", PRIVATE, STATIC, FINAL).build();
+            Class type = Utils.UNSAFE_CLASS;
+            unsafe = FieldSpec.builder(type, "UNSAFE", PRIVATE, STATIC, FINAL).build();
             typeBuilder.addField(unsafe);
 
             staticBlockBuilder()
                     .beginControlFlow("try")
                     .addStatement("$T theUnsafe = $T.getField($T.class, $S)",
-                            Field.class, Jvm.class, Unsafe.class, "theUnsafe")
-                    .addStatement("$N = ($T) theUnsafe.get(null)", unsafe, Unsafe.class);
+                            Field.class, Jvm.class, type, "theUnsafe")
+                    .addStatement("$N = ($T) theUnsafe.get(null)", unsafe, type);
+
         }
         return unsafe;
     }

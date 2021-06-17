@@ -19,6 +19,15 @@
 package net.openhft.chronicle.values;
 
 final class Utils {
+    static final Class UNSAFE_CLASS;
+
+    static {
+        try {
+            UNSAFE_CLASS = Class.forName("sun.misc.Unsafe");
+        } catch (ClassNotFoundException cnfe) {
+            throw new AssertionError(cnfe);
+        }
+    }
 
     private Utils() {
     }
