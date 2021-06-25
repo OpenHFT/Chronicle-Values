@@ -24,6 +24,7 @@ import net.openhft.chronicle.bytes.BytesStore;
 import net.openhft.chronicle.core.values.LongValue;
 import org.junit.Test;
 
+import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
@@ -31,10 +32,7 @@ import static net.openhft.chronicle.values.Generators.generateHeapClass;
 import static net.openhft.chronicle.values.Generators.generateNativeClass;
 import static net.openhft.chronicle.values.Values.newHeapInstance;
 import static net.openhft.chronicle.values.Values.newNativeReference;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * User: peter.lawrey Date: 06/10/13 Time: 20:13
@@ -103,7 +101,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
     }
 
     @Test
-    public void testGenerateNativeWithGetUsing() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    public void testGenerateNativeWithGetUsing() throws ClassNotFoundException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         String actual = generateNativeClass(ValueModel.acquire(JavaBeanInterfaceGetUsing.class),
                 ValueModel.simpleName(JavaBeanInterfaceGetUsing.class) + "$$Native");
         System.out.println(actual);
@@ -111,7 +109,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
         Class aClass = cc.loadFromJava(JavaBeanInterfaceGetUsing.class,
                 BytecodeGen.getClassLoader(JavaBeanInterfaceGetUsing.class),
                 JavaBeanInterfaceGetUsing.class.getName() + "$$Native", actual);
-        JavaBeanInterfaceGetUsing jbi = (JavaBeanInterfaceGetUsing) aClass.asSubclass(JavaBeanInterfaceGetUsing.class).newInstance();
+        JavaBeanInterfaceGetUsing jbi = (JavaBeanInterfaceGetUsing) aClass.asSubclass(JavaBeanInterfaceGetUsing.class).getDeclaredConstructor().newInstance();
         BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
         ((Byteable) jbi).bytesStore(bytes, 0L, ((Byteable) jbi).maxSize());
 
@@ -142,7 +140,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
     }
 
     @Test
-    public void testGenerateHeapWithGetUsingAt() throws IllegalAccessException, InstantiationException {
+    public void testGenerateHeapWithGetUsingAt() throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         JavaBeanInterfaceGetUsingAt jbi = loadHeapTypeAndCreateValue(JavaBeanInterfaceGetUsingAt.class);
         JavaBeanInterfaceGetUsingAt jbi2 = loadHeapTypeAndCreateValue(JavaBeanInterfaceGetUsingAt.class);
 
@@ -182,7 +180,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
     }
 
     @Test
-    public void testGenerateHeapWithGetAt() throws IllegalAccessException, InstantiationException {
+    public void testGenerateHeapWithGetAt() throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         JavaBeanInterfaceGetAt jbi = loadHeapTypeAndCreateValue(JavaBeanInterfaceGetAt.class);
         JavaBeanInterfaceGetAt jbi2 = loadHeapTypeAndCreateValue(JavaBeanInterfaceGetAt.class);
 
@@ -211,12 +209,12 @@ public class ValueGeneratorTest extends ValuesTestCommon {
         return jbi;
     }
 
-    private <T> T loadHeapTypeAndCreateValue(Class<T> type) throws InstantiationException, IllegalAccessException {
+    private <T> T loadHeapTypeAndCreateValue(Class<T> type) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         String actual = generateHeapClass(ValueModel.acquire(type),
                 ValueModel.simpleName(type) + "$$Heap");
         System.out.println(actual);
         Class aClass = Values.heapClassFor(type);
-        T jbi = (T) aClass.asSubclass(type).newInstance();
+        T jbi = (T) aClass.asSubclass(type).getDeclaredConstructor().newInstance();
         return jbi;
     }
 

@@ -214,6 +214,9 @@
     <profiles>
         <profile>
             <id>pre-java9</id>
+            <activation>
+                <jdk>1.8</jdk>
+            </activation>
             <dependencies>
                 <dependency>
                     <groupId>com.sun</groupId>
@@ -223,11 +226,6 @@
                     <systemPath>${java.home}/../lib/tools.jar</systemPath>
                 </dependency>
             </dependencies>
-            <activation>
-                <file>
-                    <exists>${java.home}/../lib/tools.jar</exists>
-                </file>
-            </activation>
         </profile>
     </profiles>
 

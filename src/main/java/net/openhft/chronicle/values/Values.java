@@ -18,6 +18,8 @@
 
 package net.openhft.chronicle.values;
 
+import java.lang.reflect.InvocationTargetException;
+
 /**
  * This class is a central access point for loading generated heap and native Values.
  */
@@ -38,8 +40,8 @@ public final class Values {
      */
     public static <T> T newHeapInstance(Class<T> valueType) {
         try {
-            return heapClassFor(valueType).newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            return heapClassFor(valueType).getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             throw new AssertionError(e);
         }
     }
@@ -52,8 +54,8 @@ public final class Values {
      */
     public static <T> T newNativeReference(Class<T> valueType) {
         try {
-            return nativeClassFor(valueType).newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            return nativeClassFor(valueType).getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             throw new AssertionError(e);
         }
     }
