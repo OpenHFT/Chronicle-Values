@@ -41,8 +41,7 @@ import static net.openhft.chronicle.values.MethodTemplate.Type.ARRAY;
 import static net.openhft.chronicle.values.MethodTemplate.Type.SCALAR;
 import static net.openhft.chronicle.values.Primitives.isPrimitiveIntegerType;
 
-enum CodeTemplate {
-    ;
+enum CodeTemplate {;
 
     public static final Function<Method, Parameter> NO_ANNOTATED_PARAM = m -> null;
     static final List<Class<?>> NON_MODEL_TYPES = asList(

@@ -19,6 +19,7 @@
 package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.bytes.Bytes;
+import net.openhft.chronicle.core.Jvm;
 import net.openhft.chronicle.core.util.WeakIdentityHashMap;
 
 import java.lang.ref.WeakReference;
@@ -27,7 +28,6 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * Stripped down version of classes
@@ -61,7 +61,6 @@ import java.util.logging.Logger;
  */
 final class BytecodeGen {
 
-    static final Logger logger = Logger.getLogger(BytecodeGen.class.getName());
     static final ClassLoader VALUES_CLASS_LOADER = canonicalize(BytecodeGen.class.getClassLoader());
     /**
      * ie. "net.openhft.chronicle.values"
@@ -111,7 +110,8 @@ final class BytecodeGen {
         } catch (SecurityException e) {
             return secureValue;
         } catch (IllegalArgumentException e) {
-            logger.warning(value + " is not a valid flag value for " + name + ". "
+            Jvm.warn().on(BytecodeGen.class,
+                    value + " is not a valid flag value for " + name + ". "
                     + " Values must be one of " + Arrays.asList(enumType.getEnumConstants()));
             return defaultValue;
         }
@@ -121,7 +121,8 @@ final class BytecodeGen {
         synchronized (CLASS_LOADER_CACHE) {
             return CLASS_LOADER_CACHE.compute(typeClassLoader, (k, ref) -> {
                 if (ref == null || ref.get() == null) {
-                    logger.fine("Creating a bridge ClassLoader for " + typeClassLoader);
+                    Jvm.debug().on(BytecodeGen.class,
+                            "Creating a bridge ClassLoader for " + typeClassLoader);
                     return AccessController.doPrivileged(
                             (PrivilegedAction<WeakReference<ClassLoader>>) () ->
                                     new WeakReference<>(new BridgeClassLoader(typeClassLoader)));
