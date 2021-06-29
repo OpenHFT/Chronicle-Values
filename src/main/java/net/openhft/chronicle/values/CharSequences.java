@@ -18,7 +18,8 @@
 
 package net.openhft.chronicle.values;
 
-public enum CharSequences {;
+public enum CharSequences {
+    ; // none
 
     public static int hashCode(CharSequence cs) {
         if (cs == null)

@@ -31,7 +31,8 @@ import java.lang.reflect.Method;
 /**
  * This class support loading and debugging Java Classes dynamically.
  */
-enum CompilerUtils {;
+enum CompilerUtils {
+    ; // none
     public static final CachedCompiler CACHED_COMPILER = new CachedCompiler();
 
     private static final Method DEFINE_CLASS_METHOD;
