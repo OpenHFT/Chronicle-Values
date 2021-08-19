@@ -19,7 +19,7 @@
 package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.bytes.Byteable;
-import net.openhft.chronicle.bytes.NativeBytesStore;
+import net.openhft.chronicle.bytes.BytesStore;
 import org.junit.Test;
 
 import static net.openhft.chronicle.values.Values.newNativeReference;
@@ -29,7 +29,7 @@ public class AlignTest extends ValuesTestCommon {
     public void testAlign() {
         DemoOrderVOInterface value = newNativeReference(DemoOrderVOInterface.class);
         long size = value.maxSize();
-        NativeBytesStore<Void> bs = NativeBytesStore.nativeStore(size);
+        BytesStore<?, Void> bs = BytesStore.nativeStore(size);
         value.bytesStore(bs, 0, size);
         value.addAtomicOrderQty(10.0);
         System.out.println(value);

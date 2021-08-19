@@ -24,7 +24,7 @@ import net.openhft.chronicle.core.values.*;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-import static net.openhft.chronicle.bytes.NativeBytesStore.nativeStoreWithFixedCapacity;
+import static net.openhft.chronicle.bytes.BytesStore.nativeStoreWithFixedCapacity;
 import static org.junit.Assert.*;
 
 public class CoreValuesTest extends ValuesTestCommon {
