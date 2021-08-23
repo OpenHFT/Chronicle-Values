@@ -19,8 +19,7 @@
 package net.openhft.chronicle.values;
 
 import com.squareup.javapoet.*;
-
-import net.openhft.chronicle.bytes.internal.NativeBytesStore;
+import net.openhft.chronicle.bytes.PointerBytesStore;
 import net.openhft.chronicle.core.Jvm;
 
 import java.lang.reflect.Field;
@@ -91,11 +90,9 @@ class ValueBuilder {
 
     FieldSpec bytesStoreForPointers() {
         if (bytesStoreForPointers == null) {
-            ParameterizedTypeName bsType =
-                    ParameterizedTypeName.get(NativeBytesStore.class, Void.class);
             bytesStoreForPointers = FieldSpec
-                    .builder(bsType, "bytesStoreForPointers", PRIVATE, STATIC, FINAL)
-                    .initializer("$T.instance()", PointersBytesStore.class)
+                    .builder(TypeName.get(PointerBytesStore.class), "bytesStoreForPointers", PRIVATE, FINAL)
+                    .initializer("new $T()", PointerBytesStore.class)
                     .build();
             typeBuilder.addField(bytesStoreForPointers);
         }

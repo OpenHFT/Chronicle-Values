@@ -165,8 +165,9 @@ final class PointerFieldModel extends IntegerBackedFieldModel {
 
     private void initCachedValue(
             ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder, String address) {
-        methodBuilder.addStatement("$N.bytesStore($N, $N, $L)", cachedValue(),
-                valueBuilder.bytesStoreForPointers(), address, pointedModel.sizeInBytes());
+        methodBuilder.addStatement("$N.set($N, $L)", valueBuilder.bytesStoreForPointers(), address, pointedModel.sizeInBytes());
+        methodBuilder.addStatement("$N.bytesStore($N, 0, $L)", cachedValue(),
+                valueBuilder.bytesStoreForPointers(), pointedModel.sizeInBytes());
     }
 
     private String extractAddress(MethodSpec.Builder methodBuilder, String value) {
@@ -182,8 +183,8 @@ final class PointerFieldModel extends IntegerBackedFieldModel {
             methodBuilder.endControlFlow();
 
             methodBuilder.addStatement(
-                    "$N = (($T) $N).bytesStore().addressForRead((($T) $N).offset())",
-                    addressVariable, Byteable.class, value, Byteable.class, value);
+                    "$N = (($T) $N).address()",
+                    addressVariable, Byteable.class, value);
         }
         methodBuilder.nextControlFlow("else");
         {

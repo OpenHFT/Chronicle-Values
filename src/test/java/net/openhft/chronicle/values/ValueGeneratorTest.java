@@ -226,8 +226,9 @@ public class ValueGeneratorTest extends ValuesTestCommon {
     @Test
     public void testGenerateNativeWithHasArrays() {
         HasArraysInterface hai = Values.newNativeReference(HasArraysInterface.class);
-        BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(152));
-        ((Byteable) hai).bytesStore(bytes, 0L, ((Byteable) hai).maxSize());
+        long length = ((Byteable) hai).maxSize();
+        BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate((int) length));
+        ((Byteable) hai).bytesStore(bytes, 0L, length);
 
         hai.setStringAt(0, "G'day");
 

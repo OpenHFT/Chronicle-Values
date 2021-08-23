@@ -45,39 +45,42 @@ public class PointerTest extends ValuesTestCommon {
 
     @Test
     public void testPointer() {
-        PointedInterface pointedFoo = getPointed();
-        pointedFoo.setString("foo");
-        long fooAddress = getAddress(pointedFoo);
-        PointedInterface pointedBar = getPointed();
-        pointedBar.setString("bar");
-        long barAddress = getAddress(pointedBar);
-
         System.setProperty("chronicle.values.dumpCode", "true");
+
+        PointedInterface pointedFoo = getPointed();
+        assertTrue(pointedFoo.offset() < 10_000);
+        pointedFoo.setString("foo");
+        long fooAddress = pointedFoo.address();
+        PointedInterface pointedBar = getPointed();
+        assertTrue(pointedBar.offset() < 10_000);
+        pointedBar.setString("bar");
+        long barAddress = pointedBar.address();
 
         PointingInterface heapPointing = Values.newHeapInstance(PointingInterface.class);
         assertNull(heapPointing.getPoint());
         assertNull(heapPointing.getVolatilePoint());
         heapPointing.setPoint(pointedFoo);
+        assertTrue(heapPointing.getPoint().offset() < 10_000);
         // checks that heap object doesn't simply store reference to an object, only address
         assertNotSame(heapPointing.getPoint(), pointedFoo);
         assertNotSame(heapPointing.getVolatilePoint(), pointedFoo);
-        assertEquals(fooAddress, getAddress(heapPointing.getPoint()));
-        assertEquals(fooAddress, getAddress(heapPointing.getVolatilePoint()));
+        assertEquals(fooAddress, heapPointing.getPoint().address());
+        assertEquals(fooAddress, heapPointing.getVolatilePoint().address());
 
         // check setVolatile
         heapPointing.setVolatilePoint(pointedBar);
         assertNotSame(heapPointing.getPoint(), pointedBar);
-        assertEquals(barAddress, getAddress(heapPointing.getPoint()));
+        assertEquals(barAddress, heapPointing.getPoint().address());
 
         // check setOrdered
         heapPointing.setOrderedPoint(pointedFoo);
         assertNotSame(heapPointing.getVolatilePoint(), pointedFoo);
-        assertEquals(fooAddress, getAddress(heapPointing.getVolatilePoint()));
+        assertEquals(fooAddress, heapPointing.getVolatilePoint().address());
 
         assertFalse(heapPointing.compareAndSwapPoint(pointedBar, pointedFoo));
         assertTrue(heapPointing.compareAndSwapPoint(pointedFoo, pointedBar));
         assertNotSame(heapPointing.getPoint(), pointedBar);
-        assertEquals(barAddress, getAddress(heapPointing.getPoint()));
+        assertEquals(barAddress, heapPointing.getPoint().address());
 
         Values.nativeClassFor(PointedInterface.class);
         requireNonNull(pointedFoo.bytesStore()).releaseLast();

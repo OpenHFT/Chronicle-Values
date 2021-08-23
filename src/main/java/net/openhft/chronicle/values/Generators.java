@@ -78,6 +78,8 @@ final class Generators {
                             format("Constant size is %d, given length is ", model.sizeInBytes()))
                     .endControlFlow()
                     .addStatement("this.bs = bytesStore")
+                    .addStatement("    if (offset + length > bytesStore.capacity())\n" +
+                            "        throw new AssertionError()")
                     .addStatement("this.offset = offset")
                     .build();
         } catch (NoSuchMethodException e) {
@@ -127,8 +129,8 @@ final class Generators {
                 .addMethod(writeMarshallableMethod(valueBuilder, implType))
                 .addMethod(readMarshallableMethod(valueBuilder, implType))
                 .addMethod(equalsMethod(valueBuilder, implType))
-                .addMethod(hashCodeMethod(valueBuilder, implType))
-                .addMethod(toStringMethod(valueBuilder, implType));
+                .addMethod(hashCodeMethod(valueBuilder, implType));
+//                .addMethod(toStringMethod(valueBuilder, implType));
     }
 
     private static MethodSpec copyFromMethod(ValueBuilder valueBuilder, ImplType implType) {
@@ -239,6 +241,7 @@ final class Generators {
                 .addAnnotation(Override.class)
                 .addModifiers(PUBLIC)
                 .returns(String.class);
+        // check it's valid
         methodBuilder.addStatement("$T sb = new $T()", StringBuilder.class, StringBuilder.class);
         String modelName = valueBuilder.model.simpleName();
         methodBuilder.addStatement("sb.append($S)", modelName);

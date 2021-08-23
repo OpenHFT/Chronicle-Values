@@ -30,7 +30,7 @@ import static net.openhft.chronicle.values.Utils.capitalize;
 abstract class HeapMemberGenerator extends MemberGenerator {
 
     FieldSpec field;
-    private FieldSpec fieldOffset;
+    private FieldSpec fieldAddress;
 
     HeapMemberGenerator(FieldModel fieldModel) {
         super(fieldModel);
@@ -47,17 +47,17 @@ abstract class HeapMemberGenerator extends MemberGenerator {
     abstract String arrayScale();
 
     FieldSpec fieldOffset(ValueBuilder valueBuilder) {
-        if (fieldOffset == null) {
-            fieldOffset = FieldSpec.builder(long.class, fieldModel.name + "Offset")
+        if (fieldAddress == null) {
+            fieldAddress = FieldSpec.builder(long.class, fieldModel.name + "Address")
                     .addModifiers(PRIVATE, STATIC, FINAL)
                     .build();
             valueBuilder.staticBlockBuilder().addStatement(
                     "$N = $N.objectFieldOffset($T.getField($N.class, $S))",
-                    fieldOffset, valueBuilder.unsafe(), Jvm.class, valueBuilder.className,
+                    fieldAddress, valueBuilder.unsafe(), Jvm.class, valueBuilder.className,
                     field.name);
-            valueBuilder.typeBuilder.addField(fieldOffset);
+            valueBuilder.typeBuilder.addField(fieldAddress);
         }
-        return fieldOffset;
+        return fieldAddress;
     }
 
     Class fieldType() {
