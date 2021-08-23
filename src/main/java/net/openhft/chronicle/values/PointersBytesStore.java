@@ -18,7 +18,7 @@
 
 package net.openhft.chronicle.values;
 
-import net.openhft.chronicle.bytes.NativeBytesStore;
+import net.openhft.chronicle.bytes.internal.NativeBytesStore;
 
 // TODO REPLACE WITH PointerBytesStore in bytes.
 @Deprecated(/* to be removed in x.22*/)

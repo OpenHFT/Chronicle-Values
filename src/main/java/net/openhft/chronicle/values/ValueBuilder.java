@@ -19,7 +19,8 @@
 package net.openhft.chronicle.values;
 
 import com.squareup.javapoet.*;
-import net.openhft.chronicle.bytes.NativeBytesStore;
+
+import net.openhft.chronicle.bytes.internal.NativeBytesStore;
 import net.openhft.chronicle.core.Jvm;
 
 import java.lang.reflect.Field;

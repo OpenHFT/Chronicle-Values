@@ -203,7 +203,12 @@ public class ValueGeneratorTest extends ValuesTestCommon {
                 ValueModel.simpleName(type) + "$$Native");
         System.out.println(actual);
         Class aClass = Values.nativeClassFor(type);
-        T jbi = (T) aClass.asSubclass(type).newInstance();
+        T jbi = null;
+        try {
+            jbi = (T) aClass.asSubclass(type).getConstructor().newInstance();
+        } catch (NoSuchMethodException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
         BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
         ((Byteable) jbi).bytesStore(bytes, 0L, ((Byteable) jbi).maxSize());
         return jbi;
