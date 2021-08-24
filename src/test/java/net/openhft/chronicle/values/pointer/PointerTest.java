@@ -45,7 +45,7 @@ public class PointerTest extends ValuesTestCommon {
 
     @Test
     public void testPointer() {
-        System.setProperty("chronicle.values.dumpCode", "true");
+//        System.setProperty("chronicle.values.dumpCode", "true");
 
         PointedInterface pointedFoo = getPointed();
         assertTrue(pointedFoo.offset() < 10_000);
