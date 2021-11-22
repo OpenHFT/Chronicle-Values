@@ -93,7 +93,11 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
+    <properties>
+      <sonar.organization>openhft</sonar.organization>
+      <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+    </properties>
+ 
     <repositories>
         <repository>
             <id>third-party-release</id>
