@@ -1,12 +1,16 @@
-<h1>Chronicle-Values
-</h1>
+= Chronicle-Values
+Chronicle Software
+:css-signature: demo
+:toc: macro
+:toclevels: 2
+:icons: font
 
-<a href="https://maven-badges.herokuapp.com/maven-central/net.openhft/chronicle-values">
-<img src="https://maven-badges.herokuapp.com/maven-central/net.openhft/chronicle-values/badge.svg"/>
-</a>
-<a href="https://javadoc.io/doc/net.openhft/chronicle-values">
-<img src="https://javadoc.io/badge2/net.openhft/chronicle-values/javadoc.svg"/>
-</a>
+image:https://maven-badges.herokuapp.com/maven-central/net.openhft/chronicle-values/badge.svg[caption="",link=https://maven-badges.herokuapp.com/maven-central/net.openhft/chronicle-values]
+image:https://javadoc.io/badge2/net.openhft/chronicle-values/javadoc.svg[link="https://www.javadoc.io/doc/net.openhft/chronicle-values/latest/index.html"]
+//image:https://javadoc-badge.appspot.com/net.openhft/chronicle-values.svg?label=javadoc[JavaDoc, link=https://www.javadoc.io/doc/net.openhft/chronicle-values]
+image:https://img.shields.io/github/license/OpenHFT/Chronicle-Values[GitHub]
+image:https://img.shields.io/badge/release%20notes-subscribe-brightgreen[link="https://chronicle.software/release-notes/"]
+image:https://sonarcloud.io/api/project_badges/measure?project=OpenHFT_Chronicle-Values&metric=alert_status[link="https://sonarcloud.io/dashboard?id=OpenHFT_Chronicle-Values"]
 
 Poor man's value types, Java 8+
 
