@@ -12,7 +12,7 @@ image:https://img.shields.io/github/license/OpenHFT/Chronicle-Values[GitHub]
 image:https://img.shields.io/badge/release%20notes-subscribe-brightgreen[link="https://chronicle.software/release-notes/"]
 image:https://sonarcloud.io/api/project_badges/measure?project=OpenHFT_Chronicle-Values&metric=alert_status[link="https://sonarcloud.io/dashboard?id=OpenHFT_Chronicle-Values"]
 
-Poor man's value types, Java 8+
+==== Poor man's value types, Java 8+
 
 Generation of constantly-sized flyweight accessors to [Chronicle Bytes](
 https://github.com/OpenHFT/Chronicle-Bytes) and simple bean-style on-heap implementations from
@@ -34,7 +34,7 @@ please report the case via issues on Github.
  - [Use](#use)
  - [Javadocs](http://javadoc.io/doc/net.openhft/chronicle-values)
 
-## Value interface specification
+==== Value interface specification
 
 An important pre-requirement for value interfaces: they should belong to some package with
 a non-empty name, not the default package.
@@ -57,13 +57,13 @@ interface Balance {
 is processed to either a flyweight of 12 bytes, or a bean class with `long dollars;` and
 `int cents;` fields.
 
-### Supported field types
+==== Supported field types
 
-#### All Java primitives
+==== All Java primitives
 
 `int`, `long`, `float`, `double`, `byte`, `boolean`, `char`, `short`
 
-#### `String` or `CharSequence`
+==== `String` or `CharSequence`
 
 Must be annotated with `@MaxUtf8Length()`, like:
 
@@ -77,7 +77,7 @@ interface Client {
 }
 ```
 
-#### Another value interface
+==== Another value interface
 
 This allows to build nested structures:
 
@@ -102,7 +102,7 @@ interface Circle {
 
 Self-references are forbidden.
 
-#### Any Java `enum` type
+==== Any Java `enum` type
 
 ```java
 interface Order {
@@ -113,9 +113,9 @@ interface Order {
 }
 ```
 
-#### `java.util.Date`
+==== `java.util.Date`
 
-#### Array fields
+==== Array fields
 
 Of any of the above types, with special syntax: `-At` suffix and first parameter of all methods
 should be `int index`.
@@ -129,9 +129,9 @@ interface SomeStats {
 }
 ```
 
-### Supported methods
+==== Supported methods
 
-#### Simple get/set
+===== Simple get/set
 
 `[get]<FieldName>[At]`, `[set]<FieldName>[At]`, `is<FieldName>[At]` - simple get/set. For `boolean`
 fields, `isFoo()` Java bean syntax variation is supported. Also, `get-` and `set-` prefixes could be
@@ -146,15 +146,15 @@ interface Point {
 }
 ```
 
-#### Volatile get/set
+===== Volatile get/set
 
 `getVolatile<FieldName>[At]`, `setVolatile<FieldName>[At]`
 
-#### "Ordered" set
+===== "Ordered" set
 
 `setOrdered<FieldName>[At]` - ordered write operation, the same as behind `AtomicInteger.lazySet()`
 
-#### Simple add
+===== Simple add
 
 `type add<FieldName>[At]([int index, ]type addition)` - equivalent of
 ```java
@@ -166,18 +166,18 @@ interface Point {
 works only with numeric primitive field types: `byte`, `char`, `short`, `int`, `long`, `double`,
 `float`
 
-#### Atomic add
+===== Atomic add
 
 `type addAtomic<FieldName>[At]([int index, ]type addition)` - same as `add`, operates via atomic
 operations, works only with numeric primitive field types.
 
-#### Compare-and-swap
+===== Compare-and-swap
 
 `boolean compareAndSwap<FieldName>[At]([int index, ]type expectedValue, type newValue)` - atomic
 field value exchange, returns `true` if successfully swapped the value. Works only with primitive,
 `enum` and `Date` field types.
 
-#### getUsing
+===== getUsing
 
 `getUsing<FieldName>[At]([int index, ]Type using)` - for `String`, `CharSequence` or another value
 interface field types. Reads the value into the given on-heap object. Primarily useful for
@@ -266,9 +266,9 @@ the example above.
 </tr>
 </table>
 
-### Field configuration via annotations
+===== Field configuration via annotations
 
-#### Field ordering in flyweight layout
+===== Field ordering in flyweight layout
 
 Field order is unspecified. To ensure some order, put `@Group` annotations on any of field's
 methods, for example:
@@ -289,7 +289,7 @@ Groups are ordered in the ascending order of their argument numbers. In the abov
 generated flyweight implementation will place `real` field at 0-7 bytes and `image` field at 8-15
 bytes from it's offset.
 
-#### Field nullability
+===== Field nullability
 
 By default, `enum` and `String`/`CharSequence` fields are nullable. Annotate them with
 `@net.openhft.chronicle.values.NotNull` to forbid `null` values:
@@ -301,7 +301,7 @@ interface Instrument {
 }
 ```
 
-#### Numeric field ranges
+===== Numeric field ranges
 
 Annotate numeric fields with `@Range(min=, max=)` to save space in flyweight implementation, e. g.
 
@@ -314,7 +314,7 @@ interface Transaction {
 
 The field `SecondFromDayStart` could take only 17 bits in bytes, instead of 32.
 
-#### Field alignment
+===== Field alignment
 
 For flyweight implementation, you might need to align certain fields, to ensure some properties of
 reads and writes. For example, you might want to ensure, that a certain field doesn't cross cache
@@ -333,7 +333,7 @@ interface Message {
 See `@Align` and `@Array` annotations [Javadocs](http://javadoc.io/doc/net.openhft/chronicle-values)
 for more information.
 
-## Use
+== Use
 
 ```java
 // flyweight
