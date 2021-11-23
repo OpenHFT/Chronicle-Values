@@ -12,7 +12,9 @@ image:https://img.shields.io/github/license/OpenHFT/Chronicle-Values[GitHub]
 image:https://img.shields.io/badge/release%20notes-subscribe-brightgreen[link="https://chronicle.software/release-notes/"]
 image:https://sonarcloud.io/api/project_badges/measure?project=OpenHFT_Chronicle-Values&metric=alert_status[link="https://sonarcloud.io/dashboard?id=OpenHFT_Chronicle-Values"]
 
-==== Poor man's value types, Java 8+
+toc::[]
+
+== About
 
 Generation of constantly-sized flyweight accessors to [Chronicle Bytes](
 https://github.com/OpenHFT/Chronicle-Bytes) and simple bean-style on-heap implementations from
