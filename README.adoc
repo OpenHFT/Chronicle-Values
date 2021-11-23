@@ -358,4 +358,4 @@ Point offHeapPoint = Values.newNativeReference(Point.class);
 offHeapPoint.bytesStore(bytesStore, offset, offHeapPoint.maxSize());
 ```
 
-== [Javadocs](http://javadoc.io/doc/net.openhft/chronicle-values)
+[Javadocs](http://javadoc.io/doc/net.openhft/chronicle-values)
