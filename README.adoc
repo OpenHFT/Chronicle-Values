@@ -200,7 +200,7 @@ the return type of the method could be the interface or `void`. See `getUsingCen
 the example above.
 
 ### Table of supported methods (type of field × type of method)
-
+++++
 <table>
 <tr><th></th>
   <th>Integer type: <code>byte</code>..<code>long</code></th>
@@ -258,7 +258,7 @@ the example above.
   <td>&nbsp;</td>
 </tr>
 </table>
-
+++++
 ===== Field configuration via annotations
 
 ===== Field ordering in flyweight layout
