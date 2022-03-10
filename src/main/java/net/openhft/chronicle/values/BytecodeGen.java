@@ -104,7 +104,7 @@ final class BytecodeGen {
         String value = null;
         try {
             value = AccessController.doPrivileged(
-                    (PrivilegedAction<String>) () -> System.getProperty(name));
+                    (PrivilegedAction<String>) () -> Jvm.getProperty(name));
             return (value != null && value.length() > 0) ? Enum.valueOf(enumType, value) :
                     defaultValue;
         } catch (SecurityException e) {
