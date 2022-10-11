@@ -19,15 +19,18 @@
 package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.core.Jvm;
+import net.openhft.chronicle.core.util.CompilerUtils;
 import net.openhft.chronicle.core.util.WeakIdentityHashMap;
 import org.jetbrains.annotations.NotNull;
 
-import javax.tools.Diagnostic;
-import javax.tools.JavaFileObject;
+import javax.tools.*;
+import java.lang.reflect.Method;
 import java.util.*;
 
 @SuppressWarnings("StaticNonFinalField")
 class CachedCompiler {
+    public static final CachedCompiler CACHED_COMPILER = new CachedCompiler();
+
     private static final Map<ClassLoader, Map<String, Class>> loadedClassesMap =
             new WeakIdentityHashMap<>();
 
@@ -35,8 +38,29 @@ class CachedCompiler {
             Arrays.asList("-XDenableSunApiLintControl", "-Xlint:-sunapi");
     private static final List<String> java9PlusOptions = null;
 
+    private static JavaCompiler compiler;
+    private static StandardJavaFileManager standardJavaFileManager;
     private final Map<String, JavaFileObject> javaFileObjects = new HashMap<>();
     private boolean errors;
+
+    static {
+        reset();
+    }
+
+    private static void reset() {
+        compiler = ToolProvider.getSystemJavaCompiler();
+        if (compiler == null) {
+            try {
+                Class<?> javacTool = Class.forName("com.sun.tools.javac.api.JavacTool");
+                Method create = javacTool.getMethod("create");
+                compiler = (JavaCompiler) create.invoke(null);
+            } catch (Exception e) {
+                throw new AssertionError(e);
+            }
+        }
+
+        standardJavaFileManager = compiler.getStandardFileManager(null, null, null);
+    }
 
     @NotNull
     Map<String, byte[]> compileFromJava(
@@ -46,7 +70,7 @@ class CachedCompiler {
         compilationUnits = javaFileObjects.values();
 
         MyJavaFileManager fileManager =
-                new MyJavaFileManager(valueType, CompilerUtils.s_standardJavaFileManager);
+                new MyJavaFileManager(valueType, standardJavaFileManager);
         errors = false;
 
         List<String> compilerOptions;
@@ -56,7 +80,7 @@ class CachedCompiler {
             compilerOptions = java8Options;
         }
 
-        CompilerUtils.s_compiler.getTask(null, fileManager, diagnostic -> {
+        compiler.getTask(null, fileManager, diagnostic -> {
             if (diagnostic.getKind() == Diagnostic.Kind.ERROR) {
                 errors = true;
                 System.err.println(diagnostic);

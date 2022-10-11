@@ -32,7 +32,7 @@ import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static net.openhft.chronicle.values.Align.NO_ALIGNMENT;
-import static net.openhft.chronicle.values.CompilerUtils.CACHED_COMPILER;
+import static net.openhft.chronicle.values.CachedCompiler.CACHED_COMPILER;
 import static net.openhft.chronicle.values.Utils.roundUp;
 
 public class ValueModel {
