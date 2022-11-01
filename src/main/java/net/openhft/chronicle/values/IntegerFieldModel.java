@@ -249,7 +249,7 @@ class IntegerFieldModel extends PrimitiveFieldModel {
                         ": min should be less than max, field " + name);
             }
             if (min < defaultRange().min() || max > defaultRange().max()) {
-                throw new IllegalStateException(range + " out of extent of " + type + " type " +
+                throw new IllegalStateException(paramRange + " out of extent of " + type + " type " +
                         "of the field " + name);
             }
             range = paramRange;

@@ -33,6 +33,7 @@ import static net.openhft.chronicle.values.Generators.generateNativeClass;
 import static net.openhft.chronicle.values.Values.newHeapInstance;
 import static net.openhft.chronicle.values.Values.newNativeReference;
 import static org.junit.Assert.*;
+import static net.openhft.compiler.CompilerUtils.CACHED_COMPILER;
 
 /**
  * User: peter.lawrey Date: 06/10/13 Time: 20:13
@@ -105,8 +106,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
         String actual = generateNativeClass(ValueModel.acquire(JavaBeanInterfaceGetUsing.class),
                 ValueModel.simpleName(JavaBeanInterfaceGetUsing.class) + "$$Native");
         System.out.println(actual);
-        CachedCompiler cc = new CachedCompiler();
-        Class aClass = cc.loadFromJava(JavaBeanInterfaceGetUsing.class,
+        Class aClass = CACHED_COMPILER.loadFromJava(
                 BytecodeGen.getClassLoader(JavaBeanInterfaceGetUsing.class),
                 JavaBeanInterfaceGetUsing.class.getName() + "$$Native", actual);
         JavaBeanInterfaceGetUsing jbi = (JavaBeanInterfaceGetUsing) aClass.asSubclass(JavaBeanInterfaceGetUsing.class).getDeclaredConstructor().newInstance();
@@ -203,7 +203,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
                 ValueModel.simpleName(type) + "$$Native");
         System.out.println(actual);
         Class aClass = Values.nativeClassFor(type);
-        T jbi = null;
+        T jbi;
         try {
             jbi = (T) aClass.asSubclass(type).getConstructor().newInstance();
         } catch (NoSuchMethodException | InvocationTargetException e) {
