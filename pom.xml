@@ -71,6 +71,11 @@
         </dependency>
 
         <dependency>
+            <groupId>net.openhft</groupId>
+            <artifactId>compiler</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.squareup</groupId>
             <artifactId>javapoet</artifactId>
         </dependency>

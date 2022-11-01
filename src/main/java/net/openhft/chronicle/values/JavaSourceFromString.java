@@ -43,7 +43,6 @@ class JavaSourceFromString extends SimpleJavaFileObject {
         this.code = code;
     }
 
-    @SuppressWarnings("RefusedBequest")
     @Override
     public CharSequence getCharContent(boolean ignoreEncodingErrors) {
         return code;
