@@ -16,8 +16,8 @@ toc::[]
 
 == About
 
-Generation of constantly-sized flyweight accessors to [Chronicle Bytes](
-https://github.com/OpenHFT/Chronicle-Bytes) and simple bean-style on-heap implementations from
+Generation of constantly-sized flyweight accessors to 
+https://github.com/OpenHFT/Chronicle-Bytes[Chronicle Bytes] and simple bean-style on-heap implementations from
 interfaces. Interfaces, that could be processed by Chronicle-Values generation, are called **value
 interfaces**.
 
@@ -323,7 +323,7 @@ interface Message {
 }
 ```
 
-See `@Align` and `@Array` annotations [Javadocs](http://javadoc.io/doc/net.openhft/chronicle-values)
+See `@Align` and `@Array` annotations http://javadoc.io/doc/net.openhft/chronicle-values[Javadocs]
 for more information.
 
 == Use
@@ -343,7 +343,7 @@ onHeapPoint.setY(2);
 
 The generated on-heap and flyweight classes *do* implement:
  - `Copyable<Point>`, to allow easy data exchange: `onHeapPoint.copyFrom(offHeapPoint)`
- - `BytesMarshallable` from [Chronicle Bytes](https://github.com/OpenHFT/Chronicle-Bytes)
+ - `BytesMarshallable` from https://github.com/OpenHFT/Chronicle-Bytes[Chronicle Bytes]
  - Proper `equals()`, `hashCode()` and `toString()`
  - `Byteable`, but on-heap implementation is dummy, throws `UnsupportedOperationException`
 
