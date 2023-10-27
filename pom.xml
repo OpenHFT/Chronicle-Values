@@ -243,7 +243,7 @@
         <connection>scm:git:git@github.com:OpenHFT/Chronicle-Values.git</connection>
         <developerConnection>scm:git:git@github.com:OpenHFT/Chronicle-Values.git
         </developerConnection>
-        <tag>master</tag>
+        <tag>release/2.24</tag>
     </scm>
 
 </project>
