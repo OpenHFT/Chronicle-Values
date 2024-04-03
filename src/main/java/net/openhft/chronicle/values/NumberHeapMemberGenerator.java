@@ -71,7 +71,7 @@ class NumberHeapMemberGenerator extends PrimitiveBackedHeapMemberGenerator {
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
         arrayFieldModel.checkBounds(methodBuilder);
-        Class type = Utils.UNSAFE_CLASS;
+        Class<?> type = Utils.UNSAFE_CLASS;
         methodBuilder.addStatement(
                 "return " + wrap(valueBuilder, methodBuilder, "$N.$N($N, (long) $T.$N + " +
                         "(index * (long) $T.$N), addition) + addition"),

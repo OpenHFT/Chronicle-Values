@@ -19,7 +19,7 @@
 package net.openhft.chronicle.values;
 
 final class Utils {
-    static final Class UNSAFE_CLASS;
+    static final Class<?> UNSAFE_CLASS;
 
     static {
         try {

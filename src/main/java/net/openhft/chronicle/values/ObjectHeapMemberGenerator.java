@@ -75,7 +75,7 @@ class ObjectHeapMemberGenerator extends HeapMemberGenerator {
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
         arrayFieldModel.checkBounds(methodBuilder);
-        Class type = Utils.UNSAFE_CLASS;
+        Class<?> type = Utils.UNSAFE_CLASS;
         methodBuilder.addStatement("return ($T) $N.getObjectVolatile($N, " +
                         "(long) $T.ARRAY_OBJECT_BASE_OFFSET + " +
                         "(index * (long) $T.ARRAY_OBJECT_INDEX_SCALE))",

@@ -26,6 +26,7 @@ import net.openhft.chronicle.bytes.BytesMarshallable;
  * Date: 06/10/13
  * Time: 16:59
  */
+@SuppressWarnings("rawtypes")
 public interface MinimalInterface extends BytesMarshallable, Copyable<MinimalInterface>, Byteable {
     void flag(boolean flag);
 

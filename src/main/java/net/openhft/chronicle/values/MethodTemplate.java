@@ -27,11 +27,11 @@ class MethodTemplate {
     final String regex;
     final int parameters;
     final Type type;
-    final Function<Method, Class> fieldType;
+    final Function<Method, Class<?>> fieldType;
     final Function<Method, Parameter> annotatedParameter;
     final BiConsumer<FieldModel, Method> addMethodToModel;
 
-    MethodTemplate(String regex, int parameters, Type type, Function<Method, Class> fieldType,
+    MethodTemplate(String regex, int parameters, Type type, Function<Method, Class<?>> fieldType,
                    Function<Method, Parameter> annotatedParameter,
                    BiConsumer<FieldModel, Method> addMethodToModel) {
         this.regex = regex;
