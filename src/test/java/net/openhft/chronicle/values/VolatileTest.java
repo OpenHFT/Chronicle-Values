@@ -33,6 +33,7 @@ import static org.junit.Assert.assertFalse;
  * Created by daniel on 11/06/2014.
  */
 public class VolatileTest extends ValuesTestCommon {
+    @SuppressWarnings("rawtypes")
     @Test
     public void testGenerateJavaCode() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
 
@@ -73,7 +74,7 @@ public class VolatileTest extends ValuesTestCommon {
         //Test the native interface
         try {
             GoodInterface jbi = newNativeReference(GoodInterface.class);
-            BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
+            BytesStore<?, ByteBuffer> bytes = BytesStore.wrap(ByteBuffer.allocate(64));
             ((Byteable) jbi).bytesStore(bytes, 0L, ((Byteable) jbi).maxSize());
 
             jbi.setOrderedY(5);

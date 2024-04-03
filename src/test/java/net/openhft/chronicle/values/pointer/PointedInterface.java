@@ -21,6 +21,7 @@ package net.openhft.chronicle.values.pointer;
 import net.openhft.chronicle.bytes.Byteable;
 import net.openhft.chronicle.values.MaxUtf8Length;
 
+@SuppressWarnings("rawtypes")
 public interface PointedInterface extends Byteable {
 
     String getString();

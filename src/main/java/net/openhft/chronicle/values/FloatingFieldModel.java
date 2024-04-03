@@ -271,7 +271,7 @@ class FloatingFieldModel extends PrimitiveFieldModel {
                     MethodSpec.Builder methodBuilder) {
                 arrayFieldModel.checkBounds(methodBuilder);
                 methodBuilder.beginControlFlow("while (true)");
-                Class type = Utils.UNSAFE_CLASS;
+                Class<?> type = Utils.UNSAFE_CLASS;
                 methodBuilder.addStatement(
                         "$T $N = " + wrap(valueBuilder, methodBuilder,
                                 "$N.$N($N, (long) $T.$N + (index * (long) $T.$N))"),

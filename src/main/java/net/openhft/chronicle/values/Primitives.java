@@ -23,16 +23,16 @@ final class Primitives {
     private Primitives() {
     }
 
-    static boolean isPrimitiveIntegerType(Class type) {
+    static boolean isPrimitiveIntegerType(Class<?> type) {
         return type == byte.class || type == short.class || type == char.class ||
                 type == int.class || type == long.class;
     }
 
-    static boolean isPrimitiveFloatingType(Class type) {
+    static boolean isPrimitiveFloatingType(Class<?> type) {
         return type == float.class || type == double.class;
     }
 
-    static int widthInBits(Class type) {
+    static int widthInBits(Class<?> type) {
         if (type == boolean.class)
             return 1;
         if (type == byte.class)
@@ -46,7 +46,7 @@ final class Primitives {
         throw new AssertionError(type + " is not a primitive type");
     }
 
-    static Class boxed(Class type) {
+    static Class<?> boxed(Class<?> type) {
         if (type == boolean.class)
             return Boolean.class;
         if (type == byte.class)
