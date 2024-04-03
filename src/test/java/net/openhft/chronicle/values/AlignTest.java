@@ -36,6 +36,7 @@ public class AlignTest extends ValuesTestCommon {
         bs.releaseLast();
     }
 
+    @SuppressWarnings("rawtypes")
     interface DemoOrderVOInterface extends Byteable {
         CharSequence getSymbol();
 //    public StringBuilder getUsingSymbol(StringBuilder sb);

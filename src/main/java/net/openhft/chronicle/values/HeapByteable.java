@@ -25,6 +25,7 @@ import net.openhft.chronicle.bytes.BytesStore;
  * NOT FOR DIRECT USE. Implements {@link Byteable} by throwing {@link UnsupportedOperationException}
  * from all methods.
  */
+@SuppressWarnings("rawtypes")
 public interface HeapByteable extends Byteable {
 
     @Override

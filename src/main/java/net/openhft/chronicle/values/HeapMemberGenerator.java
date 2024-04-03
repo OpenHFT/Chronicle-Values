@@ -60,7 +60,7 @@ abstract class HeapMemberGenerator extends MemberGenerator {
         return fieldAddress;
     }
 
-    Class fieldType() {
+    Class<?> fieldType() {
         return fieldModel.type;
     }
 
@@ -126,7 +126,7 @@ abstract class HeapMemberGenerator extends MemberGenerator {
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
         arrayFieldModel.checkBounds(methodBuilder);
-        Class type = Utils.UNSAFE_CLASS;
+        Class<?> type = Utils.UNSAFE_CLASS;
         methodBuilder.addStatement(
                 format("$N.$N($N, (long) $T.$N + (index * (long) $T.$N), %s)",
                         unwrap(methodBuilder, fieldModel.varName())),
@@ -146,7 +146,7 @@ abstract class HeapMemberGenerator extends MemberGenerator {
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder) {
         arrayFieldModel.checkBounds(methodBuilder);
-        Class type = Utils.UNSAFE_CLASS;
+        Class<?> type = Utils.UNSAFE_CLASS;
         methodBuilder.addStatement(
                 format("$N.$N($N, (long) $T.$N + (index * (long) $T.$N), %s)",
                         unwrap(methodBuilder, fieldModel.varName())),
@@ -171,7 +171,7 @@ abstract class HeapMemberGenerator extends MemberGenerator {
         arrayFieldModel.checkBounds(methodBuilder);
         String unwrappedOld = unwrap(methodBuilder, fieldModel.oldName());
         String unwrappedNew = unwrap(methodBuilder, fieldModel.newName());
-        Class type = Utils.UNSAFE_CLASS;
+        Class<?> type = Utils.UNSAFE_CLASS;
         methodBuilder.addStatement(
                 "return $N.$N($N, (long) $T.$N + (index * (long) $T.$N), $N, $N)",
                 valueBuilder.unsafe(), compareAndSwap(), field, type, arrayBase(),
