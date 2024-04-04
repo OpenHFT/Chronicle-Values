@@ -38,7 +38,7 @@ public class HeapVsNativeTest extends ValuesTestCommon {
         check(entity);
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
     public void nativeRef() {
         Entity entity = Values.newNativeReference(Entity.class);

@@ -35,12 +35,11 @@ public class ValueInterfaceWithEnumTest extends ValuesTestCommon {
      * This test will throw an {@link ArrayIndexOutOfBoundsException}. This seems to occur only with Enums having even number of
      * values
      */
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
     public void testValueInterface() {
         SimpleValueInterface nativeValue = Values.newNativeReference(SimpleValueInterface.class);
         int modelSize = ValueModel.acquire(SimpleValueInterface.class).sizeInBytes();
-        //noinspection unchecked
         ((Byteable) nativeValue).bytesStore(BytesStore.wrap(new byte[modelSize]), 0, modelSize);
         SimpleValueInterface heapValue = Values.newHeapInstance(SimpleValueInterface.class);
 
