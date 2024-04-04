@@ -25,6 +25,7 @@ import org.junit.Test;
 import static net.openhft.chronicle.values.Values.newNativeReference;
 
 public class AlignTest extends ValuesTestCommon {
+    @SuppressWarnings("unchecked")
     @Test
     public void testAlign() {
         DemoOrderVOInterface value = newNativeReference(DemoOrderVOInterface.class);

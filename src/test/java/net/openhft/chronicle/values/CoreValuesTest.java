@@ -27,7 +27,7 @@ import org.junit.Test;
 import static net.openhft.chronicle.bytes.BytesStore.nativeStoreWithFixedCapacity;
 import static org.junit.Assert.*;
 
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class CoreValuesTest extends ValuesTestCommon {
 
     @Test

@@ -33,7 +33,7 @@ import static org.junit.Assert.assertFalse;
  * Created by daniel on 11/06/2014.
  */
 public class VolatileTest extends ValuesTestCommon {
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
     public void testGenerateJavaCode() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
 
