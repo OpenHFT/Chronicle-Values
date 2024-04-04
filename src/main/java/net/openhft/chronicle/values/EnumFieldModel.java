@@ -103,7 +103,8 @@ class EnumFieldModel extends IntegerBackedFieldModel {
     void postProcess() {
         super.postProcess();
         int min = nullable() ? -1 : 0;
-        int constants = Enums.numberOfConstants(Jvm.uncheckedCast(type));
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        int constants = Enums.numberOfConstants((Class) type);
         if (constants == 0) {
             throw new IllegalStateException(
                     name + "field type is a enum with zero constants: " + type);
