@@ -27,7 +27,7 @@ class PrimitiveBackedHeapMemberGenerator extends HeapMemberGenerator {
 
     final String capType;
     private final String upperType;
-    private final Class fieldType;
+    private final Class<?> fieldType;
 
     PrimitiveBackedHeapMemberGenerator(FieldModel fieldModel) {
         super(fieldModel);
@@ -37,7 +37,7 @@ class PrimitiveBackedHeapMemberGenerator extends HeapMemberGenerator {
         upperType = fieldType.getName().toUpperCase();
     }
 
-    PrimitiveBackedHeapMemberGenerator(FieldModel fieldModel, Class fieldType) {
+    PrimitiveBackedHeapMemberGenerator(FieldModel fieldModel, Class<?> fieldType) {
         super(fieldModel);
         this.fieldType = fieldType;
         assert fieldType.isPrimitive();
@@ -46,12 +46,12 @@ class PrimitiveBackedHeapMemberGenerator extends HeapMemberGenerator {
     }
 
     @Override
-    Class fieldType() {
+    Class<?> fieldType() {
         return fieldType;
     }
 
-    private Class determineFieldType() {
-        Class modelType = super.fieldType();
+    private Class<?> determineFieldType() {
+        Class<?> modelType = super.fieldType();
         if (modelType == long.class || modelType == int.class)
             return modelType;
         PrimitiveFieldModel fieldModel = (PrimitiveFieldModel) this.fieldModel;
@@ -139,7 +139,7 @@ class PrimitiveBackedHeapMemberGenerator extends HeapMemberGenerator {
             MethodSpec.Builder methodBuilder) {
         arrayFieldModel.checkBounds(methodBuilder);
         String rawValue = "raw" + capitalize(field.name) + "Value";
-        Class type = Utils.UNSAFE_CLASS;
+        Class<?> type = Utils.UNSAFE_CLASS;
         methodBuilder.addStatement("$T $N = $N.$N($N, (long) $T.$N + (index * (long) $T.$N))",
                 fieldType(), rawValue,
                 valueBuilder.unsafe(), getVolatile(), field, type, arrayBase(),

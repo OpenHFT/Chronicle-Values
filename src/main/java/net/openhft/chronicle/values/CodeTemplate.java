@@ -94,7 +94,7 @@ enum CodeTemplate {
 
     private static void add(
             String regex, int parameters, MethodTemplate.Type type,
-            Function<Method, Class> fieldType, Function<Method, Parameter> annotatedParameter,
+            Function<Method, Class<?>> fieldType, Function<Method, Parameter> annotatedParameter,
             BiConsumer<FieldModel, Method> addMethodToModel) {
         METHOD_TEMPLATES.add(new MethodTemplate(regex, parameters, type, fieldType,
                 annotatedParameter, addMethodToModel));
@@ -175,7 +175,7 @@ enum CodeTemplate {
                         methodsAndTemplates.get(0).method.getName()));
         MethodTemplate nonGetUsingMethodTemplate = nonGetUsingMethodAndTemplate.template;
         Method nonGetUsingMethod = nonGetUsingMethodAndTemplate.method;
-        Class fieldType = nonGetUsingMethodTemplate.fieldType.apply(nonGetUsingMethod);
+        Class<?> fieldType = nonGetUsingMethodTemplate.fieldType.apply(nonGetUsingMethod);
         if (isPrimitiveIntegerType(fieldType))
             return new IntegerFieldModel();
         if (fieldType == float.class || fieldType == double.class)

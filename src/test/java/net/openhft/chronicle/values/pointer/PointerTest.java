@@ -34,6 +34,7 @@ public class PointerTest extends ValuesTestCommon {
         return requireNonNull(byteable.bytesStore()).addressForRead(byteable.offset());
     }
 
+    @SuppressWarnings("unchecked")
     @NotNull
     private static PointedInterface getPointed() {
         PointedInterface pointed1 = Values.newNativeReference(PointedInterface.class);

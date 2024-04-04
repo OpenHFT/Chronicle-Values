@@ -35,7 +35,7 @@ public abstract class FieldModel {
      * The field type if this is a {@link ScalarFieldModel},
      * elem type if this is a {@link ArrayFieldModel}
      */
-    Class type;
+    Class<?> type;
     long groupOrder = 0;
     boolean alignmentSpecifiedExplicitly;
     int offsetAlignment;
@@ -93,7 +93,7 @@ public abstract class FieldModel {
     }
 
     void addTypeInfo(Method m, MethodTemplate template) {
-        Class fieldType = template.fieldType.apply(m);
+        Class<?> fieldType = template.fieldType.apply(m);
         if (type != null && type != fieldType) {
             throw new IllegalStateException("different field types in methods of the field " +
                     name + ": " + type + " " + fieldType);

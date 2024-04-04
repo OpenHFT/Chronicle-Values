@@ -25,6 +25,7 @@ import org.junit.Test;
 import static net.openhft.chronicle.values.Values.newNativeReference;
 
 public class AlignTest extends ValuesTestCommon {
+    @SuppressWarnings("unchecked")
     @Test
     public void testAlign() {
         DemoOrderVOInterface value = newNativeReference(DemoOrderVOInterface.class);
@@ -36,6 +37,7 @@ public class AlignTest extends ValuesTestCommon {
         bs.releaseLast();
     }
 
+    @SuppressWarnings("rawtypes")
     interface DemoOrderVOInterface extends Byteable {
         CharSequence getSymbol();
 //    public StringBuilder getUsingSymbol(StringBuilder sb);

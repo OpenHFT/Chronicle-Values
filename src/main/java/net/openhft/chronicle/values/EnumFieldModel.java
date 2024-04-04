@@ -21,6 +21,7 @@ package net.openhft.chronicle.values;
 import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import net.openhft.chronicle.core.Jvm;
 
 import java.lang.reflect.Method;
 
@@ -102,7 +103,8 @@ class EnumFieldModel extends IntegerBackedFieldModel {
     void postProcess() {
         super.postProcess();
         int min = nullable() ? -1 : 0;
-        int constants = Enums.numberOfConstants(type);
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        int constants = Enums.numberOfConstants((Class) type);
         if (constants == 0) {
             throw new IllegalStateException(
                     name + "field type is a enum with zero constants: " + type);
