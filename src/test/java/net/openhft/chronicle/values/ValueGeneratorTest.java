@@ -38,7 +38,7 @@ import static net.openhft.compiler.CompilerUtils.CACHED_COMPILER;
 /**
  * User: peter.lawrey Date: 06/10/13 Time: 20:13
  */
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ValueGeneratorTest extends ValuesTestCommon {
     @Test
     public void testGenerateJavaCode() {
