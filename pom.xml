@@ -142,9 +142,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
-                    <links>
-                        <link>http://openhft.github.io/Chronicle-Bytes/apidocs/</link>
-                    </links>
                     <sourceFileExcludes>
                         <exclude>net/openhft/chronicle/values/FieldModel.java</exclude>
                         <exclude>net/openhft/chronicle/values/ArrayFieldModel.java</exclude>
