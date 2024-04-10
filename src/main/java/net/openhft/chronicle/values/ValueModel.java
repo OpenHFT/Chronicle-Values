@@ -150,7 +150,7 @@ public class ValueModel {
      * biggest) first, if holes appear due to alignment, tries to fill holes (from smallest to
      * biggest) on each step.
      * <p>
-     * <p>Sure this is a suboptimal algorithm, optimal algorithm is NP hard and rather complex
+     * Sure this is a suboptimal algorithm, optimal algorithm is NP hard and rather complex
      * (unless try all combinations), but the user could always arrange the fields by hand,
      * providing @Group annotation to each field.
      *
@@ -243,7 +243,7 @@ public class ValueModel {
      * the fields. It is the most coarse among all of it's fields' {@linkplain Align#offset()
      * offset} and {@linkplain Align#dontCross() don't cross} alignments.
      * <p>
-     * <p>Returns a positive integer {@code >=} 1.
+     * Returns a positive integer {@code >=} 1.
      *
      * @return the alignment of the flyweight value itself, to satisfy fields' alignments
      */
