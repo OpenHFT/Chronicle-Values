@@ -30,7 +30,7 @@ import static org.junit.Assert.*;
 
 public class PointerTest extends ValuesTestCommon {
 
-    private static long getAddress(Byteable<?, ?> byteable) {
+    private static long getAddress(Byteable byteable) {
         return requireNonNull(byteable.bytesStore()).addressForRead(byteable.offset());
     }
 

@@ -34,7 +34,7 @@ public interface HeapByteable extends Byteable {
     }
 
     @Override
-    default BytesStore bytesStore() {
+    default BytesStore<?, ?> bytesStore() {
         throw new UnsupportedOperationException(getClass() + " doesn't support Byteable interface");
     }
 

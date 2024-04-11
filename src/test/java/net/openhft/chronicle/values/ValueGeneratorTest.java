@@ -113,7 +113,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
                 JavaBeanInterfaceGetUsing.class.getName() + "$$Native", actual);
         JavaBeanInterfaceGetUsing jbi = (JavaBeanInterfaceGetUsing) aClass.asSubclass(JavaBeanInterfaceGetUsing.class).getDeclaredConstructor().newInstance();
         BytesStore<?, ByteBuffer> bytes = BytesStore.wrap(ByteBuffer.allocate(64));
-        ((Byteable) jbi).bytesStore(bytes, 0L, ((Byteable<?, ?>) jbi).maxSize());
+        ((Byteable) jbi).bytesStore(bytes, 0L, ((Byteable) jbi).maxSize());
 
         jbi.setString("G'day");
 
@@ -212,7 +212,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
             throw new RuntimeException(e);
         }
         BytesStore<?, ByteBuffer> bytes = BytesStore.wrap(ByteBuffer.allocate(64));
-        ((Byteable) jbi).bytesStore(bytes, 0L, ((Byteable<?, ?>) jbi).maxSize());
+        ((Byteable) jbi).bytesStore(bytes, 0L, ((Byteable) jbi).maxSize());
         return jbi;
     }
 
@@ -228,7 +228,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
     @Test
     public void testGenerateNativeWithHasArrays() {
         HasArraysInterface hai = Values.newNativeReference(HasArraysInterface.class);
-        long length = ((Byteable<?, ?>) hai).maxSize();
+        long length = ((Byteable) hai).maxSize();
         BytesStore<?, ByteBuffer> bytes = BytesStore.wrap(ByteBuffer.allocate((int) length));
         ((Byteable) hai).bytesStore(bytes, 0L, length);
 
@@ -254,7 +254,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
 
         StringInterface si2 = newNativeReference(StringInterface.class);
         BytesStore<?, ByteBuffer> bytes = BytesStore.wrap(ByteBuffer.allocate(192));
-        ((Byteable) si2).bytesStore(bytes, 0L, ((Byteable<?, ?>) si2).maxSize());
+        ((Byteable) si2).bytesStore(bytes, 0L, ((Byteable) si2).maxSize());
         si2.setString("Hello world £€");
         si2.setText("Hello world £€");
         assertEquals("Hello world £€", si2.getString());
@@ -290,7 +290,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
 
         NestedA nestedA = newNativeReference(NestedA.class);
         BytesStore<?, ByteBuffer> bytes = BytesStore.wrap(ByteBuffer.allocate(192));
-        ((Byteable) nestedA).bytesStore(bytes, 0L, ((Byteable<?, ?>) nestedA).maxSize());
+        ((Byteable) nestedA).bytesStore(bytes, 0L, ((Byteable) nestedA).maxSize());
         nestedA.key("key");
         nestedA.one(nestedB1);
         nestedA.two(nestedB2);
@@ -315,7 +315,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
     public void testGenerateInterfaceWithEnumNativeInstance() {
         JavaBeanInterfaceGetMyEnum jbie = newNativeReference(JavaBeanInterfaceGetMyEnum.class);
         BytesStore<?, ByteBuffer> bytes = BytesStore.wrap(ByteBuffer.allocate(64));
-        ((Byteable) jbie).bytesStore(bytes, 0L, ((Byteable<?, ?>) jbie).maxSize());
+        ((Byteable) jbie).bytesStore(bytes, 0L, ((Byteable) jbie).maxSize());
         jbie.setMyEnum(MyEnum.C);
     }
 
@@ -331,7 +331,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
         //dvg.setDumpCode(true);
         JavaBeanInterfaceGetDate jbid = newNativeReference(JavaBeanInterfaceGetDate.class);
         BytesStore<?, ByteBuffer> bytes = BytesStore.wrap(ByteBuffer.allocate(64));
-        ((Byteable) jbid).bytesStore(bytes, 0L, ((Byteable<?, ?>) jbid).maxSize());
+        ((Byteable) jbid).bytesStore(bytes, 0L, ((Byteable) jbid).maxSize());
         Date date = new Date();
         jbid.setDate(date);
         assertEquals(date, jbid.getDate());
@@ -342,7 +342,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
         //dvg.setDumpCode(true);
         JavaBeanInterfaceMoreThanOneEnums jbid = newNativeReference(JavaBeanInterfaceMoreThanOneEnums.class);
         BytesStore<?, ByteBuffer> bytes = BytesStore.wrap(ByteBuffer.allocate(64));
-        ((Byteable) jbid).bytesStore(bytes, 0L, ((Byteable<?, ?>) jbid).maxSize());
+        ((Byteable) jbid).bytesStore(bytes, 0L, ((Byteable) jbid).maxSize());
         MyEnum myEnum1 = MyEnum.B;
         jbid.setMyEnum1(myEnum1);
         MyEnum myEnum2 = MyEnum.A;
