@@ -32,14 +32,14 @@ import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static net.openhft.chronicle.values.Align.NO_ALIGNMENT;
-import static net.openhft.compiler.CompilerUtils.CACHED_COMPILER;
 import static net.openhft.chronicle.values.Utils.roundUp;
+import static net.openhft.compiler.CompilerUtils.CACHED_COMPILER;
 
 public class ValueModel {
 
     public static final String $$NATIVE = "$$Native";
     public static final String $$HEAP = "$$Heap";
-    private static ClassValue<Object> classValueModel = new ClassValue<Object>() {
+    private static final ClassValue<Object> classValueModel = new ClassValue<Object>() {
         @Override
         protected Object computeValue(Class<?> valueType) {
             try {
@@ -60,6 +60,7 @@ public class ValueModel {
         this.valueType = valueType;
         orderedFields = new ArrayList<>();
         sizeInBytes = arrangeFields(fields);
+        CACHED_COMPILER.fileManagerOverride = (fm) -> new MyJavaFileManager(valueType, fm);
     }
 
     /**
