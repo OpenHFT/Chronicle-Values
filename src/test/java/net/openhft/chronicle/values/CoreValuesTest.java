@@ -219,7 +219,7 @@ public class CoreValuesTest extends ValuesTestCommon {
         testDoubleValue(doubleValue);
         ((Byteable) doubleValue).bytesStore().releaseLast();
     }
-    
+
     @NotNull
     private DoubleValue newBackedNativeDoubleValue() {
         DoubleValue doubleValue = Values.newNativeReference(DoubleValue.class);
