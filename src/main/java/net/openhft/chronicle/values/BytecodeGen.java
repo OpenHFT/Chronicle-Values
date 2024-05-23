@@ -115,7 +115,7 @@ final class BytecodeGen {
         }
     }
 
-    @SuppressWarnings("removal")
+    @SuppressWarnings({"deprecation", "removal"})
     private static <T> T doPrivileged(PrivilegedAction<T> stringPrivilegedAction) {
         return java.security.AccessController.doPrivileged(stringPrivilegedAction);
     }
