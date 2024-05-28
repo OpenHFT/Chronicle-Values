@@ -48,7 +48,7 @@ class ValueBuilder {
 
     FieldSpec unsafe() {
         if (unsafe == null) {
-            Class type = Utils.UNSAFE_CLASS;
+            Class<?> type = Utils.UNSAFE_CLASS;
             unsafe = FieldSpec.builder(type, "UNSAFE", PRIVATE, STATIC, FINAL).build();
             typeBuilder.addField(unsafe);
 

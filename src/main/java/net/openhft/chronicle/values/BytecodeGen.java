@@ -24,7 +24,6 @@ import net.openhft.chronicle.core.util.WeakIdentityHashMap;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Modifier;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.Map;
@@ -35,16 +34,16 @@ import java.util.Map;
  * and
  * https://github.com/google/guice/blob/09fec22916264e76d95333b81c69030b3b713e64/core/src/com/google/inject/internal/BytecodeGen.java
  * <p>
- * <p>When loading classes, we need to be careful of:
+ * When loading classes, we need to be careful of:
  * <ul>
  * <li><strong>Memory leaks.</strong> Generated classes need to be garbage collected in long-lived
  * applications. Once an injector and any instances it created can be garbage collected, the
  * corresponding generated classes should be collectable.
- * <li><strong>Visibility.</strong> Containers like <code>OSGi</code> use class loader boundaries
+ * <li><strong>Visibility.</strong> Containers like {@code OSGi} use class loader boundaries
  * to enforce modularity at runtime.
  * </ul>
  * <p>
- * <p>For each generated class, there's multiple class loaders involved:
+ * For each generated class, there's multiple class loaders involved:
  * <ul>
  * <li><strong>The related class's class loader.</strong> Every generated class services exactly
  * one user-supplied class. This class loader must be used to access members with protected
@@ -103,8 +102,7 @@ final class BytecodeGen {
         Class<T> enumType = defaultValue.getDeclaringClass();
         String value = null;
         try {
-            value = AccessController.doPrivileged(
-                    (PrivilegedAction<String>) () -> Jvm.getProperty(name));
+            value = doPrivileged(() -> Jvm.getProperty(name));
             return (value != null && value.length() > 0) ? Enum.valueOf(enumType, value) :
                     defaultValue;
         } catch (SecurityException e) {
@@ -112,9 +110,14 @@ final class BytecodeGen {
         } catch (IllegalArgumentException e) {
             Jvm.warn().on(BytecodeGen.class,
                     value + " is not a valid flag value for " + name + ". "
-                    + " Values must be one of " + Arrays.asList(enumType.getEnumConstants()));
+                            + " Values must be one of " + Arrays.asList(enumType.getEnumConstants()));
             return defaultValue;
         }
+    }
+
+    @SuppressWarnings({"deprecation", "removal"})
+    private static <T> T doPrivileged(PrivilegedAction<T> stringPrivilegedAction) {
+        return java.security.AccessController.doPrivileged(stringPrivilegedAction);
     }
 
     private static ClassLoader getFromClassLoaderCache(ClassLoader typeClassLoader) {
@@ -123,9 +126,7 @@ final class BytecodeGen {
                 if (ref == null || ref.get() == null) {
                     Jvm.debug().on(BytecodeGen.class,
                             "Creating a bridge ClassLoader for " + typeClassLoader);
-                    return AccessController.doPrivileged(
-                            (PrivilegedAction<WeakReference<ClassLoader>>) () ->
-                                    new WeakReference<>(new BridgeClassLoader(typeClassLoader)));
+                    return doPrivileged(() -> new WeakReference<>(new BridgeClassLoader(typeClassLoader)));
                 } else {
                     return ref;
                 }

@@ -53,8 +53,8 @@ public class ValueModel {
     private final Map<FieldModel, FieldData> fieldData = new HashMap<>();
     private final List<FieldModel> orderedFields;
     private final int sizeInBytes;
-    private volatile Class nativeClass;
-    private volatile Class heapClass;
+    private volatile Class<?> nativeClass;
+    private volatile Class<?> heapClass;
 
     ValueModel(Class<?> valueType, Stream<FieldModel> fields) {
         this.valueType = valueType;
@@ -98,12 +98,12 @@ public class ValueModel {
     }
 
     private static <T> T doSomethingForInterfaceOr(
-            Class<?> valueType, Function<Class, T> actionForInterface, Supplier<T> ifNotFound) {
+            Class<?> valueType, Function<Class<?>, T> actionForInterface, Supplier<T> ifNotFound) {
         String typeName = valueType.getName();
         if (typeName.endsWith($$NATIVE) || typeName.endsWith($$HEAP)) {
             Type[] superInterfaces = valueType.getGenericInterfaces();
             for (Type superInterface : superInterfaces) {
-                Class rawInterface = rawInterface(superInterface);
+                Class<?> rawInterface = rawInterface(superInterface);
                 // index of first $ in Foo$$Heap or Foo$$Native
                 int firstDollarIndex = typeName.lastIndexOf('$') - 1;
                 if (rawInterface.getName().equals(typeName.substring(0, firstDollarIndex)))
@@ -124,12 +124,12 @@ public class ValueModel {
                 () -> false);
     }
 
-    static Class rawInterface(Type superInterface) {
+    static Class<?> rawInterface(Type superInterface) {
         if (superInterface instanceof Class) {
-            return (Class) superInterface;
+            return (Class<?>) superInterface;
         } else {
             if (superInterface instanceof ParameterizedType) {
-                return (Class) ((ParameterizedType) superInterface).getRawType();
+                return (Class<?>) ((ParameterizedType) superInterface).getRawType();
             } else {
                 throw new AssertionError("Super interface should be a raw interface or" +
                         "a parameterized interface");
@@ -151,7 +151,7 @@ public class ValueModel {
      * biggest) first, if holes appear due to alignment, tries to fill holes (from smallest to
      * biggest) on each step.
      * <p>
-     * <p>Sure this is a suboptimal algorithm, optimal algorithm is NP hard and rather complex
+     * Sure this is a suboptimal algorithm, optimal algorithm is NP hard and rather complex
      * (unless try all combinations), but the user could always arrange the fields by hand,
      * providing @Group annotation to each field.
      *
@@ -232,8 +232,8 @@ public class ValueModel {
         return orderedFields.stream();
     }
 
-    Class firstPrimitiveFieldType() {
-        Class firstFieldType = orderedFields.get(0).type;
+    Class<?> firstPrimitiveFieldType() {
+        Class<?> firstFieldType = orderedFields.get(0).type;
         if (firstFieldType.isPrimitive())
             return firstFieldType;
         return ValueModel.acquire(firstFieldType).firstPrimitiveFieldType();
@@ -244,7 +244,7 @@ public class ValueModel {
      * the fields. It is the most coarse among all of it's fields' {@linkplain Align#offset()
      * offset} and {@linkplain Align#dontCross() don't cross} alignments.
      * <p>
-     * <p>Returns a positive integer {@code >=} 1.
+     * Returns a positive integer {@code >=} 1.
      *
      * @return the alignment of the flyweight value itself, to satisfy fields' alignments
      */
@@ -273,8 +273,8 @@ public class ValueModel {
      * @return a native (flyweight) implementation for this ValueModel
      * @throws ImplGenerationFailedException if generation failed
      */
-    public Class nativeClass() {
-        Class c;
+    public Class<?> nativeClass() {
+        Class<?> c;
         if ((c = nativeClass) != null)
             return c;
         synchronized (this) {
@@ -291,8 +291,8 @@ public class ValueModel {
      * @return a heap implementation for this ValueModel
      * @throws ImplGenerationFailedException if generation failed
      */
-    public Class heapClass() {
-        Class c;
+    public Class<?> heapClass() {
+        Class<?> c;
         if ((c = heapClass) != null)
             return c;
         synchronized (this) {
@@ -303,11 +303,11 @@ public class ValueModel {
         }
     }
 
-    private Class createNativeClass() {
+    private Class<?> createNativeClass() {
         return createClass(simpleName() + $$NATIVE, Generators::generateNativeClass);
     }
 
-    private Class createHeapClass() {
+    private Class<?> createHeapClass() {
         return createClass(simpleName() + $$HEAP, Generators::generateHeapClass);
     }
 
@@ -315,7 +315,7 @@ public class ValueModel {
         return simpleName(valueType);
     }
 
-    private Class createClass(
+    private Class<?> createClass(
             String className, BiFunction<ValueModel, String, String> generateClass) {
         String classNameWithPackage = valueType.getPackage().getName() + "." + className;
         ClassLoader cl = BytecodeGen.getClassLoader(valueType);

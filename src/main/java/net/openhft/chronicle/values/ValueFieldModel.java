@@ -235,7 +235,7 @@ class ValueFieldModel extends ScalarFieldModel {
 
         FieldSpec cachedValue;
         FieldSpec otherCachedValue;
-        private Class nativeType;
+        private Class<?> nativeType;
 
         NativeMemberGenerator() {
             super(ValueFieldModel.this);

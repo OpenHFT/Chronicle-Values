@@ -18,6 +18,8 @@
 
 package net.openhft.chronicle.values;
 
+import net.openhft.chronicle.core.Jvm;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.EnumSet;
@@ -41,7 +43,7 @@ public final class Enums {
     public static <E extends Enum<E>> E[] getUniverse(Class<E> enumType) {
         try {
             //noinspection unchecked
-            return (E[]) getUniverse.invoke(null, enumType);
+            return Jvm.uncheckedCast(getUniverse.invoke(null, enumType));
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }

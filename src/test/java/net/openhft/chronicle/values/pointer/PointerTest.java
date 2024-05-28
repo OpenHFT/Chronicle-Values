@@ -30,10 +30,11 @@ import static org.junit.Assert.*;
 
 public class PointerTest extends ValuesTestCommon {
 
-    private static long getAddress(Byteable<?, ?> byteable) {
+    private static long getAddress(Byteable byteable) {
         return requireNonNull(byteable.bytesStore()).addressForRead(byteable.offset());
     }
 
+    @SuppressWarnings("unchecked")
     @NotNull
     private static PointedInterface getPointed() {
         PointedInterface pointed1 = Values.newNativeReference(PointedInterface.class);

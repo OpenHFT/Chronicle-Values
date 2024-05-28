@@ -38,6 +38,7 @@ import static net.openhft.compiler.CompilerUtils.CACHED_COMPILER;
 /**
  * User: peter.lawrey Date: 06/10/13 Time: 20:13
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ValueGeneratorTest extends ValuesTestCommon {
     @Test
     public void testGenerateJavaCode() {
@@ -83,7 +84,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
         assertEquals(7.0, mi.double$(), 0.0);
         assertTrue(mi.flag());
 
-        Bytes bbb = Bytes.wrapForWrite(ByteBuffer.allocate(64));
+        Bytes<ByteBuffer> bbb = Bytes.wrapForWrite(ByteBuffer.allocate(64));
         mi.writeMarshallable(bbb);
         System.out.println("size: " + bbb.writePosition());
 
@@ -101,16 +102,17 @@ public class ValueGeneratorTest extends ValuesTestCommon {
         assertTrue(mi2.flag());
     }
 
+    @SuppressWarnings("rawtypes")
     @Test
     public void testGenerateNativeWithGetUsing() throws ClassNotFoundException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         String actual = generateNativeClass(ValueModel.acquire(JavaBeanInterfaceGetUsing.class),
                 ValueModel.simpleName(JavaBeanInterfaceGetUsing.class) + "$$Native");
         System.out.println(actual);
-        Class aClass = CACHED_COMPILER.loadFromJava(
+        Class<?> aClass = CACHED_COMPILER.loadFromJava(
                 BytecodeGen.getClassLoader(JavaBeanInterfaceGetUsing.class),
                 JavaBeanInterfaceGetUsing.class.getName() + "$$Native", actual);
         JavaBeanInterfaceGetUsing jbi = (JavaBeanInterfaceGetUsing) aClass.asSubclass(JavaBeanInterfaceGetUsing.class).getDeclaredConstructor().newInstance();
-        BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
+        BytesStore<?, ByteBuffer> bytes = BytesStore.wrap(ByteBuffer.allocate(64));
         ((Byteable) jbi).bytesStore(bytes, 0L, ((Byteable) jbi).maxSize());
 
         jbi.setString("G'day");
@@ -202,14 +204,14 @@ public class ValueGeneratorTest extends ValuesTestCommon {
         String actual = generateNativeClass(ValueModel.acquire(type),
                 ValueModel.simpleName(type) + "$$Native");
         System.out.println(actual);
-        Class aClass = Values.nativeClassFor(type);
+        Class<?> aClass = Values.nativeClassFor(type);
         T jbi;
         try {
             jbi = (T) aClass.asSubclass(type).getConstructor().newInstance();
         } catch (NoSuchMethodException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
-        BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
+        BytesStore<?, ByteBuffer> bytes = BytesStore.wrap(ByteBuffer.allocate(64));
         ((Byteable) jbi).bytesStore(bytes, 0L, ((Byteable) jbi).maxSize());
         return jbi;
     }
@@ -218,7 +220,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
         String actual = generateHeapClass(ValueModel.acquire(type),
                 ValueModel.simpleName(type) + "$$Heap");
         System.out.println(actual);
-        Class aClass = Values.heapClassFor(type);
+        Class<T> aClass = Values.heapClassFor(type);
         T jbi = (T) aClass.asSubclass(type).getDeclaredConstructor().newInstance();
         return jbi;
     }
@@ -227,7 +229,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
     public void testGenerateNativeWithHasArrays() {
         HasArraysInterface hai = Values.newNativeReference(HasArraysInterface.class);
         long length = ((Byteable) hai).maxSize();
-        BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate((int) length));
+        BytesStore<?, ByteBuffer> bytes = BytesStore.wrap(ByteBuffer.allocate((int) length));
         ((Byteable) hai).bytesStore(bytes, 0L, length);
 
         hai.setStringAt(0, "G'day");
@@ -251,7 +253,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
         assertEquals("Hello world", si.getString());
 
         StringInterface si2 = newNativeReference(StringInterface.class);
-        BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(192));
+        BytesStore<?, ByteBuffer> bytes = BytesStore.wrap(ByteBuffer.allocate(192));
         ((Byteable) si2).bytesStore(bytes, 0L, ((Byteable) si2).maxSize());
         si2.setString("Hello world £€");
         si2.setText("Hello world £€");
@@ -287,7 +289,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
         nestedB2.bid(92);
 
         NestedA nestedA = newNativeReference(NestedA.class);
-        BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(192));
+        BytesStore<?, ByteBuffer> bytes = BytesStore.wrap(ByteBuffer.allocate(192));
         ((Byteable) nestedA).bytesStore(bytes, 0L, ((Byteable) nestedA).maxSize());
         nestedA.key("key");
         nestedA.one(nestedB1);
@@ -312,7 +314,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
     @Test
     public void testGenerateInterfaceWithEnumNativeInstance() {
         JavaBeanInterfaceGetMyEnum jbie = newNativeReference(JavaBeanInterfaceGetMyEnum.class);
-        BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
+        BytesStore<?, ByteBuffer> bytes = BytesStore.wrap(ByteBuffer.allocate(64));
         ((Byteable) jbie).bytesStore(bytes, 0L, ((Byteable) jbie).maxSize());
         jbie.setMyEnum(MyEnum.C);
     }
@@ -328,7 +330,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
     public void testGenerateInterfaceWithDateNativeInstace() {
         //dvg.setDumpCode(true);
         JavaBeanInterfaceGetDate jbid = newNativeReference(JavaBeanInterfaceGetDate.class);
-        BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
+        BytesStore<?, ByteBuffer> bytes = BytesStore.wrap(ByteBuffer.allocate(64));
         ((Byteable) jbid).bytesStore(bytes, 0L, ((Byteable) jbid).maxSize());
         Date date = new Date();
         jbid.setDate(date);
@@ -339,7 +341,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
     public void testGenerateInterfaceWithMoreThanOneEnums() {
         //dvg.setDumpCode(true);
         JavaBeanInterfaceMoreThanOneEnums jbid = newNativeReference(JavaBeanInterfaceMoreThanOneEnums.class);
-        BytesStore bytes = BytesStore.wrap(ByteBuffer.allocate(64));
+        BytesStore<?, ByteBuffer> bytes = BytesStore.wrap(ByteBuffer.allocate(64));
         ((Byteable) jbid).bytesStore(bytes, 0L, ((Byteable) jbid).maxSize());
         MyEnum myEnum1 = MyEnum.B;
         jbid.setMyEnum1(myEnum1);

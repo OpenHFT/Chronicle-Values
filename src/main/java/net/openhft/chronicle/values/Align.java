@@ -32,11 +32,11 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * boundary. This annotation should be put on any single method accessing the field: getter, or
  * setter, or adder, etc.
  * <p>
- * <p>This annotation guarantees alignment from the beginning of the instance, so to ensure
+ * This annotation guarantees alignment from the beginning of the instance, so to ensure
  * alignment in the native memory, the instance as a whole should be aligned by native memory
  * addresses to the most coarse alignment of it's fields.
  * <p>
- * <p>The default alignment depends on the field type, see {@link #DEFAULT}.
+ * The default alignment depends on the field type, see {@link #DEFAULT}.
  */
 @Target(METHOD)
 @Retention(RUNTIME)

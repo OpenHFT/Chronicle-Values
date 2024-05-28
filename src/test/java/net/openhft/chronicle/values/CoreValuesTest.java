@@ -27,6 +27,7 @@ import org.junit.Test;
 import static net.openhft.chronicle.bytes.BytesStore.nativeStoreWithFixedCapacity;
 import static org.junit.Assert.*;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class CoreValuesTest extends ValuesTestCommon {
 
     @Test
@@ -37,7 +38,7 @@ public class CoreValuesTest extends ValuesTestCommon {
     @Test
     public void testNativeIntValue() {
         IntValue intValue = Values.newNativeReference(IntValue.class);
-        BytesStore bs = nativeStoreWithFixedCapacity(((Byteable) intValue).maxSize());
+        BytesStore<?, ?> bs = nativeStoreWithFixedCapacity(((Byteable) intValue).maxSize());
         assertEquals(4, bs.capacity());
         ((Byteable) intValue).bytesStore(bs, 0, ((Byteable) intValue).maxSize());
         testIntValue(intValue);
@@ -73,7 +74,7 @@ public class CoreValuesTest extends ValuesTestCommon {
     @Test
     public void testNativeUnsignedIntValue() {
         UnsignedIntValue unsignedIntValue = Values.newNativeReference(UnsignedIntValue.class);
-        BytesStore bs = nativeStoreWithFixedCapacity(((Byteable) unsignedIntValue).maxSize());
+        BytesStore<?, ?> bs = nativeStoreWithFixedCapacity(((Byteable) unsignedIntValue).maxSize());
         assertEquals(4, bs.capacity());
         ((Byteable) unsignedIntValue).bytesStore(bs, 0, ((Byteable) unsignedIntValue).maxSize());
         testUnsignedIntValue(unsignedIntValue);
@@ -98,7 +99,7 @@ public class CoreValuesTest extends ValuesTestCommon {
     @Test
     public void testNativeByteValue() {
         ByteValue byteValue = Values.newNativeReference(ByteValue.class);
-        BytesStore bs = nativeStoreWithFixedCapacity(((Byteable) byteValue).maxSize());
+        BytesStore<?, ?> bs = nativeStoreWithFixedCapacity(((Byteable) byteValue).maxSize());
         assertEquals(1, bs.capacity());
         ((Byteable) byteValue).bytesStore(bs, 0, ((Byteable) byteValue).maxSize());
         testByteValue(byteValue);
@@ -123,7 +124,7 @@ public class CoreValuesTest extends ValuesTestCommon {
     @Test
     public void testNativeCharValue() {
         CharValue charValue = Values.newNativeReference(CharValue.class);
-        BytesStore bs = nativeStoreWithFixedCapacity(((Byteable) charValue).maxSize());
+        BytesStore<?, ?> bs = nativeStoreWithFixedCapacity(((Byteable) charValue).maxSize());
         assertEquals(2, bs.capacity());
         ((Byteable) charValue).bytesStore(bs, 0, ((Byteable) charValue).maxSize());
         testCharValue(charValue);
@@ -146,7 +147,7 @@ public class CoreValuesTest extends ValuesTestCommon {
     public void testNativeLongValue() {
         try (LongValue longValue = Values.newNativeReference(LongValue.class)) {
             Byteable longByteableValue = (Byteable) longValue;
-            BytesStore bs = nativeStoreWithFixedCapacity(longByteableValue.maxSize());
+            BytesStore<?, ?> bs = nativeStoreWithFixedCapacity(longByteableValue.maxSize());
             assertEquals(8, bs.capacity());
             longByteableValue.bytesStore(bs, 0, longByteableValue.maxSize());
             testLongValue(longValue);
@@ -183,7 +184,7 @@ public class CoreValuesTest extends ValuesTestCommon {
     @Test
     public void testNativeFloatValue() {
         FloatValue floatValue = Values.newNativeReference(FloatValue.class);
-        BytesStore bs = nativeStoreWithFixedCapacity(((Byteable) floatValue).maxSize());
+        BytesStore<?, ?> bs = nativeStoreWithFixedCapacity(((Byteable) floatValue).maxSize());
         assertEquals(4, bs.capacity());
         ((Byteable) floatValue).bytesStore(bs, 0, ((Byteable) floatValue).maxSize());
         testFloatValue(floatValue);
@@ -218,11 +219,11 @@ public class CoreValuesTest extends ValuesTestCommon {
         testDoubleValue(doubleValue);
         ((Byteable) doubleValue).bytesStore().releaseLast();
     }
-    
+
     @NotNull
     private DoubleValue newBackedNativeDoubleValue() {
         DoubleValue doubleValue = Values.newNativeReference(DoubleValue.class);
-        BytesStore bs = nativeStoreWithFixedCapacity(((Byteable) doubleValue).maxSize());
+        BytesStore<?, ?> bs = nativeStoreWithFixedCapacity(((Byteable) doubleValue).maxSize());
         assertEquals(8, bs.capacity());
         ((Byteable) doubleValue).bytesStore(bs, 0, ((Byteable) doubleValue).maxSize());
         return doubleValue;
@@ -263,7 +264,7 @@ public class CoreValuesTest extends ValuesTestCommon {
     @Test
     public void testNativeShortValue() {
         ShortValue shortValue = Values.newNativeReference(ShortValue.class);
-        BytesStore bs = nativeStoreWithFixedCapacity(((Byteable) shortValue).maxSize());
+        BytesStore<?, ?> bs = nativeStoreWithFixedCapacity(((Byteable) shortValue).maxSize());
         assertEquals(2, bs.capacity());
         ((Byteable) shortValue).bytesStore(bs, 0, ((Byteable) shortValue).maxSize());
         testShortValue(shortValue);
@@ -288,7 +289,7 @@ public class CoreValuesTest extends ValuesTestCommon {
     @Test
     public void testNativeBooleanValue() {
         BooleanValue booleanValue = Values.newNativeReference(BooleanValue.class);
-        BytesStore bs = nativeStoreWithFixedCapacity(((Byteable) booleanValue).maxSize());
+        BytesStore<?, ?> bs = nativeStoreWithFixedCapacity(((Byteable) booleanValue).maxSize());
         assertEquals(1, bs.capacity());
         ((Byteable) booleanValue).bytesStore(bs, 0, ((Byteable) booleanValue).maxSize());
         testBooleanValue(booleanValue);

@@ -33,4 +33,3 @@ public interface GetUsingStringInterface {
 
     StringBuilder getUsingAnotherStringField(StringBuilder builder);
 }
-

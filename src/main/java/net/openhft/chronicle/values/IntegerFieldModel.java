@@ -208,7 +208,7 @@ class IntegerFieldModel extends PrimitiveFieldModel {
         return capitalize(integerBytesIoType(bitsToRead).getSimpleName());
     }
 
-    private static Class integerBytesIoType(int bits) {
+    private static Class<?> integerBytesIoType(int bits) {
         switch (bits) {
             case 8:
                 return byte.class;
@@ -443,7 +443,7 @@ class IntegerFieldModel extends PrimitiveFieldModel {
             valueToWrite = format("((%s) & %s) | (%s)", read, mask, valueToWrite);
         }
 
-        Class ioType = integerBytesIoType(bitsToWrite);
+        Class<?> ioType = integerBytesIoType(bitsToWrite);
         if (ioType != type)
             valueToWrite = format("(%s) (%s)", ioType.getSimpleName(), valueToWrite);
         String writeMethod = "write" + accessType.apply(

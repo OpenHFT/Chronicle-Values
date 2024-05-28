@@ -18,6 +18,8 @@
 
 package net.openhft.chronicle.values;
 
+import net.openhft.chronicle.core.Jvm;
+
 import java.lang.reflect.InvocationTargetException;
 
 /**
@@ -71,7 +73,7 @@ public final class Values {
      */
     public static <T> Class<T> heapClassFor(Class<T> valueType) {
         //noinspection unchecked
-        return ValueModel.acquire(valueType).heapClass();
+        return Jvm.uncheckedCast(ValueModel.acquire(valueType).heapClass());
     }
 
     /**
@@ -86,6 +88,6 @@ public final class Values {
      */
     public static <T> Class<T> nativeClassFor(Class<T> valueType) {
         //noinspection unchecked
-        return ValueModel.acquire(valueType).nativeClass();
+        return Jvm.uncheckedCast(ValueModel.acquire(valueType).nativeClass());
     }
 }
