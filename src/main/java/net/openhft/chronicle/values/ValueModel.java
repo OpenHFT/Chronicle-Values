@@ -317,7 +317,7 @@ public class ValueModel {
 
     private Class<?> createClass(
             String className, BiFunction<ValueModel, String, String> generateClass) {
-        String classNameWithPackage = valueType.getPackage().getName() + "." + className;
+        String classNameWithPackage = Jvm.getPackageName(valueType) + "." + className;
         ClassLoader cl = BytecodeGen.getClassLoader(valueType);
         try {
             return cl.loadClass(classNameWithPackage);

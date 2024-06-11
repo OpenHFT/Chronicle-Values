@@ -19,6 +19,7 @@
 package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.bytes.*;
+import net.openhft.chronicle.core.Jvm;
 import net.openhft.chronicle.core.io.ClosedIllegalStateException;
 import net.openhft.chronicle.core.io.IORuntimeException;
 import net.openhft.chronicle.core.io.InvalidMarshallableException;
@@ -70,7 +71,7 @@ public class MyJavaFileManager extends net.openhft.compiler.MyJavaFileManager {
     }
 
     private static void addFileObjects(Map<String, Set<JavaFileObject>> fileObjects, Class<?> c) {
-        fileObjects.compute(c.getPackage().getName(), (p, objects) -> {
+        fileObjects.compute(Jvm.getPackageName(c), (p, objects) -> {
             if (objects == null)
                 objects = new HashSet<>();
             objects.add(classFileObject(c));
