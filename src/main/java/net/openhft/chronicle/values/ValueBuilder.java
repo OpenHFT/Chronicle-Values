@@ -43,7 +43,7 @@ class ValueBuilder {
     }
 
     ClassName className() {
-        return ClassName.get(model.valueType.getPackage().getName(), className);
+        return ClassName.get(Jvm.getPackageName(model.valueType), className);
     }
 
     FieldSpec unsafe() {

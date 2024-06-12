@@ -46,7 +46,7 @@ final class Generators {
         valueBuilder.closeConstructorsAndInitializationBlocks();
         TypeSpec nativeType = typeBuilder.build();
         String result = JavaFile
-                .builder(model.valueType.getPackage().getName(), nativeType)
+                .builder(Jvm.getPackageName(model.valueType), nativeType)
                 .build()
                 .toString();
         if (Jvm.getBoolean("chronicle.values.dumpCode"))
@@ -268,7 +268,7 @@ final class Generators {
         valueBuilder.closeConstructorsAndInitializationBlocks();
         TypeSpec heapType = typeBuilder.build();
         String result = JavaFile
-                .builder(model.valueType.getPackage().getName(), heapType)
+                .builder(Jvm.getPackageName(model.valueType), heapType)
                 .build()
                 .toString();
         if (Jvm.getBoolean("chronicle.values.dumpCode"))
