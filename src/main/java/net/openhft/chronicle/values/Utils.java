@@ -18,6 +18,8 @@
 
 package net.openhft.chronicle.values;
 
+import java.util.Locale;
+
 final class Utils {
     static final Class<?> UNSAFE_CLASS;
 
@@ -37,7 +39,7 @@ final class Utils {
     }
 
     static String capitalize(String s) {
-        return s.substring(0, 1).toUpperCase() + s.substring(1);
+        return s.substring(0, 1).toUpperCase(Locale.ROOT) + s.substring(1);
     }
 
     static String formatIntOrLong(long v) {

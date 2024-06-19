@@ -27,13 +27,14 @@ import org.junit.Test;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.util.Date;
+import java.util.Locale;
 
 import static net.openhft.chronicle.values.Generators.generateHeapClass;
 import static net.openhft.chronicle.values.Generators.generateNativeClass;
 import static net.openhft.chronicle.values.Values.newHeapInstance;
 import static net.openhft.chronicle.values.Values.newNativeReference;
-import static org.junit.Assert.*;
 import static net.openhft.compiler.CompilerUtils.CACHED_COMPILER;
+import static org.junit.Assert.*;
 
 /**
  * User: peter.lawrey Date: 06/10/13 Time: 20:13
@@ -64,42 +65,49 @@ public class ValueGeneratorTest extends ValuesTestCommon {
 
     @Test
     public void testGenerateJavaCode2() {
-        MinimalInterface mi = newHeapInstance(MinimalInterface.class);
+        Locale defaultLocale = Locale.getDefault();
+        Locale.setDefault(Locale.forLanguageTag("tr"));
+        try {
+            MinimalInterface mi = newHeapInstance(MinimalInterface.class);
 
-        mi.byte$((byte) 1);
-        mi.char$('2');
-        mi.short$((short) 3);
-        mi.int$(4);
-        mi.float$(5);
-        mi.long$(6);
-        mi.double$(7);
-        mi.flag(true);
+            mi.byte$((byte) 1);
+            mi.char$('2');
+            mi.short$((short) 3);
+            mi.int$(4);
+            mi.float$(5);
+            mi.long$(6);
+            mi.double$(7);
+            mi.flag(true);
 
-        assertEquals(1, mi.byte$());
-        assertEquals('2', mi.char$());
-        assertEquals(3, mi.short$());
-        assertEquals(4, mi.int$());
-        assertEquals(5.0, mi.float$(), 0);
-        assertEquals(6, mi.long$());
-        assertEquals(7.0, mi.double$(), 0.0);
-        assertTrue(mi.flag());
+            assertEquals(1, mi.byte$());
+            assertEquals('2', mi.char$());
+            assertEquals(3, mi.short$());
+            assertEquals(4, mi.int$());
+            assertEquals(5.0, mi.float$(), 0);
+            assertEquals(6, mi.long$());
+            assertEquals(7.0, mi.double$(), 0.0);
+            assertTrue(mi.flag());
 
-        Bytes<ByteBuffer> bbb = Bytes.wrapForWrite(ByteBuffer.allocate(64));
-        mi.writeMarshallable(bbb);
-        System.out.println("size: " + bbb.writePosition());
+            Bytes<ByteBuffer> bbb = Bytes.wrapForWrite(ByteBuffer.allocate(64));
+            mi.writeMarshallable(bbb);
+            System.out.println("size: " + bbb.writePosition());
 
-        MinimalInterface mi2 = newHeapInstance(MinimalInterface.class);
-        bbb.readPosition(0);
-        mi2.readMarshallable(bbb);
+            MinimalInterface mi2 = newHeapInstance(MinimalInterface.class);
+            bbb.readPosition(0);
+            mi2.readMarshallable(bbb);
 
-        assertEquals(1, mi2.byte$());
-        assertEquals('2', mi2.char$());
-        assertEquals(3, mi2.short$());
-        assertEquals(4, mi2.int$());
-        assertEquals(5.0, mi2.float$(), 0);
-        assertEquals(6, mi2.long$());
-        assertEquals(7.0, mi2.double$(), 0.0);
-        assertTrue(mi2.flag());
+            assertEquals(1, mi2.byte$());
+            assertEquals('2', mi2.char$());
+            assertEquals(3, mi2.short$());
+            assertEquals(4, mi2.int$());
+            assertEquals(5.0, mi2.float$(), 0);
+            assertEquals(6, mi2.long$());
+            assertEquals(7.0, mi2.double$(), 0.0);
+            assertTrue(mi2.flag());
+        }
+        finally {
+            Locale.setDefault(defaultLocale);
+        }
     }
 
     @SuppressWarnings("rawtypes")
@@ -111,7 +119,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
         Class<?> aClass = CACHED_COMPILER.loadFromJava(
                 BytecodeGen.getClassLoader(JavaBeanInterfaceGetUsing.class),
                 JavaBeanInterfaceGetUsing.class.getName() + "$$Native", actual);
-        JavaBeanInterfaceGetUsing jbi = (JavaBeanInterfaceGetUsing) aClass.asSubclass(JavaBeanInterfaceGetUsing.class).getDeclaredConstructor().newInstance();
+        JavaBeanInterfaceGetUsing jbi = aClass.asSubclass(JavaBeanInterfaceGetUsing.class).getDeclaredConstructor().newInstance();
         BytesStore<?, ByteBuffer> bytes = BytesStore.wrap(ByteBuffer.allocate(64));
         ((Byteable) jbi).bytesStore(bytes, 0L, ((Byteable) jbi).maxSize());
 
@@ -207,7 +215,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
         Class<?> aClass = Values.nativeClassFor(type);
         T jbi;
         try {
-            jbi = (T) aClass.asSubclass(type).getConstructor().newInstance();
+            jbi = aClass.asSubclass(type).getConstructor().newInstance();
         } catch (NoSuchMethodException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
@@ -221,7 +229,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
                 ValueModel.simpleName(type) + "$$Heap");
         System.out.println(actual);
         Class<T> aClass = Values.heapClassFor(type);
-        T jbi = (T) aClass.asSubclass(type).getDeclaredConstructor().newInstance();
+        T jbi = aClass.asSubclass(type).getDeclaredConstructor().newInstance();
         return jbi;
     }
 
@@ -327,7 +335,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
     }
 
     @Test
-    public void testGenerateInterfaceWithDateNativeInstace() {
+    public void testGenerateInterfaceWithDateNativeInstance() {
         //dvg.setDumpCode(true);
         JavaBeanInterfaceGetDate jbid = newNativeReference(JavaBeanInterfaceGetDate.class);
         BytesStore<?, ByteBuffer> bytes = BytesStore.wrap(ByteBuffer.allocate(64));
