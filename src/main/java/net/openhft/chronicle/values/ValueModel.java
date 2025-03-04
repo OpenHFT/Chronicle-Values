@@ -61,6 +61,11 @@ public class ValueModel {
         orderedFields = new ArrayList<>();
         sizeInBytes = arrangeFields(fields);
         CACHED_COMPILER.fileManagerOverride = (fm) -> new MyJavaFileManager(valueType, fm);
+        CACHED_COMPILER.updateFileManagerForClassLoader(valueType.getClassLoader(), fm -> {
+            if (fm instanceof MyJavaFileManager) {
+                ((MyJavaFileManager) fm).addClassToFileObjects(valueType);
+            }
+        });
     }
 
     /**
