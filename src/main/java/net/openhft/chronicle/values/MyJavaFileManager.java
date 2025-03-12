@@ -70,6 +70,10 @@ public class MyJavaFileManager extends net.openhft.compiler.MyJavaFileManager {
         addFileObjects(fileObjects, valueType);
     }
 
+    public void addClassToFileObjects(Class<?> c) {
+        addFileObjects(fileObjects, c);
+    }
+
     private static void addFileObjects(Map<String, Set<JavaFileObject>> fileObjects, Class<?> c) {
         fileObjects.compute(Jvm.getPackageName(c), (p, objects) -> {
             if (objects == null)
