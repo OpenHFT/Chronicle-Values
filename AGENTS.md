@@ -12,7 +12,7 @@ LLM-based agents can accelerate development only if they respect our house rules
 |--------------|-----------|
 | **British English** spelling (`organisation`, `licence`, *not* `organization`, `license`) except technical US spellings like `synchronized` | Keeps wording consistent with Chronicle's London HQ and existing docs. See the University of Oxford style guide for reference. |
 | **ASCII-7 only** (code-points 0-127). Avoid smart quotes, non-breaking spaces and accented characters. | ASCII-7 survives every toolchain Chronicle uses, incl. low-latency binary wire formats that expect the 8th bit to be 0. |
-| If you must show a symbol that does not exist in ASCII-7, spell it out (`micro-second`, `>=`, `:alpha:`, `:yes:`) rather than inserting Unicode. | Extended or '8-bit ASCII' variants are *not* portable and are therefore disallowed. |
+| If a symbol is not available in ASCII-7, use a textual form such as `micro-second`, `>=`, `:alpha:`, `:yes:`. This is the preferred approach and Unicode must not be inserted. | Extended or '8-bit ASCII' variants are *not* portable and are therefore disallowed. |
 
 ## Javadoc guidelines
 
@@ -49,6 +49,9 @@ mvn -q verify
 
 * *Is this AsciiDoc documentation precise enough for a clean-room re-implementation?*
 * Does the Javadoc explain the code's *why* and *how* that a junior developer would not be expected to work out?
+* Are the documentation, tests and code updated together so the change is clear?
+* Does the commit point back to the relevant requirement or decision tag?
+* Would an example or small diagram help future maintainers?
 
 ## Project requirements
 
@@ -61,18 +64,14 @@ Building upon our existing Iterative Workflow, the newest recommendation is to e
 Ensure the relevant `.adoc` files are updated when features, requirements, implementation details, or tests change.
 This tight loop informs the AI accurately and creates immediate clarity for all team members.
 
-### Benefits
+### Benefits of Real-Time Documentation
 
-* **Confidence in Documentation**: Accurate docs prevent "miscommunications" that derail real-world outcomes.
-* **Better Onboarding**: An up-to-date AsciiDoc set means new developers grasp the system's design and requirements more quickly.
-* **Incremental Changes**: Thanks to the incremental mode, AIDE flags any newly updated files so you can keep the documentation synchronised.
-
-### Benefits of Keeping Requirements, Tests, and Code In Sync
-
-* **Reduced Drift**: Minimises gaps between documentation, tested behaviour, and implementation.
-* **Faster Feedback**: AI can quickly generate stubs based on docs/tests and highlight inconsistencies discovered during analysis.
-* **Better Quality**: Frequent checks align the code with specified requirements and verifiable tests.
-* **Smoother Onboarding**: Up-to-date AsciiDoc clarifies the system for new developers or team members switching contexts.
+* **Confidence in documentation**: Accurate docs prevent miscommunications that derail real-world outcomes.
+* **Reduced drift**: Real-time updates keep requirements, tests and code aligned.
+* **Faster feedback**: AI can quickly highlight inconsistencies when everything is in sync.
+* **Better quality**: Frequent checks align the implementation with the specified behaviour.
+* **Smoother onboarding**: Up-to-date AsciiDoc clarifies the system for new developers.
+* **Incremental changes**: AIDE flags newly updated files so you can keep the documentation synchronised.
 
 ### Best Practices
 
