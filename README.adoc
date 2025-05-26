@@ -20,6 +20,8 @@ Interfaces that can be processed by Chronicle-Values generation are called *valu
 Please write the value interface according to the specification below, with *unit tests for your interface*.
 If the generation from the value interface (according to spec) doesn't work, please report the case via GitHub issues.
 
+All classes in the package `net.openhft.chronicle.values.internal` and its subpackages are internal implementation details. They may change without notice and must not be referenced directly.
+
 === Value interface specification
 
 Value interfaces must belong to a non-empty package (they cannot sit in the default package).
