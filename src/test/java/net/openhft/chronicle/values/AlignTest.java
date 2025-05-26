@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+// Verifies field alignment for atomic operations.
 package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.bytes.Byteable;
