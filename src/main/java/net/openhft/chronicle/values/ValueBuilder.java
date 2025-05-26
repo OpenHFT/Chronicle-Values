@@ -24,10 +24,19 @@ import java.lang.reflect.Field;
 
 import static javax.lang.model.element.Modifier.*;
 
+/**
+ * Helper that assembles the pieces of a generated implementation during code
+ * generation. A {@code ValueBuilder} instance holds onto the {@link ValueModel}
+ * describing the source interface, the simple name of the class being
+ * generated and the Pojo builder used to emit its bytecode.
+ */
 class ValueBuilder {
 
+    /** metadata of the value interface being implemented */
     final ValueModel model;
+    /** simple name of the generated class */
     final String className;
+    /** builder for the generated type */
     final TypeSpec.Builder typeBuilder;
     private FieldSpec unsafe;
     private CodeBlock.Builder staticBlockBuilder;
@@ -44,6 +53,11 @@ class ValueBuilder {
         return ClassName.get(Jvm.getPackageName(model.valueType), className);
     }
 
+    /**
+     * Returns the field modelling {@code sun.misc.Unsafe}. On first call the
+     * field is declared and a static block is prepared to obtain the instance
+     * reflectively from {@code Jvm.theUnsafe}.
+     */
     FieldSpec unsafe() {
         if (unsafe == null) {
             Class<?> type = Utils.UNSAFE_CLASS;
@@ -60,12 +74,20 @@ class ValueBuilder {
         return unsafe;
     }
 
+    /**
+     * Lazily creates the builder for the class' static initialisation block.
+     * Used by {@link #unsafe()} and by field generators.
+     */
     CodeBlock.Builder staticBlockBuilder() {
         if (staticBlockBuilder == null)
             staticBlockBuilder = CodeBlock.builder();
         return staticBlockBuilder;
     }
 
+    /**
+     * Lazily creates the builder for the default public constructor so that
+     * field generators may append initialisation logic.
+     */
     MethodSpec.Builder defaultConstructorBuilder() {
         if (defaultConstructorBuilder == null) {
             defaultConstructorBuilder = MethodSpec.constructorBuilder();
@@ -74,6 +96,10 @@ class ValueBuilder {
         return defaultConstructorBuilder;
     }
 
+    /**
+     * Finalises any open initialisation blocks and constructors and adds them
+     * to the generated type.
+     */
     void closeConstructorsAndInitializationBlocks() {
         if (staticBlockBuilder != null) {
             staticBlockBuilder.nextControlFlow("catch ($T e)", IllegalAccessException.class);
@@ -86,6 +112,10 @@ class ValueBuilder {
         }
     }
 
+    /**
+     * Shared {@link PointerBytesStore} used when pointer fields need a
+     * temporary BytesStore. Added once to the generated type.
+     */
     FieldSpec bytesStoreForPointers() {
         if (bytesStoreForPointers == null) {
             bytesStoreForPointers = FieldSpec
