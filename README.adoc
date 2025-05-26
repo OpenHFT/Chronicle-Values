@@ -16,7 +16,7 @@ toc::[]
 Generation of constantly-sized flyweight accessors to https://github.com/OpenHFT/Chronicle-Bytes[Chronicle Bytes] and simple bean-style on-heap implementations from interfaces.
 Interfaces that can be processed by Chronicle-Values generation are called *value interfaces*.
 
-*Project status: Stable* — the feature matrix (see below) is very vast and not expected to be implemented further.
+*Project status: Stable* - the feature matrix (see below) is very vast and not expected to be implemented further.
 Please write the value interface according to the specification below, with *unit tests for your interface*.
 If the generation from the value interface (according to spec) doesn't work, please report the case via GitHub issues.
 
@@ -164,19 +164,19 @@ For nested value interfaces, `using` is that interface.
 | | Integer (`byte`-`long`) | `float`, `double` | `boolean` | Char sequence | Value interface | `enum` | `Date`
 
 | get / set
-| ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓
+| &#x2713; | &#x2713; | &#x2713; | &#x2713; | &#x2713; | &#x2713; | &#x2713;
 
 | Volatile get/set, ordered set
-| ✓ | ✓ | ✓ |  |  | ✓ | ✓
+| &#x2713; | &#x2713; | &#x2713; |  |  | &#x2713; | &#x2713;
 
 | Compare-and-swap
-| ✓ | ✓ | ✓ |  |  | ✓ | ✓
+| &#x2713; | &#x2713; | &#x2713; |  |  | &#x2713; | &#x2713;
 
 | Simple add, atomic add
-| ✓ | ✓ |  |  |  |  |
+| &#x2713; | &#x2713; |  |  |  |  |
 
 | getUsing
-|  |  |  | ✓ | ✓ |  |
+|  |  |  | &#x2713; | &#x2713; |  |
 |===
 
 === Field configuration via annotations
@@ -233,7 +233,7 @@ Ensure a field does not cross a cache-line boundary, for example:
 ----
 interface Message {
 
-    // … other fields …
+    // ... other fields ...
 
     @Align(dontCross = 64)
     long getImportantField();
@@ -260,7 +260,7 @@ onHeapPoint.setY(2);
 
 Generated classes implement:
 
-* `Copyable<Point>` — e.g. `onHeapPoint.copyFrom(offHeapPoint)`
+* `Copyable<Point>` - e.g. `onHeapPoint.copyFrom(offHeapPoint)`
 * `BytesMarshallable` (Chronicle-Bytes)
 * Correct `equals`, `hashCode`, `toString`
 * `Byteable` (no-op on the heap implementation)
@@ -273,7 +273,7 @@ You may extend these in the interface to avoid casting:
 
 [source,java]
 ----
-interface Point extends Byteable, BytesMarshallable, Copyable<Point> { … }
+interface Point extends Byteable, BytesMarshallable, Copyable<Point> { ... }
 
 Point offHeapPoint = Values.newNativeReference(Point.class);
 // no cast required
