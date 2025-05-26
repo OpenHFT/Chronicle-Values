@@ -33,6 +33,7 @@ import static net.openhft.chronicle.values.Nullability.NULLABLE;
 /**
  * Field model for {@code CharSequence}-based types.
  *
+
  * <p>One accessor parameter must carry {@link MaxUtf8Length}. The value
  * denotes the maximum number of UTF-8 bytes reserved for the field. The native
  * encoding stores a stop bit length prefix followed by the configured number of
