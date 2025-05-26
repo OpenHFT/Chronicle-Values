@@ -18,16 +18,34 @@ package net.openhft.chronicle.values;
 
 import com.squareup.javapoet.MethodSpec;
 
+/**
+ * Generates heap accessors for primitive numeric fields. In addition to the
+ * standard getters and setters this class emits add methods in two forms:
+ * <ul>
+ * <li>a non-atomic variant that reads the current value, adds the supplied
+ * argument and stores the result</li>
+ * <li>an atomic variant backed by {@code Unsafe.getAndAddX}</li>
+ * </ul>
+ */
 class NumberHeapMemberGenerator extends PrimitiveBackedHeapMemberGenerator {
 
     NumberHeapMemberGenerator(FieldModel fieldModel) {
         super(fieldModel);
     }
 
+    /**
+     * @return name of the {@code Unsafe} method used for atomic addition to this
+     * primitive type
+     */
     private String getAndAdd() {
         return "getAndAdd" + capType;
     }
 
+    /**
+     * Emits a method that adds {@code addition} to the field and returns the new
+     * value. Small integral types are widened for the calculation and cast back
+     * before storing.
+     */
     @Override
     public void generateAdd(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
         if (fieldModel.type != byte.class && fieldModel.type != char.class &&
@@ -57,6 +75,10 @@ class NumberHeapMemberGenerator extends PrimitiveBackedHeapMemberGenerator {
         methodBuilder.addStatement("return $N", fieldModel.varName());
     }
 
+    /**
+     * Generates an atomic add method backed by {@code Unsafe.getAndAddX}. The
+     * method body returns the value after the addition has been applied.
+     */
     @Override
     public void generateAddAtomic(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
         methodBuilder.addStatement("return " +
