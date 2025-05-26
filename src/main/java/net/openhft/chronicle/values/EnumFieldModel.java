@@ -28,9 +28,23 @@ import static javax.lang.model.element.Modifier.*;
 import static net.openhft.chronicle.values.IntegerFieldModel.NORMAL_ACCESS_TYPE;
 import static net.openhft.chronicle.values.Nullability.NULLABLE;
 
+/**
+ * Models an enum reference backed by an {@code int} ordinal.
+ * <p>
+ * Each enum constant is stored as its ordinal; when the field is
+ * nullable the value {@code -1} represents {@code null}. The code
+ * generator creates a static array with the enum universe so that
+ * ordinals may be converted back to enum constants efficiently.
+ */
 class EnumFieldModel extends IntegerBackedFieldModel {
 
+    /** Metadata describing whether the field may be {@code null}. */
     final FieldNullability nullability = new FieldNullability(this);
+
+    /**
+     * Generates the native (off-heap) implementation. It also declares
+     * the universe array used for ordinal to enum conversion.
+     */
     final MemberGenerator nativeGenerator = new IntegerBackedNativeMemberGenerator(this, backend) {
 
         @Override
@@ -97,6 +111,13 @@ class EnumFieldModel extends IntegerBackedFieldModel {
         nullability.addInfo(m, template);
     }
 
+    /**
+     * Finalises the model once all type information is gathered.
+     * <p>
+     * The backing field is converted to an {@code int} range covering the
+     * enum constants. If the field is nullable the range includes {@code -1}
+     * for the {@code null} value.
+     */
     @Override
     void postProcess() {
         super.postProcess();
@@ -120,6 +141,10 @@ class EnumFieldModel extends IntegerBackedFieldModel {
         return name + "Universe";
     }
 
+    /**
+     * Adds a static array holding all enum constants to the generated class.
+     * This array allows fast conversion between ordinals and the enum values.
+     */
     private void addUniverseField(ValueBuilder valueBuilder) {
         FieldSpec universe = FieldSpec
                 .builder(ArrayTypeName.of(type), universeName())
@@ -129,6 +154,13 @@ class EnumFieldModel extends IntegerBackedFieldModel {
         valueBuilder.typeBuilder.addField(universe);
     }
 
+    /**
+     * Converts an enum reference to the stored ordinal value.
+     *
+     * @param e expression yielding an enum instance
+     * @return ordinal or {@code -1} when {@code null} is permitted and the
+     * instance is {@code null}
+     */
     private String toOrdinalOrMinusOne(String e) {
         if (nullable()) {
             return format("(%s != null ? %s.ordinal() : -1)", e, e);
@@ -137,6 +169,14 @@ class EnumFieldModel extends IntegerBackedFieldModel {
         }
     }
 
+    /**
+     * Converts an ordinal previously stored in the backing field back to an
+     * enum constant or {@code null}.
+     *
+     * @param methodBuilder context used to declare temporary variables
+     * @param value         expression yielding the ordinal
+     * @return Java expression that evaluates to the enum value
+     */
     private String fromOrdinalOrMinusOne(MethodSpec.Builder methodBuilder, String value) {
         if (nullable()) {
             String ordinalVariableName = name() + "Ordinal";
@@ -147,11 +187,18 @@ class EnumFieldModel extends IntegerBackedFieldModel {
         }
     }
 
+    /**
+     * Returns the generator responsible for the native implementation.
+     */
     @Override
     MemberGenerator nativeGenerator() {
         return nativeGenerator;
     }
 
+    /**
+     * Builds the generator for heap-based implementations which mirrors the
+     * native behaviour while using on-heap storage.
+     */
     @Override
     MemberGenerator createHeapGenerator() {
         return new ObjectHeapMemberGenerator(this) {
