@@ -38,6 +38,11 @@ import static net.openhft.compiler.CompilerUtils.CACHED_COMPILER;
  * declared fields, their ordering and alignment requirements. The code
  * generator consults this model when producing the heap and native
  * implementations.
+ * <p>
+ * Instances are cached per interface using {@link ClassValue}. They may be
+ * shared across threads and, once constructed, the layout information does not
+ * change. Apart from lazy class generation this object should therefore be
+ * treated as immutable.
  */
 public class ValueModel {
 
