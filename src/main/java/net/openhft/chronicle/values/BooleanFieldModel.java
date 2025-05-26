@@ -20,9 +20,22 @@ import com.squareup.javapoet.MethodSpec;
 
 import static java.lang.String.format;
 
+/**
+ * Model for a boolean field packed into a single bit. The bit offset of the
+ * field is calculated from the {@code ValueModel} and the containing byte is
+ * accessed through the backing {@code BytesStore}. A get operation masks the
+ * bit from the byte, while a set operation reads, updates and writes the byte
+ * so only the targeted bit changes.
+ */
 class BooleanFieldModel extends PrimitiveFieldModel {
 
-    private MemberGenerator nativeGenerator = new MemberGenerator(BooleanFieldModel.this) {
+    /**
+     * Generates native accessors for this field. The code emitted by this
+     * generator uses plain or volatile {@code BytesStore} methods to read and
+     * write bytes and then applies bit masks and shifts to work with a single
+     * bit.
+     */
+    private final MemberGenerator nativeGenerator = new MemberGenerator(BooleanFieldModel.this) {
 
         @Override
         void generateArrayElementFields(
@@ -35,6 +48,13 @@ class BooleanFieldModel extends PrimitiveFieldModel {
             get(valueBuilder, methodBuilder, "");
         }
 
+        /**
+         * Emits code to read the bit using the requested {@code BytesStore}
+         * access type.
+         *
+         * @param readType suffix for the {@code readXByte} call (for example
+         *                 empty string or {@code "Volatile"})
+         */
         private void get(
                 ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder, String readType) {
             int bitOffset = valueBuilder.model.fieldBitOffset(BooleanFieldModel.this);
@@ -80,6 +100,13 @@ class BooleanFieldModel extends PrimitiveFieldModel {
             set(valueBuilder, methodBuilder, "", "");
         }
 
+        /**
+         * Emits code to modify this bit using the supplied read and write
+         * flavours of the {@code BytesStore} API.
+         *
+         * @param readType  suffix for the {@code readXByte} call
+         * @param writeType suffix for the {@code writeXByte} call
+         */
         private void set(
                 ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder,
                 String readType, String writeType) {
@@ -280,6 +307,12 @@ class BooleanFieldModel extends PrimitiveFieldModel {
         }
     };
 
+    /**
+     * Returns the byte alignment for this field. Booleans must specify their
+     * alignment explicitly; {@link Align#DEFAULT} is not permitted.
+     *
+     * @throws IllegalStateException if the alignment was left as {@link Align#DEFAULT}
+     */
     @Override
     int offsetAlignmentInBytes() {
         if (offsetAlignment == Align.DEFAULT) {
@@ -289,6 +322,13 @@ class BooleanFieldModel extends PrimitiveFieldModel {
         return offsetAlignment;
     }
 
+    /**
+     * Returns the maximum alignment boundary this field may not cross. A
+     * boolean requires explicit configuration so {@link Align#DEFAULT} is
+     * invalid.
+     *
+     * @throws IllegalStateException if the alignment was left as {@link Align#DEFAULT}
+     */
     @Override
     int dontCrossAlignmentInBytes() {
         if (dontCrossAlignment == Align.DEFAULT) {
