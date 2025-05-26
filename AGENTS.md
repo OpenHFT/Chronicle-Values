@@ -118,13 +118,13 @@ To improve traceability, we adopt the Nine-Box taxonomy for requirement and deci
 ```asciidoc
 === [Identifier] Title of Decision
 
-- Date: YYYY-MM-DD
-- Context:
+Date:: YYYY-MM-DD
+Context::
 * What is the issue that this decision addresses?
 * What are the driving forces, constraints, and requirements?
-- Decision Statement:
+Decision Statement::
 * What is the change that is being proposed or was decided?
-- **Alternatives Considered:**
+Alternatives Considered::
 * [Alternative 1 Name/Type]:
 ** *Description:* Brief description of the alternative.
 ** *Pros:* ...
@@ -133,14 +133,14 @@ To improve traceability, we adopt the Nine-Box taxonomy for requirement and deci
 ** *Description:* Brief description of the alternative.
 ** *Pros:* ...
 ** *Cons:* ...
-- **Rationale for Decision:**
+Rationale for Decision::
 * Why was the chosen decision selected?
 * How does it address the context and outweigh the cons of alternatives?
-- **Impact & Consequences:**
+Impact & Consequences::
 * What are the positive and negative consequences of this decision?
 * How does this decision affect the system, developers, users, or operations?
 - What are the trade-offs made?
-- **Notes/Links:**
+Notes/Links::
 ** (Optional: Links to relevant issues, discussions, documentation, proof-of-concepts)
 ```
 
@@ -151,9 +151,9 @@ To improve traceability, we adopt the Nine-Box taxonomy for requirement and deci
 Do not rely on indentation for list items in AsciiDoc documents. Use the following pattern instead:
 
 ```asciidoc
-- top level
-* second level
-  ** third level
+section:: Top Level Section
+* first level
+  ** nested level
 ```
 
 ### Emphasis and Bold Text
