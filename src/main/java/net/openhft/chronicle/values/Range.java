@@ -24,20 +24,23 @@ import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Constrains integer primitive parameters to a lowest and highest value,
- * inclusive.
+ * Declares that the annotated integer parameter must lie within a defined range.
+ * <p>
+ * Both {@link #min()} and {@link #max()} are inclusive. This is typically used
+ * to validate array lengths, numeric options or memory offsets where a value
+ * outside the range signals a bug.
  */
 @Target(PARAMETER)
 @Retention(RUNTIME)
 @Documented
 public @interface Range {
     /**
-     * @return the smallest allowed value, inclusive
+     * @return inclusive lower bound
      */
     long min() default Long.MIN_VALUE;
 
     /**
-     * @return the largest allowed value, inclusive
+     * @return inclusive upper bound
      */
     long max() default Long.MAX_VALUE;
 }
