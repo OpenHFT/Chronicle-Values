@@ -26,13 +26,20 @@ import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * The lowest to highest values allowed (inclusive)
+ * Constrains integer primitive parameters to a lowest and highest value,
+ * inclusive.
  */
 @Target(PARAMETER)
 @Retention(RUNTIME)
 @Documented
 public @interface Range {
+    /**
+     * @return the smallest allowed value, inclusive
+     */
     long min() default Long.MIN_VALUE;
 
+    /**
+     * @return the largest allowed value, inclusive
+     */
     long max() default Long.MAX_VALUE;
 }
