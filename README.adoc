@@ -179,7 +179,9 @@ For nested value interfaces, `using` is that interface.
 === Field configuration via annotations
 
 ==== Field ordering in flyweight layout
-Use `@Group` to control ordering:
+Fields are laid out group by group. Use `@Group` to cluster fields and control
+their ordering. Fields without `@Group` form the default group, which always
+comes first:
 
 [source,java]
 ----
