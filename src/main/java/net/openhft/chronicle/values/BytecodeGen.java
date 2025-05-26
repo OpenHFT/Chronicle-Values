@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Map;
 
 /**
+ * Generates runtime implementations for Chronicle Values.
  * Stripped down version of classes
  * https://github.com/google/guice/blob/9867f9c2142355ae958f9eeb8fb96811082c8812/core/src/com/google/inject/internal/InternalFlags.java
  * and
@@ -52,6 +53,16 @@ import java.util.Map;
  * generated classes. It delegates to the user's loader for application classes
  * and to the Values loader for library helpers.</li>
  * </ul>
+ * The bridge loader only has weak references in our cache, so once the user's
+ * loader is discarded the generated classes and their loader can be collected.
+ * This prevents the class-loader leaks often seen with reflection based
+ * generation.
+ * <p>
+ * Custom class loading can be disabled with the system property
+ * {@code chronicle_values_custom_class_loading}. The
+ * {@link CustomClassLoadingOption#BRIDGE BRIDGE} option is the default and uses
+ * the above strategy. The {@link CustomClassLoadingOption#OFF OFF} option loads
+ * classes in the calling loader and relies on the JVM's standard delegation.
  *
  * @author mcculls@gmail.com (Stuart McCulloch)
  * @author jessewilson@google.com (Jesse Wilson)
