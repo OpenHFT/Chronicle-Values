@@ -35,17 +35,18 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 public @interface Array {
     /**
-     * Specifies the array length, {@code index} in accessor methods should be between 0 and {@code
-     * length - 1}, just like for vanilla Java arrays. This value should be positive.
+     * Number of elements in the array. Valid indexes are in the range
+     * {@code [0, length)}. The length must be greater than one.
      */
     int length();
 
     /**
-     * Specifies the alignment of offsets of the elements, see {@link Align} for more information.
-     * Elements' offsets alignment couldn't be more coarse than the offset alignment of the whole
-     * array field. The {@link Align#DEFAULT} value specifies the alignment dependent on the element
-     * type, if it is a Value generated interface, otherwise {@link Align#NO_ALIGNMENT}. Values less
-     * than -1 are not allowed.
+     * Specifies the alignment of element offsets, see {@link Align} for details.
+     * A "more coarse" alignment means a larger power-of-two step and cannot
+     * exceed the alignment of the array field itself. {@link Align#DEFAULT}
+     * resolves to the element's own alignment when the element type is a value
+     * interface, otherwise it becomes {@link Align#NO_ALIGNMENT}. Values less
+     * than {@code -1} are not allowed.
      */
     int elementOffsetAlignment() default Align.DEFAULT;
 
