@@ -28,11 +28,17 @@ import static org.junit.Assert.*;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class CoreValuesTest extends ValuesTestCommon {
 
+    /**
+     * Exercises {@link IntValue} when backed by normal heap memory.
+     */
     @Test
     public void testHeapIntValue() {
         testIntValue(Values.newHeapInstance(IntValue.class));
     }
 
+    /**
+     * Exercises {@link IntValue} using a {@link BytesStore}-backed native instance.
+     */
     @Test
     public void testNativeIntValue() {
         IntValue intValue = Values.newNativeReference(IntValue.class);
@@ -43,6 +49,9 @@ public class CoreValuesTest extends ValuesTestCommon {
         bs.releaseLast();
     }
 
+    /**
+     * Shared assertions for any {@link IntValue} implementation.
+     */
     public void testIntValue(IntValue v) {
         assertEquals(0, v.getValue());
 
@@ -64,11 +73,17 @@ public class CoreValuesTest extends ValuesTestCommon {
         assertEquals(3, v.getValue());
     }
 
+    /**
+     * Uses a heap-backed {@link UnsignedIntValue} to verify unsigned arithmetic behaviour.
+     */
     @Test
     public void testHeapUnsignedIntValue() {
         testUnsignedIntValue(Values.newHeapInstance(UnsignedIntValue.class));
     }
 
+    /**
+     * The native form of {@link UnsignedIntValue} should mirror the heap version.
+     */
     @Test
     public void testNativeUnsignedIntValue() {
         UnsignedIntValue unsignedIntValue = Values.newNativeReference(UnsignedIntValue.class);
@@ -79,6 +94,9 @@ public class CoreValuesTest extends ValuesTestCommon {
         bs.releaseLast();
     }
 
+    /**
+     * Helper for unsigned integer operations across heap and native values.
+     */
     public void testUnsignedIntValue(UnsignedIntValue v) {
         assertEquals(0, v.getValue());
 
@@ -89,11 +107,17 @@ public class CoreValuesTest extends ValuesTestCommon {
         assertEquals(2, v.getValue());
     }
 
+    /**
+     * Validates {@link ByteValue} operations for a heap instance.
+     */
     @Test
     public void testHeapByteValue() {
         testByteValue(Values.newHeapInstance(ByteValue.class));
     }
 
+    /**
+     * Runs the same assertions against a native {@link ByteValue}.
+     */
     @Test
     public void testNativeByteValue() {
         ByteValue byteValue = Values.newNativeReference(ByteValue.class);
@@ -104,6 +128,9 @@ public class CoreValuesTest extends ValuesTestCommon {
         bs.releaseLast();
     }
 
+    /**
+     * Core checks for {@link ByteValue} implementations.
+     */
     public void testByteValue(ByteValue v) {
         assertEquals(0, v.getValue());
 
@@ -114,11 +141,17 @@ public class CoreValuesTest extends ValuesTestCommon {
         assertEquals(2, v.getValue());
     }
 
+    /**
+     * Checks that a heap-backed {@link CharValue} supports basic set and get.
+     */
     @Test
     public void testHeapCharValue() {
         testCharValue(Values.newHeapInstance(CharValue.class));
     }
 
+    /**
+     * Ensures the native version of {@link CharValue} behaves the same as the heap one.
+     */
     @Test
     public void testNativeCharValue() {
         CharValue charValue = Values.newNativeReference(CharValue.class);
@@ -129,6 +162,9 @@ public class CoreValuesTest extends ValuesTestCommon {
         bs.releaseLast();
     }
 
+    /**
+     * Helper for verifying {@link CharValue} semantics.
+     */
     public void testCharValue(CharValue v) {
         assertEquals(0, v.getValue());
 
@@ -136,11 +172,17 @@ public class CoreValuesTest extends ValuesTestCommon {
         assertEquals(1, v.getValue());
     }
 
+    /**
+     * Uses a heap-backed {@link LongValue} to exercise atomic operations.
+     */
     @Test
     public void testHeapLongValue() {
         testLongValue(Values.newHeapInstance(LongValue.class));
     }
 
+    /**
+     * Runs the same checks on a native {@link LongValue} instance.
+     */
     @Test
     public void testNativeLongValue() {
         try (LongValue longValue = Values.newNativeReference(LongValue.class)) {
@@ -153,6 +195,9 @@ public class CoreValuesTest extends ValuesTestCommon {
         }
     }
 
+    /**
+     * Common logic for both heap and native {@link LongValue} checks.
+     */
     public void testLongValue(LongValue v) {
         assertEquals(0, v.getValue());
 
@@ -174,11 +219,17 @@ public class CoreValuesTest extends ValuesTestCommon {
         assertEquals(3, v.getValue());
     }
 
+    /**
+     * Verifies {@link FloatValue} behaviour in heap form.
+     */
     @Test
     public void testHeapFloatValue() {
         testFloatValue(Values.newHeapInstance(FloatValue.class));
     }
 
+    /**
+     * Executes the same checks using a native {@link FloatValue}.
+     */
     @Test
     public void testNativeFloatValue() {
         FloatValue floatValue = Values.newNativeReference(FloatValue.class);
@@ -189,6 +240,9 @@ public class CoreValuesTest extends ValuesTestCommon {
         bs.releaseLast();
     }
 
+    /**
+     * Assertions shared by heap and native {@link FloatValue} tests.
+     */
     public void testFloatValue(FloatValue v) {
         assertTrue(0.0f == v.getValue());
 
@@ -206,11 +260,17 @@ public class CoreValuesTest extends ValuesTestCommon {
         assertTrue(3.0f == v.getValue());
     }
 
+    /**
+     * Validates {@link DoubleValue} when allocated on the heap.
+     */
     @Test
     public void testHeapDoubleValue() {
         testDoubleValue(Values.newHeapInstance(DoubleValue.class));
     }
 
+    /**
+     * Runs the same assertions on a native {@link DoubleValue} backed by a {@link BytesStore}.
+     */
     @Test
     public void testNativeDoubleValue() {
         DoubleValue doubleValue = newBackedNativeDoubleValue();
@@ -227,6 +287,9 @@ public class CoreValuesTest extends ValuesTestCommon {
         return doubleValue;
     }
 
+    /**
+     * Confirms that heap and native double values compare equal when holding the same data.
+     */
     @Test
     public void testDoubleValueEquals() {
         DoubleValue nativeDoubleValue = newBackedNativeDoubleValue();
@@ -237,6 +300,9 @@ public class CoreValuesTest extends ValuesTestCommon {
         ((Byteable) nativeDoubleValue).bytesStore().releaseLast();
     }
 
+    /**
+     * Common set of assertions for {@link DoubleValue} instances.
+     */
     public void testDoubleValue(DoubleValue v) {
         assertTrue(0.0 == v.getValue());
 
@@ -254,11 +320,17 @@ public class CoreValuesTest extends ValuesTestCommon {
         assertTrue(3.0 == v.getValue());
     }
 
+    /**
+     * Checks a heap-backed {@link ShortValue} for simple arithmetic operations.
+     */
     @Test
     public void testHeapShortValue() {
         testShortValue(Values.newHeapInstance(ShortValue.class));
     }
 
+    /**
+     * Verifies that the native version of {@link ShortValue} matches the heap behaviour.
+     */
     @Test
     public void testNativeShortValue() {
         ShortValue shortValue = Values.newNativeReference(ShortValue.class);
@@ -269,6 +341,9 @@ public class CoreValuesTest extends ValuesTestCommon {
         bs.releaseLast();
     }
 
+    /**
+     * Helper for {@link ShortValue} arithmetic tests.
+     */
     public void testShortValue(ShortValue v) {
         assertEquals(0, v.getValue());
 
@@ -279,11 +354,17 @@ public class CoreValuesTest extends ValuesTestCommon {
         assertEquals(2, v.getValue());
     }
 
+    /**
+     * Checks a heap-backed {@link BooleanValue} toggles correctly.
+     */
     @Test
     public void testHeapBooleanValue() {
         testBooleanValue(Values.newHeapInstance(BooleanValue.class));
     }
 
+    /**
+     * Performs the same toggle test on a native {@link BooleanValue}.
+     */
     @Test
     public void testNativeBooleanValue() {
         BooleanValue booleanValue = Values.newNativeReference(BooleanValue.class);
@@ -294,6 +375,9 @@ public class CoreValuesTest extends ValuesTestCommon {
         bs.releaseLast();
     }
 
+    /**
+     * Helper used by both heap and native boolean tests.
+     */
     public void testBooleanValue(BooleanValue v) {
         assertFalse(v.getValue());
 

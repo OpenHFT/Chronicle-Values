@@ -21,11 +21,13 @@ import com.squareup.javapoet.MethodSpec;
 import static java.lang.String.format;
 
 /**
- * Model for a boolean field packed into a single bit. The bit offset of the
- * field is calculated from the {@code ValueModel} and the containing byte is
- * accessed through the backing {@code BytesStore}. A get operation masks the
- * bit from the byte, while a set operation reads, updates and writes the byte
- * so only the targeted bit changes.
+ * Model for a {@code boolean} stored as a single bit. The bit offset is
+ * derived from the owning {@link ValueModel} and only that bit of the backing
+ * {@code BytesStore} is accessed. Reads mask the containing byte and writes
+ * update the same byte so neighbouring fields remain untouched. As there is no
+ * natural byte boundary for a lone bit, callers must supply explicit alignment
+ * settings via {@link #offsetAlignmentInBytes()} and
+ * {@link #dontCrossAlignmentInBytes()}.
  */
 class BooleanFieldModel extends PrimitiveFieldModel {
 
@@ -308,8 +310,9 @@ class BooleanFieldModel extends PrimitiveFieldModel {
     };
 
     /**
-     * Returns the byte alignment for this field. Booleans must specify their
-     * alignment explicitly; {@link Align#DEFAULT} is not permitted.
+     * Byte boundary for the start of this bit field. There is no natural
+     * alignment for a single-bit value so the caller must provide one. Using
+     * {@link Align#DEFAULT} would lead to unpredictable packing.
      *
      * @throws IllegalStateException if the alignment was left as {@link Align#DEFAULT}
      */
@@ -323,9 +326,9 @@ class BooleanFieldModel extends PrimitiveFieldModel {
     }
 
     /**
-     * Returns the maximum alignment boundary this field may not cross. A
-     * boolean requires explicit configuration so {@link Align#DEFAULT} is
-     * invalid.
+     * Largest alignment boundary this bit field must not span. Like
+     * {@link #offsetAlignmentInBytes()}, this cannot be deduced automatically
+     * because the field only occupies one bit.
      *
      * @throws IllegalStateException if the alignment was left as {@link Align#DEFAULT}
      */

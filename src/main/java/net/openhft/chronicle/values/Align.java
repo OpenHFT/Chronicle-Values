@@ -24,16 +24,18 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Describes how a field should be aligned in the generated native layout. The field's
- * start offset is required to be a multiple of {@link #offset()} and its bytes must not
- * cross the boundary given by {@link #dontCross()}. Put this annotation on one accessor
- * of the field such as a getter or setter.
+ * Controls alignment of a field in the generated native layout. The field must
+ * start at an offset that is a multiple of {@link #offset()} and its bytes must
+ * not cross the boundary defined by {@link #dontCross()}. Apply the annotation
+ * to one accessor of the field, for example a getter or setter.
  * <p>
- * Alignment is measured from the beginning of the value instance. To keep the guarantee
- * when the instance is stored in native memory the instance itself should be aligned to
- * the coarsest field alignment.
+ * Alignment is measured from the beginning of the value instance. When a value
+ * is stored off-heap the instance itself should be aligned to the widest field
+ * requirement so these guarantees hold.
  * <p>
- * The default alignment is determined by the field type, see {@link #DEFAULT}.
+ * {@link #DEFAULT} defers to the type-specific rules listed below. If either
+ * {@code offset} or {@code dontCross} resolves to {@link #NO_ALIGNMENT} the
+ * corresponding check is not enforced.
  */
 @Target(METHOD)
 @Retention(RUNTIME)
@@ -65,14 +67,15 @@ public @interface Align {
     int NO_ALIGNMENT = 0;
 
     /**
-     * @return alignment in bytes for the field start. {@link #DEFAULT} applies the
-     * type-specific rule which may resolve to {@link #NO_ALIGNMENT}.
+     * @return alignment in bytes for the field start. {@link #DEFAULT} applies
+     * the type-specific rule. If the resolved value or the explicit value is
+     * {@link #NO_ALIGNMENT} the generator does not check the start offset.
      */
     int offset() default DEFAULT;
 
     /**
      * @return boundary in bytes that the field should not cross. {@link #DEFAULT}
-     * delegates to the rule for the field type and may become {@link #NO_ALIGNMENT}.
+     * follows the type rule. {@link #NO_ALIGNMENT} disables this check.
      */
     int dontCross() default DEFAULT;
 }

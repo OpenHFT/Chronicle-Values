@@ -2,6 +2,8 @@
 
 This document outlines the requirements for utilizing Chronicle Values. The requirements are tagged using the company-wide Nine-Box taxonomy with the project scope `CV` (Chronicle Values).
 
+See `AGENTS.md` for the global policy on tag usage. The Nine-Box scheme covers `FN` for functional behaviour, `NF-P`, `NF-S` and `NF-O` for performance, security and operability, `TEST` and `DOC` for testing and documentation, `OPS` for operational concerns, `UX` for user experience and `RISK` for compliance.
+
 == Functional Requirements (FN)
 
 - *CV-FN-001:* The system *must* support representation and manipulation of highly structured data with a fixed, compile-time known schema.

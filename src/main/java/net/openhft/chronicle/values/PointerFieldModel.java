@@ -25,9 +25,20 @@ import static net.openhft.chronicle.values.IntegerFieldModel.NORMAL_ACCESS_TYPE;
 import static net.openhft.chronicle.values.Utils.capitalize;
 
 /**
- * Implementation detail for {@code @Pointer} fields. The stored primitive is a
- * long holding the address of another value instance rather than the bytes
- * themselves. A zero address denotes {@code null}.
+ * Implementation detail for {@code @Pointer} fields.
+ * <p>
+ * The value stored in the generated class is a {@code long} containing a memory
+ * address. During writes the setter verifies that the provided object
+ * implements {@link Byteable} and extracts its {@link Byteable#address()}. A
+ * zero address represents a {@code null} reference.
+ * <p>
+ * Marshalling writes a presence flag followed by the pointed value when the
+ * flag is {@code true}. If the flag indicates a value yet the stored address is
+ * zero an {@link IllegalStateException} is thrown, ensuring the pointer offset
+ * has been initialised correctly.
+ * <p>
+ * Copy operations such as {@code copyFrom} merely transfer the stored address;
+ * the bytes referenced by the pointer are not cloned.
  */
 final class PointerFieldModel extends IntegerBackedFieldModel {
 

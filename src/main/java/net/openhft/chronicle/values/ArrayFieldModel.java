@@ -44,6 +44,15 @@ import static net.openhft.chronicle.values.Utils.roundUp;
  * <p>Code generation routines rely on this metadata to compute element
  * addresses, perform index validation and emit bulk operations such as copy or
  * marshalling loops.</p>
+ *
+ * <p>Example value interface accessor:</p>
+ * <pre>{@code
+ * interface Order {
+ *     @Array(length = 8)
+ *     void setPriceAt(int index, long price);
+ *     long getPriceAt(int index);
+ * }
+ * }</pre>
  */
 public class ArrayFieldModel extends FieldModel {
 

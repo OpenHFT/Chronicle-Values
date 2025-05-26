@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Map;
 
 /**
+ * Generates runtime implementations for Chronicle Values.
  * Stripped down version of classes
  * https://github.com/google/guice/blob/9867f9c2142355ae958f9eeb8fb96811082c8812/core/src/com/google/inject/internal/InternalFlags.java
  * and
@@ -41,15 +42,27 @@ import java.util.Map;
  * to enforce modularity at runtime.
  * </ul>
  * <p>
- * For each generated class there are three class loaders involved:
+ * For each generated class we use three distinct class loaders:
  * <ul>
- * <li><strong>User's class loader.</strong> The loader of the application type that the generated
- * class implements. It allows access to protected and package-scoped members.
- * <li><strong>Values's class loader.</strong> The loader that loaded Chronicle Values itself.
- * <li><strong>The bridge class loader.</strong> A child of the user's loader that hosts the generated
- * classes. It delegates to the user's loader for application classes and to Values's class loader
- * for library helpers.
+ * <li><strong>User's class loader.</strong> The loader that loaded the application
+ * class being implemented. Using it allows access to protected and
+ * package-scoped members.</li>
+ * <li><strong>Values's class loader.</strong> The loader that loaded the Chronicle
+ * Values library.</li>
+ * <li><strong>Bridge class loader.</strong> A child of the user's loader that hosts
+ * generated classes. It delegates to the user's loader for application classes
+ * and to the Values loader for library helpers.</li>
  * </ul>
+ * The bridge loader only has weak references in our cache, so once the user's
+ * loader is discarded the generated classes and their loader can be collected.
+ * This prevents the class-loader leaks often seen with reflection based
+ * generation.
+ * <p>
+ * Custom class loading can be disabled with the system property
+ * {@code chronicle_values_custom_class_loading}. The
+ * {@link CustomClassLoadingOption#BRIDGE BRIDGE} option is the default and uses
+ * the above strategy. The {@link CustomClassLoadingOption#OFF OFF} option loads
+ * classes in the calling loader and relies on the JVM's standard delegation.
  *
  * @author mcculls@gmail.com (Stuart McCulloch)
  * @author jessewilson@google.com (Jesse Wilson)
@@ -196,7 +209,7 @@ final class BytecodeGen {
      * package-private members depends on the loading classloader: only if two classes were loaded
      * by the same classloader can they see each other's package-private members. We need to be
      * careful when choosing which classloader to use for generated classes. We prefer our bridge
-     * classloader, since it's OSGi-safe and doesn't leak metaspace. But often we cannot due to
+     * classloader, since it's OSGi-safe and doesn't leak Metaspace. But often we cannot due to
      * visibility.
      */
     public enum Visibility {
