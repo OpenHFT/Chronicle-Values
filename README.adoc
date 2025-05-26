@@ -59,6 +59,11 @@ interface Client {
 }
 ----
 
+The value supplied to `@MaxUtf8Length` is the allowed size once the text is
+encoded as UTF-8. The native form checks this limit when writing to the backing
+`BytesStore`. Heap implementations assume the caller supplies a compliant value
+and any breach is detected only when copied to a native instance.
+
 ===== Another value interface
 Allows nested structures:
 
@@ -199,6 +204,11 @@ interface Instrument {
     void setSymbol(@NotNull @MaxUtf8Length(5) CharSequence symbol);
 }
 ----
+
+When a field is nullable the generated native form stores a marker instead of
+the text. Heap implementations use an extra boolean for `CharSequence` fields to
+track a null value. With `@NotNull` the setters emit a `NullPointerException` if
+given `null`.
 
 ==== Numeric field ranges
 Annotate with `@Range(min=, max=)` to reduce flyweight size:
