@@ -19,9 +19,27 @@ package net.openhft.chronicle.values;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
 
+/**
+ * Describes whether a method parameter may be {@code null}.
+ * <p>
+ * Instances are derived from annotations such as {@code @Nullable}
+ * or {@code @NotNull} on the parameter.
+ */
 enum Nullability {
-    NULLABLE, NOT_NULL;
+    /** Parameter is explicitly marked as nullable. */
+    NULLABLE,
 
+    /** Parameter is explicitly marked as not null. */
+    NOT_NULL;
+
+    /**
+     * Returns the declared nullability of the parameter.
+     *
+     * @param p parameter to inspect
+     * @return the matching enum or {@code null} when not annotated
+     * @throws IllegalStateException if the parameter has both
+     *         {@code @Nullable} and {@code @NotNull}
+     */
     static Nullability explicitNullability(Parameter p) {
         boolean hasNotNullAnnotation = hasNotNullAnnotation(p);
         boolean hasNullableAnnotation = hasNullableAnnotation(p);
@@ -36,6 +54,9 @@ enum Nullability {
         return null;
     }
 
+    /**
+     * Whether the parameter has a {@code @Nullable}-style annotation.
+     */
     static boolean hasNullableAnnotation(Parameter p) {
         for (Annotation a : p.getAnnotations()) {
             if (a.annotationType().getSimpleName().equalsIgnoreCase("Nullable"))
@@ -44,6 +65,10 @@ enum Nullability {
         return false;
     }
 
+    /**
+     * Whether the parameter has a {@code @NotNull} or {@code @Nonnull}
+     * annotation.
+     */
     static boolean hasNotNullAnnotation(Parameter p) {
         for (Annotation a : p.getAnnotations()) {
             String annotationName = a.annotationType().getSimpleName();
