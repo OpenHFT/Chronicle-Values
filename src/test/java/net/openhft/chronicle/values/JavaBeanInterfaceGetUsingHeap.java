@@ -17,7 +17,8 @@
 package net.openhft.chronicle.values;
 
 /**
- * Variant of JavaBeanInterface using heap-backed implementations.
+ * Interface used by tests verifying the {@code getUsing} pattern on a
+ * heap backed implementation.
  */
 public interface JavaBeanInterfaceGetUsingHeap {
 
