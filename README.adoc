@@ -250,6 +250,10 @@ Generated classes implement:
 * Correct `equals`, `hashCode`, `toString`
 * `Byteable` (no-op on the heap implementation)
 
+The `Copyable` feature allows an on-heap value to take a snapshot of a
+native instance or vice versa. This provides a simple way to shuttle data
+between the two representations.
+
 You may extend these in the interface to avoid casting:
 
 [source,java]

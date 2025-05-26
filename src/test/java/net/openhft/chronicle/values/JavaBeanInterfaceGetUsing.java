@@ -19,7 +19,7 @@
 package net.openhft.chronicle.values;
 
 /**
- * User: peter.lawrey Date: 06/10/13 Time: 16:59
+ * Interface for getUsing behaviour on a simple bean.
  */
 public interface JavaBeanInterfaceGetUsing {
 

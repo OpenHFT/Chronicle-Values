@@ -36,7 +36,7 @@ import static org.junit.Assert.*;
 import static net.openhft.compiler.CompilerUtils.CACHED_COMPILER;
 
 /**
- * User: peter.lawrey Date: 06/10/13 Time: 20:13
+ * Tests code generation and serialisation routines.
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ValueGeneratorTest extends ValuesTestCommon {

@@ -19,9 +19,7 @@
 package net.openhft.chronicle.values;
 
 /**
- * User: peter.lawrey
- * Date: 08/10/13
- * Time: 10:24
+ * Second level nested interface used in tests.
  */
 public interface NestedB {
     void bid(double bid);

@@ -22,9 +22,7 @@ import net.openhft.chronicle.bytes.Byteable;
 import net.openhft.chronicle.bytes.BytesMarshallable;
 
 /**
- * User: peter.lawrey
- * Date: 06/10/13
- * Time: 16:59
+ * Minimal value interface used for code generation tests.
  */
 @SuppressWarnings("rawtypes")
 public interface MinimalInterface extends BytesMarshallable, Copyable<MinimalInterface>, Byteable {

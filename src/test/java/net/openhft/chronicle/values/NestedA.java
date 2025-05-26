@@ -18,9 +18,7 @@
 package net.openhft.chronicle.values;
 
 /**
- * User: peter.lawrey
- * Date: 08/10/13
- * Time: 10:11
+ * First level nested interface used in tests.
  */
 public interface NestedA {
     void key(@MaxUtf8Length(64) String key);

@@ -19,7 +19,7 @@
 package net.openhft.chronicle.values;
 
 /**
- * User: peter.lawrey Date: 08/10/13 Time: 09:09
+ * Interface exercising getUsing methods with strings.
  */
 public interface GetUsingStringInterface {
 
