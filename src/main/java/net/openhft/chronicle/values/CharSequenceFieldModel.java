@@ -33,13 +33,16 @@ import static net.openhft.chronicle.values.Nullability.NULLABLE;
 /**
  * Field model for {@code CharSequence}-based types.
  *
- * <p>A single accessor must declare {@link MaxUtf8Length} to define how many
- * UTF-8 bytes may be stored. The encoded form uses a stop bit prefix and the
- * configured number of bytes, which is reflected by {@link #sizeInBits()}.</p>
+
+ * <p>One accessor parameter must carry {@link MaxUtf8Length}. The value
+ * denotes the maximum number of UTF-8 bytes reserved for the field. The native
+ * encoding stores a stop bit length prefix followed by the configured number of
+ * bytes, so {@link #sizeInBits()} includes both parts.</p>
  *
- * <p>Nullability is derived from parameter annotations. When nullable, generated
- * accessors accept and return {@code null}. Heap setters do not check the UTF-8
- * length; exceeding the limit is detected only when copying to a native value.</p>
+ * <p>{@link FieldNullability} inspects the accessor parameters to discover
+ * whether {@code null} is permitted. Native setters validate the UTF-8 length
+ * via {@code Bytes.writeUtf8Limited}; heap setters omit this check and overflow
+ * surfaces only when copying to a native instance.</p>
  */
 class CharSequenceFieldModel extends ScalarFieldModel {
     final FieldNullability nullability = new FieldNullability(this);
