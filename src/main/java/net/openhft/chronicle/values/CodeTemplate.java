@@ -40,11 +40,20 @@ import static net.openhft.chronicle.values.MethodTemplate.Type.SCALAR;
 import static net.openhft.chronicle.values.Primitives.isPrimitiveIntegerType;
 
 /**
- * Utility holder for the regular expression templates that interpret
- * accessor method signatures. Each template maps the name and
- * parameters of a method to a {@link FieldModel} operation, allowing
- * {@link ValueModel} creation to be driven purely from the interface
- * declaration.
+ * Holds the regular expression templates that recognise accessor method
+ * signatures. Templates are applied in order of specificity.
+ *
+ * Each entry defines a method-name pattern, the expected argument count and
+ * the {@link FieldModel} operation to invoke. The first capture group of the
+ * pattern becomes the logical field name. Patterns may therefore match both
+ * scalar forms such as {@code getFoo()} and array forms like
+ * {@code getFooAt(int)}.
+ *
+ * When {@link #createValueModel(Class)} analyses a value interface every
+ * abstract method is matched against these templates. The selected template
+ * determines the field type and records the accessor on the relevant
+ * {@link FieldModel}. This permits a plain interface to describe a value
+ * object purely through its methods.
  */
 enum CodeTemplate {
     ; // none
@@ -220,6 +229,12 @@ enum CodeTemplate {
                 "or another value interface");
     }
 
+    /**
+     * Matches the abstract methods of {@code valueType} against the registered
+     * templates. For each recognised method a {@link MethodAndTemplate} is
+     * created, pairing the method with the template that matched it. The result
+     * is grouped by the field name extracted from the method.
+     */
     private static Map<String, List<MethodAndTemplate>> methodsAndTemplatesByField(
             Class<?> valueType) {
         return Stream.of(valueType.getMethods())
