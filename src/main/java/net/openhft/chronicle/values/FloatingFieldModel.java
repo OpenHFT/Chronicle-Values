@@ -21,8 +21,15 @@ import com.squareup.javapoet.MethodSpec;
 import static java.lang.String.format;
 import static net.openhft.chronicle.values.Primitives.boxed;
 
+/**
+ * Models {@code float} and {@code double} fields. The native implementation
+ * generates {@code BytesStore} read and write calls, while the heap
+ * implementation uses {@code Unsafe} for atomic updates. Equality is based on
+ * bit patterns so that NaN encodings compare the same.
+ */
 class FloatingFieldModel extends PrimitiveFieldModel {
 
+    /** Generates the native (off-heap) implementation. */
     private final MemberGenerator nativeGenerator = new MemberGenerator(FloatingFieldModel.this) {
 
         @Override
@@ -47,6 +54,9 @@ class FloatingFieldModel extends PrimitiveFieldModel {
             }
         }
 
+        /**
+         * Emits a {@code BytesStore} access for this field.
+         */
         private void gen(
                 ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder,
                 String ret, String method, String arguments) {
@@ -54,6 +64,9 @@ class FloatingFieldModel extends PrimitiveFieldModel {
                     ret, method, capTypeName(), verifiedByteOffset(valueBuilder), arguments);
         }
 
+        /**
+         * Variant of {@link #gen} for array elements.
+         */
         private void genArrayElement(
                 ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
                 MethodSpec.Builder methodBuilder, String ret, String method, String arguments) {
@@ -205,6 +218,9 @@ class FloatingFieldModel extends PrimitiveFieldModel {
                     "", "write", format(", bytes.read%s()", capTypeName()));
         }
 
+        /**
+         * Compares the bit representation of this field with the other value.
+         */
         @Override
         void generateEquals(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
             methodBuilder.addCode("if ($N($N()) != $N(other.$N())) return false;\n",
@@ -241,6 +257,10 @@ class FloatingFieldModel extends PrimitiveFieldModel {
     }
 
     @Override
+    /**
+     * Creates a heap generator that uses {@code Unsafe} and loops with
+     * compare-and-swap for atomic add operations.
+     */
     MemberGenerator createHeapGenerator() {
         return new NumberHeapMemberGenerator(this) {
 
@@ -287,6 +307,9 @@ class FloatingFieldModel extends PrimitiveFieldModel {
                 methodBuilder.endControlFlow();
             }
 
+            /**
+             * Uses bit-level comparison for heap objects as well.
+             */
             @Override
             void generateEquals(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
                 methodBuilder.addCode(
@@ -307,6 +330,10 @@ class FloatingFieldModel extends PrimitiveFieldModel {
         };
     }
 
+    /**
+     * Returns the method used to convert the value to its bit pattern for
+     * equality checks.
+     */
     private String toBits() {
         if (type == float.class) {
             return "java.lang.Float.floatToIntBits";
