@@ -24,9 +24,19 @@ import java.lang.reflect.Method;
 
 import static net.openhft.chronicle.values.Utils.roundUp;
 
+/**
+ * Metadata model for an array field.
+ *
+ * The instance records the scalar model of the element type and the
+ * {@link Array} annotation describing the declared length and alignment
+ * requirements. Code generation routines consult this model when
+ * laying out the field and emitting element accessors.
+ */
 public class ArrayFieldModel extends FieldModel {
 
+    /** Model of the array element type. */
     private final ScalarFieldModel elemModel;
+    /** Annotation instance holding declared array properties. */
     Array array;
     private MemberGenerator nativeGenerator;
 
@@ -34,6 +44,11 @@ public class ArrayFieldModel extends FieldModel {
         this.elemModel = elemModel;
     }
 
+    /**
+     * Extracts {@link Array} metadata from the interface method and applies the
+     * declared alignment to the element model. The method guards against
+     * multiple declarations and validates that the length is greater than one.
+     */
     @Override
     void addLayoutInfo(Method m, MethodTemplate template) {
         super.addLayoutInfo(m, template);
@@ -54,6 +69,11 @@ public class ArrayFieldModel extends FieldModel {
         }
     }
 
+    /**
+     * Returns the total storage requirement of the array in bits.
+     * The calculation honours element alignment and the declared
+     * {@link Array#elementDontCrossAlignment() dont-cross} boundary.
+     */
     @Override
     int sizeInBits() {
         int elemSizeInBits = elemModel.sizeInBits();
@@ -71,10 +91,19 @@ public class ArrayFieldModel extends FieldModel {
         }
     }
 
+    /**
+     * Element bit extent rounded up to the element offset alignment. Used when
+     * computing array layout and element positions.
+     */
     int elemBitExtent() {
         return roundUp(elemModel.sizeInBits(), elemModel.offsetAlignmentInBits());
     }
 
+    /**
+     * Determines the alignment of the array field itself. The result must be a
+     * multiple of the element alignment. When no explicit offset is supplied the
+     * element alignment is reused.
+     */
     @Override
     int offsetAlignmentInBytes() {
         int elementAlignment = elemModel.maxAlignmentInBytes();
@@ -138,6 +167,11 @@ public class ArrayFieldModel extends FieldModel {
         return array;
     }
 
+    /**
+     * Delegates generation of element accessors and bulk operations.
+     * The helper calls through to the element's own generator with the
+     * correct index calculations.
+     */
     private class ArrayMemberGenerator extends MemberGenerator {
         private final MemberGenerator elemGenerator;
 
