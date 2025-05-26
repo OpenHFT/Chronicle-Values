@@ -25,6 +25,10 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+/**
+ * Marks that the annotated parameter is a pointer to another value interface instance.
+ * The stored value is the memory address rather than embedded bytes.
+ */
 @Target(PARAMETER)
 @Retention(RUNTIME)
 @Documented
