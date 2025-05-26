@@ -53,6 +53,11 @@ abstract class PrimitiveFieldModel extends ScalarFieldModel {
                 Maths.nextPower2(rawSizeInBits, minBits) : rawSizeInBits;
     }
 
+    /**
+     * Width of this primitive in bits. Volatile or ordered setters may force
+     * the value to align to at least a byte or word boundary so the returned
+     * size can be greater than the raw primitive width.
+     */
     @Override
     int sizeInBits() {
         return sizeInBitsConsideringVolatileOrOrderedPuts(widthInBits(type));
