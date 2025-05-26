@@ -23,7 +23,8 @@ import net.openhft.chronicle.core.Jvm;
 import java.lang.reflect.InvocationTargetException;
 
 /**
- * This class is a central access point for loading generated heap and native Values.
+ * Central access point for loading generated heap and native Values.
+ * Provides convenient factory methods for their implementations.
  */
 public final class Values {
 
@@ -36,6 +37,8 @@ public final class Values {
 
     /**
      * Equivalent for {@link #heapClassFor(Class) heapClassFor(valueType)}{@code .newInstance()}.
+     * Creates a stand-alone heap object whose state lives in ordinary Java memory.
+     * This instance is not thread-safe unless the interface specifies otherwise.
      *
      * @throws IllegalArgumentException      if the given {@code valueType} is not a value interface
      * @throws ImplGenerationFailedException if generation of a heap implementation failed
@@ -50,6 +53,8 @@ public final class Values {
 
     /**
      * Equivalent for {@link #nativeClassFor nativeClassFor(valueType)}{@code .newInstance()}.
+     * Creates a flyweight reference to off-heap memory. Point it at a {@code BytesStore} before use
+     * and do not share between threads without external synchronisation.
      *
      * @throws IllegalArgumentException      if the given {@code valueType} is not a value interface
      * @throws ImplGenerationFailedException if generation of a native implementation failed
@@ -64,6 +69,7 @@ public final class Values {
 
     /**
      * Generates (if not yet) and returns a heap implementation for the given value interface.
+     * The call may trigger on-the-fly compilation of the generated class.
      *
      * @param valueType the value interface to return a heap implementation for
      * @param <T>       the value interface as a type parameter
@@ -78,7 +84,7 @@ public final class Values {
 
     /**
      * Generates (if not yet) and returns a native (flyweight) implementation for the given value
-     * interface.
+     * interface. The call may trigger on-the-fly compilation of the generated class.
      *
      * @param valueType the value interface to return a native implementation for
      * @param <T>       the value interface as a type parameter
