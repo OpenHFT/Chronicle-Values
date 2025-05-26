@@ -2,6 +2,8 @@
 
 This log records key decisions regarding the selection and use of Chronicle libraries, based on the "A Deep Dive into Chronicle Values versus Chronicle Bytes for Project Requirements Analysis" report. Identifiers use the `CV` project scope and relevant Nine-Box tags.
 
+The requirement tags referenced here originate from link:project-requirements.adoc[Project Requirements].
+
 == [CV-FN-032] Adoption of Chronicle Values for Structured, Fixed-Size Data
 
 - Date: 2025-05-26
