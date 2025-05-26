@@ -34,15 +34,22 @@ import java.util.*;
 
 /**
  * Supplies in-memory {@link JavaFileObject} instances to the compiler.
- * <p>
- * The manager collects class files for the Values API and the target interface
- * so the {@code JavaCompiler} resolves them without touching disk.
+ *
+ * <p>The manager collects class files for the Values API and the target
+ * interface so the {@code JavaCompiler} resolves them without touching
+ * disk.  Dependencies are cached in a static map,
+ * {@code dependencyFileObjects}, which is filled once with Chronicle
+ * classes required by generated code.  Each manager instance clones that
+ * map into its own {@code fileObjects} cache and augments it with the
+ * classes for the specific value type being compiled.  This approach
+ * avoids repeated lookups and keeps compilation entirely in memory.
  */
 public class MyJavaFileManager extends net.openhft.compiler.MyJavaFileManager {
 
     /**
-     * Classes required by generated code, keyed by package name.
-     * Populated once in the static block below and reused by all instances.
+     * Cache of classes required by generated code, keyed by package name.
+     * Populated once in the static block below and shared across all
+     * instances.
      */
     private static final Map<String, Set<JavaFileObject>> dependencyFileObjects = new HashMap<>();
 
@@ -72,6 +79,11 @@ public class MyJavaFileManager extends net.openhft.compiler.MyJavaFileManager {
         ).forEach(c -> addFileObjects(dependencyFileObjects, c));
     }
 
+    /**
+     * Per-instance cache initially containing a deep copy of
+     * {@code dependencyFileObjects}.  Additional classes for the target
+     * interface are recorded here so they are visible to the compiler.
+     */
     private final Map<String, Set<JavaFileObject>> fileObjects;
 
     /**
