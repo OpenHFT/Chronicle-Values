@@ -16,10 +16,20 @@
 
 package net.openhft.chronicle.values;
 
+/**
+ * Miscellaneous helper methods used during code generation.
+ *
+ * <p>The {@link #UNSAFE_CLASS} constant is resolved reflectively so that
+ * Chronicle Values does not require {@code sun.misc.Unsafe} on the
+ * compilation class-path. It exists purely for the generators; code
+ * produced by the library must obtain the {@code Unsafe} instance via
+ * {@code Jvm.theUnsafe} and should never reference this field directly.
+ */
 final class Utils {
     /**
      * Class object for {@code sun.misc.Unsafe}, loaded reflectively to avoid a
-     * hard dependency on that class.
+     * hard dependency on that class. Only the generators should reference this
+     * constant.
      */
     static final Class<?> UNSAFE_CLASS;
 
