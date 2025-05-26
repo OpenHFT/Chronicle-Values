@@ -76,6 +76,11 @@ public abstract class FieldModel {
     /** Lazily created generator for heap-based implementations. */
     private MemberGenerator heapGenerator;
 
+    /**
+     * Emits code to compute {@code elementOffset} for the given index. The
+     * method assumes the element size is byte aligned and does not perform
+     * bounds checks.
+     */
     static void genVerifiedElementOffset(
             ArrayFieldModel arrayField, MethodSpec.Builder methodBuilder) {
         int elemBitExtent = arrayField.elemBitExtent();

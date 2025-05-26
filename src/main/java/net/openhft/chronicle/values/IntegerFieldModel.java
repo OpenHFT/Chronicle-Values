@@ -35,10 +35,20 @@ import static net.openhft.chronicle.values.RangeImpl.*;
 import static net.openhft.chronicle.values.Utils.capitalize;
 import static net.openhft.chronicle.values.Utils.formatIntOrLong;
 
+/**
+ * Models integer primitives within a value interface. Supported primitive types
+ * are {@code boolean}, {@code byte}, {@code char}, {@code short},
+ * {@code int} and {@code long}. Range constraints may be declared with
+ * {@link Range}. When ordered or volatile writes are used the field is aligned
+ * to a native word so that generated code can rely on atomic operations.
+ */
 class IntegerFieldModel extends PrimitiveFieldModel {
 
+    /** Access pattern for a volatile get or set method. */
     static final Function<String, String> VOLATILE_ACCESS_TYPE = s -> "Volatile" + s;
+    /** Access pattern for an ordered (lazy) set method. */
     static final Function<String, String> ORDERED_ACCESS_TYPE = s -> "Ordered" + s;
+    /** Access pattern for a plain (non-volatile) operation. */
     static final Function<String, String> NORMAL_ACCESS_TYPE = identity();
 
     /**
@@ -272,6 +282,12 @@ class IntegerFieldModel extends PrimitiveFieldModel {
     // The methods below are named with "gen" prefix instead of "generate" to avoid confusion
     // and possible bugs when called from MemberGenerator methods, that have the same names
 
+    /**
+     * Returns the number of bits needed to store this field. When volatile or
+     * ordered setters are present the result is rounded up so the field occupies
+     * an entire native word, allowing the generator to apply atomic operations
+     * without additional masking.
+     */
     @Override
     int sizeInBits() {
         Range range = range();
@@ -287,6 +303,10 @@ class IntegerFieldModel extends PrimitiveFieldModel {
         return sizeInBitsConsideringVolatileOrOrderedPuts(coverBits);
     }
 
+    /**
+     * Generates code for a getter. The helper aligns the byte offset and
+     * applies masking when the field does not occupy a whole native word.
+     */
     String genGet(ValueBuilder valueBuilder, Function<String, String> accessType) {
         int bitOffset = valueBuilder.model.fieldBitOffset(outerModel);
         int byteOffset = bitOffset / 8;
@@ -296,6 +316,11 @@ class IntegerFieldModel extends PrimitiveFieldModel {
         return genGet(lowMaskBits, bitExtent, readOffset, accessType);
     }
 
+    /**
+     * Internal helper that composes the bytes read expression. It shifts and
+     * masks the value according to {@code lowMaskBits} and the declared field
+     * extent.
+     */
     private String genGet(
             int lowMaskBits, int bitExtent, String readOffset,
             Function<String, String> accessType) {
@@ -363,6 +388,11 @@ class IntegerFieldModel extends PrimitiveFieldModel {
         return value;
     }
 
+    /**
+     * Generates a getter for an element within an integer array. The helper
+     * computes the offset of the indexed element and delegates to
+     * {@link #genGet(ValueBuilder, Function)}.
+     */
     String genArrayElementGet(
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder, Function<String, String> accessType) {
@@ -380,6 +410,11 @@ class IntegerFieldModel extends PrimitiveFieldModel {
         }
     }
 
+    /**
+     * Generates a setter for this field. It calculates the appropriate byte
+     * offset and delegates to the masking helper when the field shares a word
+     * with neighbours.
+     */
     void genSet(
             ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder,
             Function<String, String> accessType, String valueToWrite) {
@@ -391,6 +426,11 @@ class IntegerFieldModel extends PrimitiveFieldModel {
         genSet(methodBuilder, lowMaskBits, bitExtent, ioOffset, accessType, valueToWrite);
     }
 
+    /**
+     * Writes the value to bytes. The helper applies shifts and masks
+     * according to the bit placement and emits an access using the supplied
+     * {@code accessType}.
+     */
     private void genSet(
             MethodSpec.Builder methodBuilder, int lowMaskBits, int bitExtent, String ioOffset,
             Function<String, String> accessType, String valueToWrite) {
@@ -452,6 +492,10 @@ class IntegerFieldModel extends PrimitiveFieldModel {
         methodBuilder.addStatement(write);
     }
 
+    /**
+     * Generates a setter for an array element. The helper validates the index
+     * and then writes the value with {@link #genSet(ValueBuilder, MethodSpec.Builder, Function, String)}.
+     */
     void genArrayElementSet(
             ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
             MethodSpec.Builder methodBuilder, Function<String, String> accessType,
