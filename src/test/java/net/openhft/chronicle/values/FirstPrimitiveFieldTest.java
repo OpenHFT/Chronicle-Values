@@ -84,6 +84,10 @@ interface FiveLongAndBooleanValues {
     void setBooleanValues(FiveBooleanValues values);
 }
 
+/**
+ * Checks the primitive type discovered first by {@link ValueModel} for simple
+ * values and for array-based views.
+ */
 public class FirstPrimitiveFieldTest extends ValuesTestCommon {
 
     @Test
