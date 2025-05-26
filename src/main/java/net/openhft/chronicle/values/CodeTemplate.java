@@ -41,14 +41,31 @@ import static net.openhft.chronicle.values.MethodTemplate.Type.ARRAY;
 import static net.openhft.chronicle.values.MethodTemplate.Type.SCALAR;
 import static net.openhft.chronicle.values.Primitives.isPrimitiveIntegerType;
 
+/**
+ * Utility holder for the regular expression templates that interpret
+ * accessor method signatures. Each template maps the name and
+ * parameters of a method to a {@link FieldModel} operation, allowing
+ * {@link ValueModel} creation to be driven purely from the interface
+ * declaration.
+ */
 enum CodeTemplate {
     ; // none
 
     public static final Function<Method, Parameter> NO_ANNOTATED_PARAM = m -> null;
+
+    /**
+     * Interfaces whose methods must be ignored when scanning a value
+     * interface. Methods declared in these types do not form part of the
+     * value model.
+     */
     static final List<Class<?>> NON_MODEL_TYPES = asList(
             Object.class, Serializable.class, Externalizable.class, BytesMarshallable.class,
             Copyable.class, Byteable.class);
 
+    /**
+     * Repository of patterns used to match accessor methods. More specific
+     * templates are ordered before generic ones.
+     */
     private static final SortedSet<MethodTemplate> METHOD_TEMPLATES =
             new TreeSet<>(
                     comparing((MethodTemplate t) -> t.parameters)
@@ -100,6 +117,16 @@ enum CodeTemplate {
                 annotatedParameter, addMethodToModel));
     }
 
+    /**
+     * Creates a {@link ValueModel} from the supplied value interface.
+     * The interface is scanned for abstract methods which are matched
+     * against the registered templates to determine the fields and their
+     * accessors.
+     *
+     * @param valueType the interface describing the value
+     * @return a populated ValueModel
+     * @throws IllegalArgumentException if no fields can be derived
+     */
     static ValueModel createValueModel(Class<?> valueType) {
         List<FieldModel> fields = methodsAndTemplatesByField(valueType).entrySet().stream()
                 .map(e -> createAndConfigureModel(e.getKey(), e.getValue())).collect(toList());
@@ -220,6 +247,11 @@ enum CodeTemplate {
                         Arrays.equals(m2.getParameterTypes(), m.getParameterTypes()));
     }
 
+    /**
+     * Decapitalises the first character of a method-derived field name
+     * unless the second character is already upper-case. This preserves
+     * common acronyms such as {@code URL}.
+     */
     static String convertFieldName(String name) {
         if (name.length() > 1 && Character.isUpperCase(name.charAt(1))) return name;
         if (Character.isLowerCase(name.charAt(0))) return name;
