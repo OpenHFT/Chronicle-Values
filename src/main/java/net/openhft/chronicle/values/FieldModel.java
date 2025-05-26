@@ -29,27 +29,51 @@ import java.util.function.BiConsumer;
 import static net.openhft.chronicle.values.Generators.methodBuilder;
 import static net.openhft.chronicle.values.Utils.capitalize;
 
+/**
+ * Metadata collected from an interface field definition.
+ *
+ * Each {@code FieldModel} instance represents a single field of a Chronicle
+ * value interface. The model records the field name, type and alignment
+ * requirements as well as which accessor methods were declared. Code
+ * generation routines use this information when emitting the concrete
+ * implementations.
+ */
 public abstract class FieldModel {
+    /** Name of the field in the value interface. */
     String name;
     /**
      * The field type if this is a {@link ScalarFieldModel},
      * elem type if this is a {@link ArrayFieldModel}
      */
     Class<?> type;
+    /** Ordering key used when {@link Group} annotations are present. The default is zero. */
     long groupOrder = 0;
+    /** {@code true} if offset alignment was explicitly specified. */
     boolean alignmentSpecifiedExplicitly;
+    /** Alignment of the field's starting offset in bytes. */
     int offsetAlignment;
+    /** Maximum number of bytes the field must not cross. */
     int dontCrossAlignment;
 
+    /** Reference to the declared get method, if any. */
     Method get;
+    /** Reference to the declared getVolatile method, if any. */
     Method getVolatile;
+    /** Reference to the declared getUsing method, if any. */
     Method getUsing;
+    /** Reference to the declared set method, if any. */
     Method set;
+    /** Reference to the declared setVolatile method, if any. */
     Method setVolatile;
+    /** Reference to the declared setOrdered method, if any. */
     Method setOrdered;
+    /** Reference to the declared add method, if any. */
     Method add;
+    /** Reference to the declared addAtomic method, if any. */
     Method addAtomic;
+    /** Reference to the declared compareAndSwap method, if any. */
     Method compareAndSwap;
+    /** Lazily created generator for heap-based implementations. */
     private MemberGenerator heapGenerator;
 
     static void genVerifiedElementOffset(
@@ -108,6 +132,10 @@ public abstract class FieldModel {
 
     abstract int sizeInBits();
 
+    /**
+     * Returns the fixed size of this field in bytes.
+     * The value from {@link #sizeInBits()} must be a multiple of eight.
+     */
     final int sizeInBytes() {
         int sizeInBits = sizeInBits();
         assert sizeInBits % 8 == 0;
@@ -150,6 +178,11 @@ public abstract class FieldModel {
         checkDontCrossSmallerThanSize();
     }
 
+    /**
+     * Ensures that at least one mutating method exists. A value with
+     * only read accessors would be unusable because the generated
+     * implementation could never update the field.
+     */
     void checkAnyWriteMethodPresent() {
         if (set == null && setVolatile == null && setOrdered == null && add == null &&
                 addAtomic == null && compareAndSwap == null) {
