@@ -28,13 +28,15 @@ import static net.openhft.chronicle.values.Generators.methodBuilder;
 import static net.openhft.chronicle.values.Utils.capitalize;
 
 /**
- * Metadata collected from an interface field definition.
+ * Holds metadata for a value interface field.
  * <p>
- * Each {@code FieldModel} instance represents a single field of a Chronicle
- * value interface. The model records the field name, type and alignment
- * requirements as well as which accessor methods were declared. Code
- * generation routines use this information when emitting the concrete
- * implementations.
+ * Each instance records the field name, type and any alignment constraints
+ * gathered from {@link Align} annotations. It also keeps references to the
+ * accessor methods declared on the interface. When code generation runs this
+ * model creates {@link MemberGenerator}s for both native and heap
+ * implementations and drives them via
+ * {@link #generateNativeMembers(ValueBuilder)} and
+ * {@link #generateHeapMembers(ValueBuilder)}.
  */
 public abstract class FieldModel {
     /** Name of the field in the value interface. */
