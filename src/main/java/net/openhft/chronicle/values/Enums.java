@@ -18,6 +18,13 @@
 
 package net.openhft.chronicle.values;
 
+/**
+ * Utility methods used by generated code for enum fields. The generator caches
+ * the array of constants for each enum so that values can be marshalled by
+ * ordinal. The constants array is obtained by reflectively invoking the
+ * package-private {@code EnumSet.getUniverse(Class)} method.
+ */
+
 import net.openhft.chronicle.core.Jvm;
 
 import java.lang.reflect.InvocationTargetException;
@@ -40,6 +47,14 @@ public final class Enums {
     private Enums() {
     }
 
+    /**
+     * Returns the constant array backing the supplied enum type.
+     *
+     * @param enumType the enum class
+     * @param <E>      type of the enum
+     * @return the array returned by {@code EnumSet.getUniverse(Class)}
+     * @throws RuntimeException if reflective access fails
+     */
     public static <E extends Enum<E>> E[] getUniverse(Class<E> enumType) {
         try {
             //noinspection unchecked
@@ -49,6 +64,13 @@ public final class Enums {
         }
     }
 
+    /**
+     * Returns the number of constants declared by the enum.
+     *
+     * @param enumType the enum class
+     * @param <E>      type of the enum
+     * @return constant count
+     */
     public static <E extends Enum<E>> int numberOfConstants(Class<E> enumType) {
         return getUniverse(enumType).length;
     }
