@@ -280,4 +280,52 @@ Point offHeapPoint = Values.newNativeReference(Point.class);
 offHeapPoint.bytesStore(bytesStore, offset, offHeapPoint.maxSize());
 ----
 
-See the full Javadoc at http://javadoc.io/doc/net.openhft/chronicle-values
+== Why Use Chronicle-Values and How It Fits In
+
+Chronicle-Values empowers you to work with structured data with high performance and type safety, especially when interfacing with low-latency and off-heap memory systems. It achieves this by generating efficient data accessors from Java interfaces.
+
+=== Core Benefits
+
+Chronicle-Values is designed to provide:
+
+* **High Performance & Low Latency:** Access and manipulate data with minimal overhead, crucial for systems where every microsecond counts. This is particularly true when using its "native" (off-heap) implementations.
+* **Minimized GC Impact:** Through the use of off-heap 'flyweight' objects, which act as lightweight views onto raw byte data. This significantly reduces garbage collection pressure by avoiding the creation of numerous heap objects.
+* **Type Safety:** Define your data structures using standard Java interfaces. This provides compile-time checking, clear API contracts, and reduces runtime errors.
+* **Developer Convenience:** The library automatically generates the necessary accessor boilerplate (getters, setters, etc.) based on your interface definition and intuitive annotations. This saves development time and reduces manual coding errors.
+* **"Zero-Deserialization" Access:** Read data directly from memory without the traditional cost of hydrating full heap objects, allowing for faster processing.
+* **Seamless Integration:** Designed to work smoothly with other Chronicle libraries like Chronicle Map (for off-heap key-value stores) and Chronicle Queue (for low-latency messaging), enabling efficient data storage and exchange.
+
+=== Primary Use Cases
+
+Chronicle-Values is ideal when you need to work with data that has a **fixed, well-defined structure at compile time**. Common scenarios include:
+
+*   Representing financial messages (e.g., FIX, SBE, or custom binary protocols).
+*   Defining event payloads for event-sourcing architectures.
+*   Creating complex, fixed-layout keys or values for use with Chronicle Map or Chronicle Queue.
+*   Any situation where you need performant, typed access to structured binary data, whether on-heap or off-heap.
+
+=== How Chronicle-Values Complements Chronicle-Bytes
+
+Chronicle-Values operates on top of Chronicle-Bytes, which provides the foundational layer for byte manipulation. While Values offers a higher-level, typed abstraction for _structured_ data, Chronicle-Bytes remains essential for:
+
+*   Low-level, direct manipulation of byte sequences.
+*   Implementing custom serialization or deserialization logic for arbitrary formats.
+*   Parsing and constructing binary network protocols from scratch.
+*   Handling dynamic, unstructured, or schema-less binary data.
+
+**Typical Workflow:**
+A common pattern is to use Chronicle-Bytes for initial I/O operations (e.g., reading from a network socket or a file) or to parse the outer envelope of a raw data stream. Once you've identified a segment of that stream that corresponds to a known, fixed structure defined by a value interface, you can then map a Chronicle-Values native reference (flyweight) over that region for typed, convenient, and performant access.
+
+=== Heap vs. Native (Flyweight) Implementations
+
+For every value interface, Chronicle-Values can generate two types of implementations:
+
+-   **Native (Flyweight) References (`Values.newNativeReference(..)`):**
+*   These are lightweight views onto a `BytesStore` (which can be on-heap or off-heap memory).
+*   They provide maximum performance and are central to off-heap data strategies.
+*   They do not store data themselves; they merely provide typed accessors to the underlying bytes.
+*   Careful management of the backing `BytesStore`'s lifecycle is crucial (see section on Lifecycle Management).
+-   **Heap Instances (`Values.newHeapInstance(..)`):**
+*   These are standard Java objects (POJOs) that store their data on the Java heap.
+*   Useful for interacting with other parts of your system that expect POJOs, or when off-heap performance is not the primary concern for a particular data structure.
+*   Data can be easily copied between native and heap instances using the generated `copyFrom()` method (from the `Copyable` interface).
