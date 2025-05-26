@@ -16,5 +16,8 @@
 
 package net.openhft.chronicle.values;
 
+/**
+ * Base class for scalar field models.
+ */
 abstract class ScalarFieldModel extends FieldModel {
 }
