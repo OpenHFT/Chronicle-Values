@@ -93,6 +93,7 @@ interface Order {
     void setState(@NotNull State state);
 }
 ----
+The generated classes keep a reference to the array of constants for each enum field. The `Enums` helper obtains this array via reflection from `EnumSet.getUniverse(Class)`. Caching the array lets the marshalling code translate ordinals without calling `values()` on every access.
 
 ===== java.util.Date
 
