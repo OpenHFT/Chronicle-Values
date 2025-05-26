@@ -42,13 +42,13 @@ import static net.openhft.chronicle.values.Primitives.isPrimitiveIntegerType;
 /**
  * Holds the regular expression templates that recognise accessor method
  * signatures. Templates are applied in order of specificity.
- *
+ * <p>
  * Each entry defines a method-name pattern, the expected argument count and
  * the {@link FieldModel} operation to invoke. The first capture group of the
  * pattern becomes the logical field name. Patterns may therefore match both
  * scalar forms such as {@code getFoo()} and array forms like
  * {@code getFooAt(int)}.
- *
+ * <p>
  * When {@link #createValueModel(Class)} analyses a value interface every
  * abstract method is matched against these templates. The selected template
  * determines the field type and records the accessor on the relevant

@@ -23,6 +23,13 @@ import java.lang.reflect.InvocationTargetException;
 /**
  * Central access point for loading generated heap and native Values.
  * Provides convenient factory methods for their implementations.
+ *
+ * <p>Example:
+ * <pre>{@code
+ * Point ref = Values.newNativeReference(Point.class);
+ * BytesStore<?, ?> bs = BytesStore.nativeStoreWithFixedCapacity(ref.maxSize());
+ * ((Byteable) ref).bytesStore(bs, 0, ref.maxSize());
+ * }</pre>
  */
 public final class Values {
 

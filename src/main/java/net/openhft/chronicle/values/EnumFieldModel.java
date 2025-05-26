@@ -30,11 +30,14 @@ import static net.openhft.chronicle.values.Nullability.NULLABLE;
 
 /**
  * Models an enum reference backed by an {@code int} ordinal.
- * <p>
- * Each enum constant is stored as its ordinal; when the field is
- * nullable the value {@code -1} represents {@code null}. The code
- * generator creates a static array with the enum universe so that
- * ordinals may be converted back to enum constants efficiently.
+ *
+ * <p>A static "universe" array caches the constants for each enum type. The
+ * array is initialised via {@link Enums#getUniverse(Class)} and stored as a
+ * {@code private static final} field so that ordinal to enum lookups never
+ * perform reflection.
+ *
+ * <p>When a field is nullable the sentinel ordinal {@code -1} encodes
+ * {@code null}. Non-nullable fields store the ordinal directly.
  */
 class EnumFieldModel extends IntegerBackedFieldModel {
 
@@ -143,7 +146,10 @@ class EnumFieldModel extends IntegerBackedFieldModel {
 
     /**
      * Adds a static array holding all enum constants to the generated class.
-     * This array allows fast conversion between ordinals and the enum values.
+     * <p>
+     * The array is initialised once using {@link Enums#getUniverse(Class)} and
+     * cached for every instance. It allows ordinal to enum conversion without
+     * repeated reflective calls.
      */
     private void addUniverseField(ValueBuilder valueBuilder) {
         FieldSpec universe = FieldSpec
@@ -156,6 +162,9 @@ class EnumFieldModel extends IntegerBackedFieldModel {
 
     /**
      * Converts an enum reference to the stored ordinal value.
+     *
+     * <p>Nullable fields use {@code -1} as the sentinel for {@code null};
+     * otherwise the enum's ordinal is returned unchanged.
      *
      * @param e expression yielding an enum instance
      * @return ordinal or {@code -1} when {@code null} is permitted and the
@@ -172,6 +181,9 @@ class EnumFieldModel extends IntegerBackedFieldModel {
     /**
      * Converts an ordinal previously stored in the backing field back to an
      * enum constant or {@code null}.
+     *
+     * <p>The sentinel {@code -1} maps back to {@code null}; any other value is
+     * used as an index into the cached universe array.
      *
      * @param methodBuilder context used to declare temporary variables
      * @param value         expression yielding the ordinal

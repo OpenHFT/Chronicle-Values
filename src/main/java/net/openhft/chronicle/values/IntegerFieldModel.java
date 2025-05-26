@@ -95,9 +95,14 @@ class IntegerFieldModel extends PrimitiveFieldModel {
             return cond.substring(4);
         }
 
+        /**
+         * Emits a non-atomic additive update implemented as a load/add/store
+         * sequence. When {@code BytesStore} exposes {@code addAndGetXxxNotAtomic}
+         * for integer primitives this method should delegate to that helper to
+         * avoid generating multiple primitive accesses.
+         */
         @Override
         public void generateAdd(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
-            // TODO use addAndGetXxxNotAtomic from BytesStore interface when possible
             String value = genGet(valueBuilder, NORMAL_ACCESS_TYPE);
             methodBuilder.addStatement("$T $N = $N", type, oldName(), value);
             if (type != byte.class && type != short.class && type != char.class) {

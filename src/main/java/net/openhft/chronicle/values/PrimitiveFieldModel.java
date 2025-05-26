@@ -22,6 +22,16 @@ import java.lang.reflect.Method;
 
 import static net.openhft.chronicle.values.Primitives.widthInBits;
 
+/**
+ * Provides layout rules for primitive fields within a value interface. The
+ * calculations here take the raw primitive width and adjust it for
+ * {@code volatile} or ordered writes so that atomic operations are possible.
+ * <p>
+ * {@link IntegerBackedFieldModel} reuses this logic for domain types encoded as
+ * integers. Subclasses may override {@link #sizeInBits()} when the chosen
+ * storage type must be wider than the logical primitive, typically because of
+ * the concurrency semantics requested by the interface.
+ */
 abstract class PrimitiveFieldModel extends ScalarFieldModel {
 
     @Override

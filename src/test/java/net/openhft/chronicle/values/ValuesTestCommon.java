@@ -33,7 +33,7 @@ import java.util.function.Predicate;
 
 /**
  * Base class for values tests.
- *
+ * <p>
  * Enables reference tracing and starts exception recording before each test.
  * At the end of a test it verifies that all resources have been released,
  * no unexpected threads remain and only declared exceptions were logged.
