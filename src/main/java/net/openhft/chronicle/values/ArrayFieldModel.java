@@ -27,10 +27,23 @@ import static net.openhft.chronicle.values.Utils.roundUp;
 /**
  * Metadata model for an array field.
  *
- * The instance records the scalar model of the element type and the
- * {@link Array} annotation describing the declared length and alignment
- * requirements. Code generation routines consult this model when
- * laying out the field and emitting element accessors.
+ * <p>The model pairs a {@link ScalarFieldModel} describing the element type
+ * with the {@link Array} annotation found on the value interface. The
+ * annotation supplies the fixed {@linkplain Array#length() length} and the
+ * optional alignment rules for individual elements.</p>
+ *
+ * <p>The declared length is used when generating loops and bounds checks and
+ * contributes directly to the size reported by {@link #sizeInBits()}. Any
+ * element offset alignment and <em>dont-cross</em> boundary specified via
+ * {@link Array#elementOffsetAlignment()} and
+ * {@link Array#elementDontCrossAlignment()} are applied to the element model so
+ * that accessors honour these constraints. The array field alignment is then
+ * derived from the element alignment in
+ * {@link #offsetAlignmentInBytes()}.</p>
+ *
+ * <p>Code generation routines rely on this metadata to compute element
+ * addresses, perform index validation and emit bulk operations such as copy or
+ * marshalling loops.</p>
  */
 public class ArrayFieldModel extends FieldModel {
 
@@ -48,6 +61,11 @@ public class ArrayFieldModel extends FieldModel {
      * Extracts {@link Array} metadata from the interface method and applies the
      * declared alignment to the element model. The method guards against
      * multiple declarations and validates that the length is greater than one.
+     *
+     * <p>The element offset and dont-cross constraints from the annotation are
+     * propagated to {@code elemModel}. This ensures that subsequent size and
+     * alignment computations use the same parameters as an equivalent scalar
+     * field.</p>
      */
     @Override
     void addLayoutInfo(Method m, MethodTemplate template) {
@@ -72,7 +90,8 @@ public class ArrayFieldModel extends FieldModel {
     /**
      * Returns the total storage requirement of the array in bits.
      * The calculation honours element alignment and the declared
-     * {@link Array#elementDontCrossAlignment() dont-cross} boundary.
+     * {@link Array#elementDontCrossAlignment() dont-cross} boundary. The
+     * generated code relies on this value when computing element offsets.
      */
     @Override
     int sizeInBits() {
@@ -92,8 +111,9 @@ public class ArrayFieldModel extends FieldModel {
     }
 
     /**
-     * Element bit extent rounded up to the element offset alignment. Used when
-     * computing array layout and element positions.
+     * Element bit extent rounded up to the element offset alignment. This value
+     * is used when laying out the array so that each element starts on a
+     * boundary compatible with the element model.
      */
     int elemBitExtent() {
         return roundUp(elemModel.sizeInBits(), elemModel.offsetAlignmentInBits());
@@ -102,7 +122,8 @@ public class ArrayFieldModel extends FieldModel {
     /**
      * Determines the alignment of the array field itself. The result must be a
      * multiple of the element alignment. When no explicit offset is supplied the
-     * element alignment is reused.
+     * element alignment is reused. Generated accessors rely on this alignment to
+     * compute the base address of the array in the enclosing value.
      */
     @Override
     int offsetAlignmentInBytes() {
@@ -155,6 +176,11 @@ public class ArrayFieldModel extends FieldModel {
         return new ArrayMemberGenerator(this, elemModel.heapGenerator());
     }
 
+    /**
+     * Emits a bounds check for element access. The generated code throws an
+     * {@link ArrayIndexOutOfBoundsException} when the supplied index is outside
+     * {@link Array#length()}.
+     */
     void checkBounds(MethodSpec.Builder methodBuilder) {
         methodBuilder.beginControlFlow("if (index < 0 || index >= $L)", array.length());
         methodBuilder.addStatement("throw new $T(index + $S)",
@@ -170,7 +196,8 @@ public class ArrayFieldModel extends FieldModel {
     /**
      * Delegates generation of element accessors and bulk operations.
      * The helper calls through to the element's own generator with the
-     * correct index calculations.
+     * correct index calculations. Loop constructs emitted by this class rely on
+     * the fixed {@link Array#length()} recorded in the outer model.
      */
     private class ArrayMemberGenerator extends MemberGenerator {
         private final MemberGenerator elemGenerator;
