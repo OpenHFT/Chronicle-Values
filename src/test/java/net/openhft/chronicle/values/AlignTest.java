@@ -46,7 +46,7 @@ public class AlignTest extends ValuesTestCommon {
     @SuppressWarnings("rawtypes")
     /**
      * Minimal order definition used to check alignment constraints.
-     *
+     * <p>
      * The order quantity field must be aligned for atomic updates.
      */
     interface DemoOrderVOInterface extends Byteable {
@@ -65,7 +65,7 @@ public class AlignTest extends ValuesTestCommon {
 
         /**
          * Adds {@code toAdd} to the order quantity atomically.
-         *
+         * <p>
          * Alignment of the underlying field is critical so that this method can
          * use atomic operations provided by Chronicle Bytes.
          *

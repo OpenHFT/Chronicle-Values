@@ -25,7 +25,7 @@ public interface JavaBeanInterfaceGetUsing {
 
     /**
      * Writes the stored value into the supplied builder.
-     *
+     * <p>
      * Clears {@code b}, appends the last string set via
      * {@link #setString(String)}, and returns the builder.
      *

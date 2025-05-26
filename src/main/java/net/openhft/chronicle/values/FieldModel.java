@@ -29,7 +29,7 @@ import static net.openhft.chronicle.values.Utils.capitalize;
 
 /**
  * Metadata collected from an interface field definition.
- *
+ * <p>
  * Each {@code FieldModel} instance represents a single field of a Chronicle
  * value interface. The model records the field name, type and alignment
  * requirements as well as which accessor methods were declared. Code
