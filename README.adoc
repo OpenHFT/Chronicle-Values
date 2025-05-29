@@ -20,7 +20,8 @@ Interfaces that can be processed by Chronicle-Values generation are called *valu
 Please write the value interface according to the specification below, with *unit tests for your interface*.
 If the generation from the value interface (according to spec) doesn't work, please report the case via GitHub issues.
 
-All classes in the package `net.openhft.chronicle.values.internal` and its subpackages are internal implementation details. They may change without notice and must not be referenced directly.
+All classes in the package `net.openhft.chronicle.values.internal` and its subpackages are internal implementation details.
+They may change without notice and must not be referenced directly.
 
 === Value interface specification
 
@@ -61,10 +62,8 @@ interface Client {
 }
 ----
 
-The value supplied to `@MaxUtf8Length` is the allowed size once the text is
-encoded as UTF-8. The native form checks this limit when writing to the backing
-`BytesStore`. Heap implementations assume the caller supplies a compliant value
-and any breach is detected only when copied to a native instance.
+The value supplied to `@MaxUtf8Length` is the allowed size once the text is encoded as UTF-8. The native form checks this limit when writing to the backing `BytesStore`.
+Heap implementations assume the caller supplies a compliant value and any breach is detected only when copied to a native instance.
 
 ===== Another value interface
 Allows nested structures:
@@ -100,7 +99,9 @@ interface Order {
     void setState(@NotNull State state);
 }
 ----
-The generated classes keep a reference to the array of constants for each enum field. The `Enums` helper obtains this array via reflection from `EnumSet.getUniverse(Class)`. Caching the array lets the marshalling code translate ordinals without calling `values()` on every access.
+The generated classes keep a reference to the array of constants for each enum field.
+The `Enums` helper obtains this array via reflection from `EnumSet.getUniverse(Class)`.
+Caching the array lets the marshalling code translate ordinals without calling `values()` on every access.
 
 ===== java.util.Date
 
@@ -182,9 +183,9 @@ For nested value interfaces, `using` is that interface.
 === Field configuration via annotations
 
 ==== Field ordering in flyweight layout
-Fields are laid out group by group. Use `@Group` to cluster fields and control
-their ordering. Fields without `@Group` form the default group, which always
-comes first:
+Fields are laid out group by group.
+Use `@Group` to cluster fields and control their ordering.
+Fields without `@Group` form the default group, which always comes first:
 
 [source,java]
 ----
@@ -210,10 +211,9 @@ interface Instrument {
 }
 ----
 
-When a field is nullable the generated native form stores a marker instead of
-the text. Heap implementations use an extra boolean for `CharSequence` fields to
-track a null value. With `@NotNull` the setters emit a `NullPointerException` if
-given `null`.
+When a field is nullable the generated native form stores a marker instead of the text.
+Heap implementations use an extra boolean for `CharSequence` fields to track a null value.
+With `@NotNull` the setters emit a `NullPointerException` if given `null`.
 
 ==== Numeric field ranges
 Annotate with `@Range(min=, max=)` to reduce flyweight size:
@@ -265,9 +265,8 @@ Generated classes implement:
 * Correct `equals`, `hashCode`, `toString`
 * `Byteable` (no-op on the heap implementation)
 
-The `Copyable` feature allows an on-heap value to take a snapshot of a
-native instance or vice versa. This provides a simple way to shuttle data
-between the two representations.
+The `Copyable` feature allows an on-heap value to take a snapshot of a native instance or vice versa.
+This provides a simple way to shuttle data between the two representations.
 
 You may extend these in the interface to avoid casting:
 
@@ -282,7 +281,8 @@ offHeapPoint.bytesStore(bytesStore, offset, offHeapPoint.maxSize());
 
 == Why Use Chronicle-Values and How It Fits In
 
-Chronicle-Values empowers you to work with structured data with high performance and type safety, especially when interfacing with low-latency and off-heap memory systems. It achieves this by generating efficient data accessors from Java interfaces.
+Chronicle-Values empowers you to work with structured data with high performance and type safety, especially when interfacing with low-latency and off-heap memory systems.
+It achieves this by generating efficient data accessors from Java interfaces.
 
 === Core Benefits
 
@@ -297,35 +297,38 @@ Chronicle-Values is designed to provide:
 
 === Primary Use Cases
 
-Chronicle-Values is ideal when you need to work with data that has a **fixed, well-defined structure at compile time**. Common scenarios include:
+Chronicle-Values is ideal when you need to work with data that has a **fixed, well-defined structure at compile time**.
+Common scenarios include:
 
-*   Representing financial messages (e.g., FIX, SBE, or custom binary protocols).
-*   Defining event payloads for event-sourcing architectures.
-*   Creating complex, fixed-layout keys or values for use with Chronicle Map or Chronicle Queue.
-*   Any situation where you need performant, typed access to structured binary data, whether on-heap or off-heap.
+* Representing financial messages (e.g., FIX, SBE, or custom binary protocols).
+* Defining event payloads for event-sourcing architectures.
+* Creating complex, fixed-layout keys or values for use with Chronicle Map or Chronicle Queue.
+* Any situation where you need performant, typed access to structured binary data, whether on-heap or off-heap.
 
 === How Chronicle-Values Complements Chronicle-Bytes
 
-Chronicle-Values operates on top of Chronicle-Bytes, which provides the foundational layer for byte manipulation. While Values offers a higher-level, typed abstraction for _structured_ data, Chronicle-Bytes remains essential for:
+Chronicle-Values operates on top of Chronicle-Bytes, which provides the foundational layer for byte manipulation.
+While Values offers a higher-level, typed abstraction for _structured_ data, Chronicle-Bytes remains essential for:
 
-*   Low-level, direct manipulation of byte sequences.
-*   Implementing custom serialization or deserialization logic for arbitrary formats.
-*   Parsing and constructing binary network protocols from scratch.
-*   Handling dynamic, unstructured, or schema-less binary data.
+* Low-level, direct manipulation of byte sequences.
+* Implementing custom serialization or deserialization logic for arbitrary formats.
+* Parsing and constructing binary network protocols from scratch.
+* Handling dynamic, unstructured, or schema-less binary data.
 
 **Typical Workflow:**
-A common pattern is to use Chronicle-Bytes for initial I/O operations (e.g., reading from a network socket or a file) or to parse the outer envelope of a raw data stream. Once you've identified a segment of that stream that corresponds to a known, fixed structure defined by a value interface, you can then map a Chronicle-Values native reference (flyweight) over that region for typed, convenient, and performant access.
+A common pattern is to use Chronicle-Bytes for initial I/O operations (e.g., reading from a network socket or a file) or to parse the outer envelope of a raw data stream.
+Once you've identified a segment of that stream that corresponds to a known, fixed structure defined by a value interface, you can then map a Chronicle-Values native reference (flyweight) over that region for typed, convenient, and performant access.
 
 === Heap vs. Native (Flyweight) Implementations
 
 For every value interface, Chronicle-Values can generate two types of implementations:
 
--   **Native (Flyweight) References (`Values.newNativeReference(..)`):**
-*   These are lightweight views onto a `BytesStore` (which can be on-heap or off-heap memory).
-*   They provide maximum performance and are central to off-heap data strategies.
-*   They do not store data themselves; they merely provide typed accessors to the underlying bytes.
-*   Careful management of the backing `BytesStore`'s lifecycle is crucial (see section on Lifecycle Management).
--   **Heap Instances (`Values.newHeapInstance(..)`):**
-*   These are standard Java objects (POJOs) that store their data on the Java heap.
-*   Useful for interacting with other parts of your system that expect POJOs, or when off-heap performance is not the primary concern for a particular data structure.
-*   Data can be easily copied between native and heap instances using the generated `copyFrom()` method (from the `Copyable` interface).
+* **Native (Flyweight) References (`Values.newNativeReference(..)`):**
+** These are lightweight views onto a `BytesStore` (which can be on-heap or off-heap memory).
+** They provide maximum performance and are central to off-heap data strategies.
+** They do not store data themselves; they merely provide typed accessors to the underlying bytes.
+** Careful management of the backing `BytesStore`'s lifecycle is crucial (see section on Lifecycle Management).
+* **Heap Instances (`Values.newHeapInstance(..)`):**
+** These are standard Java objects (POJOs) that store their data on the Java heap.
+** Useful for interacting with other parts of your system that expect POJOs, or when off-heap performance is not the primary concern for a particular data structure.
+** Data can be easily copied between native and heap instances using the generated `copyFrom()` method (from the `Copyable` interface).

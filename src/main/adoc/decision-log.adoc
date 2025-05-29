@@ -1,92 +1,93 @@
 = Decision Log: Chronicle Libraries Usage
 
-This log records key decisions regarding the selection and use of Chronicle libraries, based on the "A Deep Dive into Chronicle Values versus Chronicle Bytes for Project Requirements Analysis" report. Identifiers use the `CV` project scope and relevant Nine-Box tags.
+This log records key decisions regarding the selection and use of Chronicle libraries, based on the "A Deep Dive into Chronicle Values versus Chronicle Bytes for Project Requirements Analysis" report.
+Identifiers use the `CV` project scope and relevant Nine-Box tags.
 
 The requirement tags referenced here originate from link:project-requirements.adoc[Project Requirements].
 
 == [CV-FN-032] Adoption of Chronicle Values for Structured, Fixed-Size Data
 
-- Date: 2025-05-26
-- Context:
-* Need for a type-safe, efficient, and developer-friendly way to represent and manipulate data with well-defined, fixed-size schemas (e.g., financial messages, event payloads).
-* Desire to minimize GC impact and integrate smoothly with other Chronicle libraries like Map and Queue.
-* Requirements: CV-FN-001, CV-FN-003, CV-FN-007, CV-FN-008, CV-NFP-011, CV-NFP-012, CV-UX-026.
-- Decision Statement:
-* Chronicle Values *will be adopted* as the primary mechanism for modeling and accessing structured, fixed-size data, particularly when type safety, developer convenience, and integration with Chronicle Map/Queue are priorities.
-- **Alternatives Considered:**
-* _Direct use of Chronicle Bytes for all structured data_:
-** *Description:* Manually managing offsets and data interpretation within Chronicle Bytes buffers for all structured data.
-** *Pros:* Maximum control over memory layout; potentially the absolute lowest latency if hand-optimized perfectly.
-** *Cons:* Higher development complexity; error-prone (offset miscalculations, type misinterpretations); poor type safety at compile time; more boilerplate code.
-* _Using third-party serialization libraries (e.g., Protocol Buffers, Avro) on top of Chronicle Bytes_:
-** *Description:* Employing external libraries for defining structures and serializing/deserializing them into/from Bytes buffers.
-** *Pros:* Mature schema definition and evolution capabilities; language interoperability (for some).
-** *Cons:* Potential performance overhead compared to direct flyweight access; may not offer "zero-deserialization" in the same way as Values flyweights; less direct integration with Chronicle ecosystem idioms.
-* _Exclusive use of on-heap Java objects (POJOs) with manual serialization to Chronicle Bytes_:
-** *Description:* Using standard POJOs and writing custom serialization logic to/from Bytes.
-** *Pros:* Familiar development paradigm for POJOs.
-** *Cons:* Significant GC pressure if many objects are created; manual serialization is complex and error-prone; loses off-heap benefits for data-in-flight/at-rest unless meticulously managed.
-- **Rationale for Decision:**
-* Chronicle Values provides a strong balance of performance (via off-heap flyweights, "zero-deserialization"), type safety (compile-time checks via interfaces), and developer convenience (generated accessors, annotation-driven configuration) for its target use case.
-* It directly addresses the need for fixed-layout data representation and seamless integration with Chronicle Map/Queue.
-* The flyweight pattern minimizes object churn and GC impact, aligning with performance goals.
-- **Impact & Consequences:**
-* Build system must integrate Chronicle Values annotation processor (CV-OPS-024).
-* Development team requires training on Chronicle Values interface definition, annotations, and the distinction between flyweights and heap beans (CV-UX-027).
-* Improved developer productivity and reduced errors for tasks involving supported structured data.
-* Enhanced performance due to reduced GC pressure and efficient data access.
+* Date: 2025-05-26
+* Context:
+** Need for a type-safe, efficient, and developer-friendly way to represent and manipulate data with well-defined, fixed-size schemas (e.g., financial messages, event payloads).
+** Desire to minimize GC impact and integrate smoothly with other Chronicle libraries like Map and Queue.
+** Requirements: CV-FN-001, CV-FN-003, CV-FN-007, CV-FN-008, CV-NFP-011, CV-NFP-012, CV-UX-026.
+* Decision Statement:
+** Chronicle Values *will be adopted* as the primary mechanism for modeling and accessing structured, fixed-size data, particularly when type safety, developer convenience, and integration with Chronicle Map/Queue are priorities.
+* **Alternatives Considered:**
+** _Direct use of Chronicle Bytes for all structured data_:
+*** *Description:* Manually managing offsets and data interpretation within Chronicle Bytes buffers for all structured data.
+*** *Pros:* Maximum control over memory layout; potentially the absolute lowest latency if hand-optimized perfectly.
+*** *Cons:* Higher development complexity; error-prone (offset miscalculations, type misinterpretations); poor type safety at compile time; more boilerplate code.
+** _Using third-party serialization libraries (e.g., Protocol Buffers, Avro) on top of Chronicle Bytes_:
+*** *Description:* Employing external libraries for defining structures and serializing/deserializing them into/from Bytes buffers.
+*** *Pros:* Mature schema definition and evolution capabilities; language interoperability (for some).
+*** *Cons:* Potential performance overhead compared to direct flyweight access; may not offer "zero-deserialization" in the same way as Values flyweights; less direct integration with Chronicle ecosystem idioms.
+** _Exclusive use of on-heap Java objects (POJOs) with manual serialization to Chronicle Bytes_:
+*** *Description:* Using standard POJOs and writing custom serialization logic to/from Bytes.
+*** *Pros:* Familiar development paradigm for POJOs.
+*** *Cons:* Significant GC pressure if many objects are created; manual serialization is complex and error-prone; loses off-heap benefits for data-in-flight/at-rest unless meticulously managed.
+* **Rationale for Decision:**
+** Chronicle Values provides a strong balance of performance (via off-heap flyweights, "zero-deserialization"), type safety (compile-time checks via interfaces), and developer convenience (generated accessors, annotation-driven configuration) for its target use case.
+** It directly addresses the need for fixed-layout data representation and seamless integration with Chronicle Map/Queue.
+** The flyweight pattern minimizes object churn and GC impact, aligning with performance goals.
+* **Impact & Consequences:**
+** Build system must integrate Chronicle Values annotation processor (CV-OPS-024).
+** Development team requires training on Chronicle Values interface definition, annotations, and the distinction between flyweights and heap beans (CV-UX-027).
+** Improved developer productivity and reduced errors for tasks involving supported structured data.
+** Enhanced performance due to reduced GC pressure and efficient data access.
 
 == [CV-FN-033] Adoption of Chronicle Bytes for Low-Level and Unstructured Data
 
-- Date: 2025-05-26
-- Context:
-* Need for direct, low-level manipulation of byte sequences, implementation of custom serialization/deserialization, parsing/constructing binary network protocols, and handling dynamic or unstructured data.
-* Requirements for maximum control over memory and ultimate performance potential in specific scenarios.
-* Requirements: CV-FN-002, CV-NFP-009, CV-NFO-016, CV-NFS-018, CV-NFS-019.
-- Decision Statement:
-* Chronicle Bytes *will be adopted* for tasks requiring foundational byte manipulation, handling unstructured/dynamic data, achieving maximum control and performance where the overhead of higher-level abstractions is unacceptable, and as the underlying layer for other data abstractions.
-- **Alternatives Considered:**
-* _Exclusive use of Chronicle Values_:
-** *Description:* Attempting to model all data, including highly dynamic or unstructured data, using Chronicle Values interfaces.
-** *Pros:* Consistent use of a single higher-level API.
-** *Cons:* Not suitable for data that isn't fixed-size or well-structured at compile time; would lead to inefficient workarounds or be impossible for truly raw binary data.
-* _Standard Java NIO (ByteBuffer)_:
-** *Description:* Using Java's built-in ByteBuffer for all low-level byte operations.
-** *Pros:* Part of standard Java, no external dependencies.
-** *Cons:* Generally lower performance than Chronicle Bytes; API considered less flexible (e.g., `flip()` operation, separate read/write positions not as convenient); less comprehensive support for off-heap memory management idioms like reference counting.
-- **Rationale for Decision:**
-* Chronicle Bytes is specifically designed for high-performance, low-level memory operations, offering superior performance and flexibility compared to standard Java NIO.
-* It provides essential tools for direct memory access (on-heap and off-heap), fine-grained control over buffer state, and support for a wide array of data types.
-* Its maturity and foundational role in the Chronicle ecosystem make it a reliable choice for critical low-level tasks.
-- **Impact & Consequences:**
-* Requires developers to have expertise in low-level Java programming, manual memory management (especially off-heap), and byte manipulation (CV-UX-027).
-* Increased responsibility on developers for memory safety (bounds, resource release) (CV-RISK-031, CV-NFS-019).
-* Enables highest possible performance for specific tasks.
-* Provides flexibility to handle any binary data format.
+* Date: 2025-05-26
+* Context:
+** Need for direct, low-level manipulation of byte sequences, implementation of custom serialization/deserialization, parsing/constructing binary network protocols, and handling dynamic or unstructured data.
+** Requirements for maximum control over memory and ultimate performance potential in specific scenarios.
+** Requirements: CV-FN-002, CV-NFP-009, CV-NFO-016, CV-NFS-018, CV-NFS-019.
+* Decision Statement:
+** Chronicle Bytes *will be adopted* for tasks requiring foundational byte manipulation, handling unstructured/dynamic data, achieving maximum control and performance where the overhead of higher-level abstractions is unacceptable, and as the underlying layer for other data abstractions.
+* **Alternatives Considered:**
+** _Exclusive use of Chronicle Values_:
+*** *Description:* Attempting to model all data, including highly dynamic or unstructured data, using Chronicle Values interfaces.
+*** *Pros:* Consistent use of a single higher-level API.
+*** *Cons:* Not suitable for data that isn't fixed-size or well-structured at compile time; would lead to inefficient workarounds or be impossible for truly raw binary data.
+** _Standard Java NIO (ByteBuffer)_:
+*** *Description:* Using Java's built-in ByteBuffer for all low-level byte operations.
+*** *Pros:* Part of standard Java, no external dependencies.
+*** *Cons:* Generally lower performance than Chronicle Bytes; API considered less flexible (e.g., `flip()` operation, separate read/write positions not as convenient); less comprehensive support for off-heap memory management idioms like reference counting.
+* **Rationale for Decision:**
+** Chronicle Bytes is specifically designed for high-performance, low-level memory operations, offering superior performance and flexibility compared to standard Java NIO.
+** It provides essential tools for direct memory access (on-heap and off-heap), fine-grained control over buffer state, and support for a wide array of data types.
+** Its maturity and foundational role in the Chronicle ecosystem make it a reliable choice for critical low-level tasks.
+* **Impact & Consequences:**
+** Requires developers to have expertise in low-level Java programming, manual memory management (especially off-heap), and byte manipulation (CV-UX-027).
+** Increased responsibility on developers for memory safety (bounds, resource release) (CV-RISK-031, CV-NFS-019).
+** Enables highest possible performance for specific tasks.
+** Provides flexibility to handle any binary data format.
 
 == [CV-FN-034] Strategy for Combined Usage of Chronicle Values and Bytes
 
-- Date: 2025-05-26
-- Context:
-* Many systems require both low-level data handling (e.g., network I/O, parsing raw streams) and higher-level, typed access to structured portions of that data.
-* Need to leverage the strengths of both Chronicle Bytes and Chronicle Values within the same application or data pipeline.
-- Decision Statement:
-* A combined approach, where Chronicle Bytes is used for raw I/O and initial processing of byte streams, and Chronicle Values flyweights are subsequently mapped over specific, structured portions of these Bytes buffers, *is endorsed* for relevant use cases.
-* Data can be copied from Values flyweights to generated heap beans for interaction with standard Java components where performance is less critical.
-- **Alternatives Considered:**
-* _Using only Chronicle Bytes_:
-** *Description:* Manually implementing parsing and typed access for all structured data segments.
-** *Pros:* Single library dependency for byte-level tasks.
-** *Cons:* Loses benefits of type safety and developer convenience offered by Values for structured parts; more complex to maintain.
-* _Using only Chronicle Values (and forcing data into its model)_:
-** *Description:* Attempting to fit all data, including initial raw streams, directly into Values interfaces, potentially by pre-processing into conforming Bytes buffers.
-** *Pros:* Single high-level API for data access.
-** *Cons:* Impractical or inefficient for truly raw/unstructured initial data stages; might add unnecessary processing steps.
-- **Rationale for Decision:**
-* This layered approach allows leveraging the raw power and flexibility of Chronicle Bytes for low-level I/O and parsing, and the type safety and convenience of Chronicle Values for interacting with known, structured data segments within those byte streams.
-* It provides a pathway to bridge performance-critical sections (using off-heap Values flyweights) with other parts of an application that expect standard Java objects (via copying to on-heap beans).
-* This synergistic use maximizes the benefits of both libraries.
-- **Impact & Consequences:**
-* Developers need to understand the interplay between Bytes buffers and Values flyweights, including how flyweights are mapped to specific memory regions within a Bytes instance.
-* Careful management of the Bytes buffer lifecycle is crucial, as Values flyweights depend on its validity.
-* Architectural patterns will need to define clear boundaries and responsibilities for when Bytes is used versus when Values is applied.
+* Date: 2025-05-26
+* Context:
+** Many systems require both low-level data handling (e.g., network I/O, parsing raw streams) and higher-level, typed access to structured portions of that data.
+** Need to leverage the strengths of both Chronicle Bytes and Chronicle Values within the same application or data pipeline.
+* Decision Statement:
+** A combined approach, where Chronicle Bytes is used for raw I/O and initial processing of byte streams, and Chronicle Values flyweights are subsequently mapped over specific, structured portions of these Bytes buffers, *is endorsed* for relevant use cases.
+** Data can be copied from Values flyweights to generated heap beans for interaction with standard Java components where performance is less critical.
+* **Alternatives Considered:**
+** _Using only Chronicle Bytes_:
+*** *Description:* Manually implementing parsing and typed access for all structured data segments.
+*** *Pros:* Single library dependency for byte-level tasks.
+*** *Cons:* Loses benefits of type safety and developer convenience offered by Values for structured parts; more complex to maintain.
+** _Using only Chronicle Values (and forcing data into its model)_:
+*** *Description:* Attempting to fit all data, including initial raw streams, directly into Values interfaces, potentially by pre-processing into conforming Bytes buffers.
+*** *Pros:* Single high-level API for data access.
+*** *Cons:* Impractical or inefficient for truly raw/unstructured initial data stages; might add unnecessary processing steps.
+* **Rationale for Decision:**
+** This layered approach allows leveraging the raw power and flexibility of Chronicle Bytes for low-level I/O and parsing, and the type safety and convenience of Chronicle Values for interacting with known, structured data segments within those byte streams.
+** It provides a pathway to bridge performance-critical sections (using off-heap Values flyweights) with other parts of an application that expect standard Java objects (via copying to on-heap beans).
+** This synergistic use maximizes the benefits of both libraries.
+* **Impact & Consequences:**
+** Developers need to understand the interplay between Bytes buffers and Values flyweights, including how flyweights are mapped to specific memory regions within a Bytes instance.
+** Careful management of the Bytes buffer lifecycle is crucial, as Values flyweights depend on its validity.
+** Architectural patterns will need to define clear boundaries and responsibilities for when Bytes is used versus when Values is applied.
