@@ -25,7 +25,9 @@ import static net.openhft.chronicle.values.Primitives.boxed;
  * Models {@code float} and {@code double} fields. The native implementation
  * generates {@code BytesStore} read and write calls, while the heap
  * implementation uses {@code Unsafe} for atomic updates. Equality is based on
- * bit patterns so that NaN encodings compare the same.
+ * bit patterns so that NaN encodings compare the same. The IEEE-754 bit
+ * representation of the value is stored verbatim so there is no rounding beyond
+ * normal Java casting.
  */
 class FloatingFieldModel extends PrimitiveFieldModel {
 

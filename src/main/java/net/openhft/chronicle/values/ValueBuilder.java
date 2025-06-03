@@ -25,10 +25,17 @@ import java.lang.reflect.Field;
 import static javax.lang.model.element.Modifier.*;
 
 /**
- * Helper that assembles the pieces of a generated implementation during code
- * generation. A {@code ValueBuilder} instance holds onto the {@link ValueModel}
- * describing the source interface, the simple name of the class being
- * generated and the Pojo builder used to emit its bytecode.
+ * Assembles the pieces of the concrete classes generated from a value
+ * interface.  Each instance collects fields, static blocks and constructor
+ * fragments on behalf of the generator until
+ * {@link #closeConstructorsAndInitializationBlocks()} is invoked.  That method
+ * emits the accumulated static initialiser and default constructor into the
+ * supplied {@link TypeSpec.Builder}.
+ * <p>
+ * The generator should therefore call
+ * {@code closeConstructorsAndInitializationBlocks()} once all fields and
+ * methods have been contributed but before the final {@link TypeSpec} is
+ * created.
  */
 class ValueBuilder {
 

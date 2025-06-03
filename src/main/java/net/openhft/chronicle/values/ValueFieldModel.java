@@ -27,9 +27,10 @@ import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 
 /**
- * Field model for an embedded value interface. The nested value is stored
- * directly in the bytes of the outer value. Size and alignment details are
- * taken from the nested {@link ValueModel}.
+ * Field model for an embedded value interface. The nested value sits
+ * directly in the outer value's bytes. Its size and natural alignment are
+ * taken from the nested {@link ValueModel} and preserved. The enclosing
+ * value may therefore include padding to honour the nested alignment.
  */
 class ValueFieldModel extends ScalarFieldModel {
     private final NativeMemberGenerator nativeGenerator = new NativeMemberGenerator();

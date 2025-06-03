@@ -17,7 +17,13 @@
 package net.openhft.chronicle.values;
 
 /**
- * Utility methods for working with Java primitive types.
+ * Utility methods for Java primitive types.
+ *
+ * <p>A boolean is treated as occupying one bit when calculating widths. This
+ * mirrors the layout used by value classes.</p>
+ *
+ * <p>The {@link #boxed(Class)} helper returns the wrapper type for a primitive
+ * and is used in generated code that requires a boxed reference.</p>
  */
 
 final class Primitives {
