@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +33,28 @@ import static net.openhft.chronicle.values.Align.NO_ALIGNMENT;
 import static net.openhft.chronicle.values.Utils.roundUp;
 import static net.openhft.compiler.CompilerUtils.CACHED_COMPILER;
 
+/**
+ * Encapsulates metadata of a value interface. The metadata describes the
+ * declared fields, their ordering and alignment requirements. The code
+ * generator consults this model when producing the heap and native
+ * implementations.
+ * <p>
+ * Instances are cached per interface using {@link ClassValue}. They may be
+ * shared across threads and, once constructed, the layout information does not
+ * change. Apart from lazy class generation this object should therefore be
+ * treated as immutable.
+ */
 public class ValueModel {
 
+    /**
+     * Suffix appended to the generated class name of the native
+     * (flyweight) implementation.
+     */
     public static final String $$NATIVE = "$$Native";
+    /**
+     * Suffix appended to the generated class name of the heap
+     * implementation.
+     */
     public static final String $$HEAP = "$$Heap";
     private static final ClassValue<Object> classValueModel = new ClassValue<Object>() {
         @Override
@@ -69,18 +86,18 @@ public class ValueModel {
     }
 
     /**
-     * Returns a {@code ValueModel} for the given {@code valueType}, if the latter is a value
-     * interface, or if it the heap or native implementation for some value interface, returns the
-     * {@code ValueModel} for that value interface.
+     * Returns a {@code ValueModel} for the given {@code valueType} if the latter is a value
+     * interface. If {@code valueType} is a generated heap or native class the model of the
+     * underlying interface is returned instead. Models are cached, so repeated calls for the same
+     * type are inexpensive.
      *
      * @param valueType a value interface or the heap or native implementation class for some
      *                  value interface
      * @return a ValueModel for the given value interface, or if the given {@code valueType} is
      * the heap or native implementation for some value interface, returns the ValueModel of that
      * value interface
-     * @throws IllegalArgumentException if the given valueType is not a <i>value interface</i>,
-     *                                  or the heap or native implementation of some value interface, or the Chronicle Values library
-     *                                  is not able to construct a ValueModel from this interface
+     * @throws IllegalArgumentException if the given {@code valueType} is not a value interface or
+     *                                  generation of the model failed
      */
     public static ValueModel acquire(Class<?> valueType) {
         if (valueType.isInterface()) {
@@ -245,11 +262,13 @@ public class ValueModel {
     }
 
     /**
-     * Returns the recommended alignment of a flyweight bytes offset, to satisfy alignments of all
-     * the fields. It is the most coarse among all of it's fields' {@linkplain Align#offset()
-     * offset} and {@linkplain Align#dontCross() don't cross} alignments.
+     * Returns the recommended alignment of a flyweight bytes offset. It is the
+     * most coarse among all of the fields' {@linkplain Align#offset() offset} and
+     * {@linkplain Align#dontCross() don't cross} alignments.
      * <p>
-     * Returns a positive integer {@code >=} 1.
+     * If the value interface declares no fields this method throws
+     * {@link java.util.NoSuchElementException}. Otherwise returns a positive
+     * integer {@code >=} 1.
      *
      * @return the alignment of the flyweight value itself, to satisfy fields' alignments
      */
@@ -273,10 +292,12 @@ public class ValueModel {
     }
 
     /**
-     * Generates (if not yet) and returns a native (flyweight) implementation for this ValueModel.
+     * Generates (if not yet) and returns a native (flyweight) implementation for
+     * this {@code ValueModel}. The result is cached on first invocation.
      *
-     * @return a native (flyweight) implementation for this ValueModel
-     * @throws ImplGenerationFailedException if generation failed
+     * @return a native (flyweight) implementation for this model
+     * @throws ImplGenerationFailedException if compilation of the implementation
+     *                                       fails
      */
     public Class<?> nativeClass() {
         Class<?> c;
@@ -291,10 +312,12 @@ public class ValueModel {
     }
 
     /**
-     * Generates (if not yet) and returns a heap implementation for this ValueModel.
+     * Generates (if not yet) and returns a heap implementation for this
+     * {@code ValueModel}. The result is cached on first invocation.
      *
-     * @return a heap implementation for this ValueModel
-     * @throws ImplGenerationFailedException if generation failed
+     * @return a heap implementation for this model
+     * @throws ImplGenerationFailedException if compilation of the implementation
+     *                                       fails
      */
     public Class<?> heapClass() {
         Class<?> c;

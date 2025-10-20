@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,5 +16,11 @@
 
 package net.openhft.chronicle.values.issue10;
 
+/**
+ * Test interface for Issue 10.
+ *
+ * <p>Extends {@link ChronicleValueType} so the tests can verify that heap and
+ * native implementations are generated correctly.</p>
+ */
 public interface ChronicleValueDate extends ChronicleValueType<ChronicleValueDate> {
 }

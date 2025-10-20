@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +24,25 @@ import static java.lang.String.format;
 import static net.openhft.chronicle.values.IntegerFieldModel.NORMAL_ACCESS_TYPE;
 import static net.openhft.chronicle.values.Utils.capitalize;
 
+/**
+ * Implementation detail for {@code @Pointer} fields.
+ * <p>
+ * The value stored in the generated class is a {@code long} containing a memory
+ * address. During writes the setter verifies that the provided object
+ * implements {@link Byteable} and extracts its {@link Byteable#address()}. A
+ * zero address represents a {@code null} reference.
+ * <p>
+ * Marshalling writes a presence flag followed by the pointed value when the
+ * flag is {@code true}. If the flag indicates a value yet the stored address is
+ * zero an {@link IllegalStateException} is thrown, ensuring the pointer offset
+ * has been initialised correctly.
+ * <p>
+ * Copy operations such as {@code copyFrom} merely transfer the stored address;
+ * the bytes referenced by the pointer are not cloned.
+ */
 final class PointerFieldModel extends IntegerBackedFieldModel {
 
+    /** Model of the referenced value interface. */
     private final ValueFieldModel pointedModel;
     final MemberGenerator nativeGenerator = new IntegerBackedNativeMemberGenerator(this, backend) {
 
@@ -43,6 +58,10 @@ final class PointerFieldModel extends IntegerBackedFieldModel {
             generateFields(valueBuilder);
         }
 
+        /**
+         * Returns the pointed value from {@code address}. When the address is zero
+         * {@code null} is returned.
+         */
         @Override
         void finishGet(
                 ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder, String address) {
@@ -60,6 +79,10 @@ final class PointerFieldModel extends IntegerBackedFieldModel {
             methodBuilder.endControlFlow();
         }
 
+        /**
+         * Extracts the memory address from the parameter supplied to the setter.
+         * A {@code null} value results in a zero address.
+         */
         @Override
         String startSet(MethodSpec.Builder methodBuilder) {
             return extractAddress(methodBuilder, varName());
@@ -163,6 +186,10 @@ final class PointerFieldModel extends IntegerBackedFieldModel {
         return pointedModel.nativeGenerator().cachedValue;
     }
 
+    /**
+     * Prepares the cached value to operate on the memory at {@code address}.
+     * Copies the pointed bytes into the private buffer for use by generated code.
+     */
     private void initCachedValue(
             ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder, String address) {
         methodBuilder.addStatement("$N.set($N, $L)", valueBuilder.bytesStoreForPointers(), address, pointedModel.sizeInBytes());
@@ -170,6 +197,10 @@ final class PointerFieldModel extends IntegerBackedFieldModel {
                 valueBuilder.bytesStoreForPointers(), pointedModel.sizeInBytes());
     }
 
+    /**
+     * Validates {@code value} as {@link Byteable} and returns its address.
+     * When {@code value} is {@code null} the returned variable contains zero.
+     */
     private String extractAddress(MethodSpec.Builder methodBuilder, String value) {
         String addressVariable = value + "Address";
         methodBuilder.addStatement("long $N", addressVariable);
@@ -194,6 +225,10 @@ final class PointerFieldModel extends IntegerBackedFieldModel {
         return addressVariable;
     }
 
+    /**
+     * Writes the boolean presence flag and, when non-zero, serialises the pointed
+     * value using the cached buffer.
+     */
     private void genWriteMarshallable(
             ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder,
             String address, Object value) {
@@ -212,6 +247,11 @@ final class PointerFieldModel extends IntegerBackedFieldModel {
         methodBuilder.endControlFlow();
     }
 
+    /**
+     * Reads the boolean presence flag and populates the cached value from
+     * {@code address}. If the flag is false the provided {@code setNull}
+     * action is executed.
+     */
     private void genReadMarshallable(
             ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder,
             String address, Object value, Runnable setNull) {

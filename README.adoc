@@ -2,39 +2,34 @@
 Chronicle Software
 :css-signature: demo
 :toc: macro
-:toclevels: 2
-:icons: font
+:toclevels: 3
 
-image:https://maven-badges.herokuapp.com/maven-central/net.openhft/chronicle-values/badge.svg[caption="",link=https://maven-badges.herokuapp.com/maven-central/net.openhft/chronicle-values]
-image:https://javadoc.io/badge2/net.openhft/chronicle-values/javadoc.svg[link="https://www.javadoc.io/doc/net.openhft/chronicle-values/latest/index.html"]
-//image:https://javadoc-badge.appspot.com/net.openhft/chronicle-values.svg?label=javadoc[JavaDoc, link=https://www.javadoc.io/doc/net.openhft/chronicle-values]
-image:https://img.shields.io/github/license/OpenHFT/Chronicle-Values[GitHub]
-image:https://img.shields.io/badge/release%20notes-subscribe-brightgreen[link="https://chronicle.software/release-notes/"]
-image:https://sonarcloud.io/api/project_badges/measure?project=OpenHFT_Chronicle-Values&metric=alert_status[link="https://sonarcloud.io/dashboard?id=OpenHFT_Chronicle-Values"]
+image:https://maven-badges.herokuapp.com/maven-central/net.openhft/chronicle-values/badge.svg[link=https://maven-badges.herokuapp.com/maven-central/net.openhft/chronicle-values]
+image:https://javadoc.io/badge2/net.openhft/chronicle-values/javadoc.svg[link=https://www.javadoc.io/doc/net.openhft/chronicle-values/latest/index.html]
+image:https://img.shields.io/badge/release%20notes-subscribe-brightgreen[link=https://chronicle.software/release-notes/]
+image:https://sonarcloud.io/api/project_badges/measure?project=OpenHFT_Chronicle-Values&metric=alert_status[link=https://sonarcloud.io/dashboard?id=OpenHFT_Chronicle-Values]
 
 toc::[]
 
 == About
 
-Generation of constantly-sized flyweight accessors to 
-https://github.com/OpenHFT/Chronicle-Bytes[Chronicle Bytes] and simple bean-style on-heap implementations from
-interfaces. Interfaces, that could be processed by Chronicle-Values generation, are called **value
-interfaces**.
+Generation of constantly-sized flyweight accessors to https://github.com/OpenHFT/Chronicle-Bytes[Chronicle Bytes] and simple bean-style on-heap implementations from interfaces.
+Interfaces that can be processed by Chronicle-Values generation are called *value interfaces*.
 
-**Project status: Alpha**, the feature matrix (see below) is very vast and not fully implemented
-yet, please write the value interface according to the specification below, with the **unit tests
-for your interface**. If the generation from the value interface (according to spec) doesn't work,
-please report the case via issues on Github.
+*Project status: Stable* - the feature matrix (see below) is very vast and not expected to be implemented further.
+Please write the value interface according to the specification below, with *unit tests for your interface*.
+If the generation from the value interface (according to spec) doesn't work, please report the case via GitHub issues.
 
+All classes in the package `net.openhft.chronicle.values.internal` and its subpackages are internal implementation details.
+They may change without notice and must not be referenced directly.
 
-==== Value interface specification
+=== Value interface specification
 
-An important pre-requirement for value interfaces: they should belong to some package with
-a non-empty name, not the default package.
+Value interfaces must belong to a non-empty package (they cannot sit in the default package).
 
-Simple example:
-
-```java
+.Simple example
+[source,java]
+----
 package test;
 
 interface Balance {
@@ -45,22 +40,19 @@ interface Balance {
     int getCents();
     void setCents(int cents);
 }
-```
-
-is processed to either a flyweight of 12 bytes, or a bean class with `long dollars;` and
-`int cents;` fields.
+----
+The above is compiled into either a 12-byte flyweight or a regular bean with `long dollars` and `int cents`.
 
 ==== Supported field types
 
-==== All Java primitives
+===== All Java primitives
+`byte`, `boolean`, `char`, `short`, `int`, `long`, `float`, `double`
 
-`int`, `long`, `float`, `double`, `byte`, `boolean`, `char`, `short`
+===== String or CharSequence
+Must be annotated with `@MaxUtf8Length`:
 
-==== `String` or `CharSequence`
-
-Must be annotated with `@MaxUtf8Length()`, like:
-
-```java
+[source,java]
+----
 interface Client {
     CharSequence getName();
     void setName(@MaxUtf8Length(20) CharSequence name);
@@ -68,13 +60,16 @@ interface Client {
     CharSequence getStateCode();
     void setStateCode(@NotNull @MaxUtf8Length(2) CharSequence stateCode);
 }
-```
+----
 
-==== Another value interface
+The value supplied to `@MaxUtf8Length` is the allowed size once the text is encoded as UTF-8. The native form checks this limit when writing to the backing `BytesStore`.
+Heap implementations assume the caller supplies a compliant value and any breach is detected only when copied to a native instance.
 
-This allows to build nested structures:
+===== Another value interface
+Allows nested structures:
 
-```java
+[source,java]
+----
 interface Point {
     double getX();
     void setX(double x);
@@ -91,45 +86,46 @@ interface Circle {
     double getRadius();
     void setRadius(double radius);
 }
-```
+----
+(Self-references are forbidden.)
 
-Self-references are forbidden.
-
-==== Any Java `enum` type
-
-```java
+===== Any Java enum type
+[source,java]
+----
 interface Order {
-    enum State {NEW, CANCELLED, FILLED}
+    enum State { NEW, CANCELLED, FILLED }
 
     State getState();
     void setState(@NotNull State state);
 }
-```
+----
+The generated classes keep a reference to the array of constants for each enum field.
+The `Enums` helper obtains this array via reflection from `EnumSet.getUniverse(Class)`.
+Caching the array lets the marshalling code translate ordinals without calling `values()` on every access.
 
-==== `java.util.Date`
+===== java.util.Date
 
-==== Array fields
+===== Array fields
+Use the `-At` suffix and make the first parameter `int index`:
 
-Of any of the above types, with special syntax: `-At` suffix and first parameter of all methods
-should be `int index`.
-
-```java
+[source,java]
+----
 interface SomeStats {
-    @Array(length=100)
+    @Array(length = 100)
     long getPercentFreqAt(int index);
     void setPercentFreqAt(int index, long percentFreq);
     long addPercentFreqAt(int index, long addition);
 }
-```
+----
 
 ==== Supported methods
 
 ===== Simple get/set
+`[get]FieldName[At]`, `[set]FieldName[At]`, or `isFieldName` for boolean fields.
+You may omit the `get`/`set` prefixes:
 
-`[get]<FieldName>[At]`, `[set]<FieldName>[At]`, `is<FieldName>[At]` - simple get/set. For `boolean`
-fields, `isFoo()` Java bean syntax variation is supported. Also, `get-` and `set-` prefixes could be
-omitted, e. g.
-```java
+[source,java]
+----
 interface Point {
     double x();
     void x(double x);
@@ -137,225 +133,202 @@ interface Point {
     double y();
     void y(double y);
 }
-```
+----
 
 ===== Volatile get/set
+`getVolatileFieldName[At]`, `setVolatileFieldName[At]`
 
-`getVolatile<FieldName>[At]`, `setVolatile<FieldName>[At]`
-
-===== "Ordered" set
-
-`setOrdered<FieldName>[At]` - ordered write operation, the same as behind `AtomicInteger.lazySet()`
+===== Ordered set
+`setOrderedFieldName[At]` (similar to `AtomicInteger.lazySet`)
 
 ===== Simple add
-
-`type add<FieldName>[At]([int index, ]type addition)` - equivalent of
-```java
-    int foo = getFoo();
-    foo += addition;
-    setFoo(foo);
-    return foo;
-```
-works only with numeric primitive field types: `byte`, `char`, `short`, `int`, `long`, `double`,
-`float`
+`type addFieldName[At]([int index, ]type addition)`
+Works for numeric primitives.
 
 ===== Atomic add
-
-`type addAtomic<FieldName>[At]([int index, ]type addition)` - same as `add`, operates via atomic
-operations, works only with numeric primitive field types.
+`type addAtomicFieldName[At]([int index, ]type addition)`
+Atomic variant for numeric primitives.
 
 ===== Compare-and-swap
-
-`boolean compareAndSwap<FieldName>[At]([int index, ]type expectedValue, type newValue)` - atomic
-field value exchange, returns `true` if successfully swapped the value. Works only with primitive,
-`enum` and `Date` field types.
+`boolean compareAndSwapFieldName[At]([int index, ]type expected, type newValue)`
+Works for primitives, enums, and `Date`.
 
 ===== getUsing
+`getUsingFieldName[At]([int index, ]Type using)`
+For `String`/`CharSequence`, `using` must be a `StringBuilder`.
+For nested value interfaces, `using` is that interface.
 
-`getUsing<FieldName>[At]([int index, ]Type using)` - for `String`, `CharSequence` or another value
-interface field types. Reads the value into the given on-heap object. Primarily useful for
-retrieving data from flyweight implementations without creating garbage.
+==== Table of supported methods
 
-If the field type is `String` or `CharSequence`, `using` parameter type must be `StringBuilder`.
-Return type of the `getUsing` method in this case might be `CharSequence`, `StringBuilder`, `String`
-or `void`, if this char sequence field is marked as `@NotNull`. Semantically this method is
-equivalent to
-```java
-CharSequence getUsingName(StringBuilder using) {
-    using.setLength(0);
-    CharSequence name = getName();
-    if (name != null) {
-       using.append(name);
-       return using;
-    } else {
-       return null;
-    }
-}
-```
+[cols="1,^1,^1,^1,^1,^1,^1,^1",options="header"]
+|===
+| | Integer (`byte`-`long`) | `float`, `double` | `boolean` | Char sequence | Value interface | `enum` | `Date`
 
-Note that the `StringBuilder` is cleared via `setLength(0)` before reusing.
+| get / set
+| &#x2713; | &#x2713; | &#x2713; | &#x2713; | &#x2713; | &#x2713; | &#x2713;
 
-If the field type is another value interface field, `using` parameter type is the value interface,
-the return type of the method could be the interface or `void`. See `getUsingCenter(Point using)` in
-the example above.
+| Volatile get/set, ordered set
+| &#x2713; | &#x2713; | &#x2713; |  |  | &#x2713; | &#x2713;
 
-### Table of supported methods (type of field × type of method)
-++++
-<table>
-<tr><th></th>
-  <th>Integer type: <code>byte</code>..<code>long</code></th>
-  <th><code>float</code>, <code>double</code></th>
-  <th><code>boolean</code></th>
-  <th><a href="#string-or-charsequence">Char sequence</a></th>
-  <th><a href="#another-value-interface">Value interface</a></th>
-  <th><a href="#any-java-enum-type"><code>enum</code> type</a></th>
-  <th><code>Date</code></th>
-</tr>
-<tr><th><a href="#simple-getset">get/set</a></th>
-  <td>&#10004;</td>
-  <td>&#10004;</td>
-  <td>&#10004;</td>
-  <td>&#10004;</td>
-  <td>&#10004;</td>
-  <td>&#10004;</td>
-  <td>&#10004;</td>
-</tr>
-<tr><th><a href="#volatile-getset">Volatile get/set</a>,
-        <a href="#ordered-set">ordered set</a></th>
-  <td>&#10004;</td>
-  <td>&#10004;</td>
-  <td>&#10004;</td>
-  <td>&nbsp;</td>
-  <td>&nbsp;</td>
-  <td>&#10004;</td>
-  <td>&#10004;</td>
-</tr>
-<tr><th><a href="#compare-and-swap">Compare-and-swap</a></th>
-  <td>&#10004;</td>
-  <td>&#10004;</td>
-  <td>&#10004;</td>
-  <td>&nbsp;</td>
-  <td>&nbsp;</td>
-  <td>&#10004;</td>
-  <td>&#10004;</td>
-</tr>
-<tr><th><a href="#simple-add">Simple add</a>,<br><a href="#atomic-add">atomic add</a></th>
-  <td>&#10004;</td>
-  <td>&#10004;</td>
-  <td>&nbsp;</td>
-  <td>&nbsp;</td>
-  <td>&nbsp;</td>
-  <td>&nbsp;</td>
-  <td>&nbsp;</td>
-</tr>
-<tr><th><a href="#getusing">getUsing</a></th>
-  <td>&nbsp;</td>
-  <td>&nbsp;</td>
-  <td>&nbsp;</td>
-  <td>&#10004;</td>
-  <td>&#10004;</td>
-  <td>&nbsp;</td>
-  <td>&nbsp;</td>
-</tr>
-</table>
-++++
-===== Field configuration via annotations
+| Compare-and-swap
+| &#x2713; | &#x2713; | &#x2713; |  |  | &#x2713; | &#x2713;
 
-===== Field ordering in flyweight layout
+| Simple add, atomic add
+| &#x2713; | &#x2713; |  |  |  |  |
 
-Field order is unspecified. To ensure some order, put `@Group` annotations on any of field's
-methods, for example:
+| getUsing
+|  |  |  | &#x2713; | &#x2713; |  |
+|===
 
-```java
+=== Field configuration via annotations
+
+==== Field ordering in flyweight layout
+Fields are laid out group by group.
+Use `@Group` to cluster fields and control their ordering.
+Fields without `@Group` form the default group, which always comes first:
+
+[source,java]
+----
 interface Complex {
     @Group(1)
     double real();
     void real(double real);
 
     @Group(2)
-    double image();
-    void image(double image);
+    double imaginary();
+    void imaginary(double imaginary);
 }
-```
+----
 
-Groups are ordered in the ascending order of their argument numbers. In the above case, the
-generated flyweight implementation will place `real` field at 0-7 bytes and `image` field at 8-15
-bytes from it's offset.
+==== Field nullability
+`enum` and string fields are nullable by default; mark with `@NotNull` to forbid `null`:
 
-===== Field nullability
-
-By default, `enum` and `String`/`CharSequence` fields are nullable. Annotate them with
-`@net.openhft.chronicle.values.NotNull` to forbid `null` values:
-
-```java
+[source,java]
+----
 interface Instrument {
     CharSequence getSymbol();
     void setSymbol(@NotNull @MaxUtf8Length(5) CharSequence symbol);
 }
-```
+----
 
-===== Numeric field ranges
+When a field is nullable the generated native form stores a marker instead of the text.
+Heap implementations use an extra boolean for `CharSequence` fields to track a null value.
+With `@NotNull` the setters emit a `NullPointerException` if given `null`.
 
-Annotate numeric fields with `@Range(min=, max=)` to save space in flyweight implementation, e. g.
+==== Numeric field ranges
+Annotate with `@Range(min=, max=)` to reduce flyweight size:
 
-```java
+[source,java]
+----
 interface Transaction {
     int getSecondFromDayStart();
     void setSecondFromDayStart(@Range(min = 0, max = 24 * 60 * 60) int secondFromDayStart);
 }
-```
+----
 
-The field `SecondFromDayStart` could take only 17 bits in bytes, instead of 32.
+==== Field alignment
+Ensure a field does not cross a cache-line boundary, for example:
 
-===== Field alignment
-
-For flyweight implementation, you might need to align certain fields, to ensure some properties of
-reads and writes. For example, you might want to ensure, that a certain field doesn't cross cache
-line boundary:
-
-```java
+[source,java]
+----
 interface Message {
-    ...many fields
 
-    @Align(dontCross=64)
+    // ... other fields ...
+
+    @Align(dontCross = 64)
     long getImportantField();
     void setImportantField(long importantValue);
 }
-```
+----
+See the Javadocs of `@Align` and `@Array` for details.
 
-See `@Align` and `@Array` annotations http://javadoc.io/doc/net.openhft/chronicle-values[Javadocs]
-for more information.
+== Using Chronicle Values
 
-== Use
-
-```java
-// flyweight
+[source,java]
+----
+// Flyweight
 Point offHeapPoint = Values.newNativeReference(Point.class);
 ((Byteable) offHeapPoint).bytesStore(bytesStore, offset, 16);
 offHeapPoint.setX(0);
 offHeapPoint.setY(0);
 
-// on-heap
+// On-heap
 Point onHeapPoint = Values.newHeapInstance(Point.class);
-onHeapPoint.setX(1)
+onHeapPoint.setX(1);
 onHeapPoint.setY(2);
-```
+----
 
-The generated on-heap and flyweight classes *do* implement:
- - `Copyable<Point>`, to allow easy data exchange: `onHeapPoint.copyFrom(offHeapPoint)`
- - `BytesMarshallable` from https://github.com/OpenHFT/Chronicle-Bytes[Chronicle Bytes]
- - Proper `equals()`, `hashCode()` and `toString()`
- - `Byteable`, but on-heap implementation is dummy, throws `UnsupportedOperationException`
+Generated classes implement:
 
-For convenience, you could make the value interface to extend the above utility interfaces,
-to avoid casting:
+* `Copyable<Point>` - e.g. `onHeapPoint.copyFrom(offHeapPoint)`
+* `BytesMarshallable` (Chronicle-Bytes)
+* Correct `equals`, `hashCode`, `toString`
+* `Byteable` (no-op on the heap implementation)
 
-```java
-interface Point extends Byteable, BytesMarshallable, Copyable { ... }
+The `Copyable` feature allows an on-heap value to take a snapshot of a native instance or vice versa.
+This provides a simple way to shuttle data between the two representations.
+
+You may extend these in the interface to avoid casting:
+
+[source,java]
+----
+interface Point extends Byteable, BytesMarshallable, Copyable<Point> { ... }
 
 Point offHeapPoint = Values.newNativeReference(Point.class);
-// no cast
+// no cast required
 offHeapPoint.bytesStore(bytesStore, offset, offHeapPoint.maxSize());
-```
+----
 
-http://javadoc.io/doc/net.openhft/chronicle-values[Javadocs]
+== Why Use Chronicle-Values and How It Fits In
+
+Chronicle-Values empowers you to work with structured data with high performance and type safety, especially when interfacing with low-latency and off-heap memory systems.
+It achieves this by generating efficient data accessors from Java interfaces.
+
+=== Core Benefits
+
+Chronicle-Values is designed to provide:
+
+* **High Performance & Low Latency:** Access and manipulate data with minimal overhead, crucial for systems where every microsecond counts. This is particularly true when using its "native" (off-heap) implementations.
+* **Minimized GC Impact:** Through the use of off-heap 'flyweight' objects, which act as lightweight views onto raw byte data. This significantly reduces garbage collection pressure by avoiding the creation of numerous heap objects.
+* **Type Safety:** Define your data structures using standard Java interfaces. This provides compile-time checking, clear API contracts, and reduces runtime errors.
+* **Developer Convenience:** The library automatically generates the necessary accessor boilerplate (getters, setters, etc.) based on your interface definition and intuitive annotations. This saves development time and reduces manual coding errors.
+* **"Zero-Deserialization" Access:** Read data directly from memory without the traditional cost of hydrating full heap objects, allowing for faster processing.
+* **Seamless Integration:** Designed to work smoothly with other Chronicle libraries like Chronicle Map (for off-heap key-value stores) and Chronicle Queue (for low-latency messaging), enabling efficient data storage and exchange.
+
+=== Primary Use Cases
+
+Chronicle-Values is ideal when you need to work with data that has a **fixed, well-defined structure at compile time**.
+Common scenarios include:
+
+* Representing financial messages (e.g., FIX, SBE, or custom binary protocols).
+* Defining event payloads for event-sourcing architectures.
+* Creating complex, fixed-layout keys or values for use with Chronicle Map or Chronicle Queue.
+* Any situation where you need performant, typed access to structured binary data, whether on-heap or off-heap.
+
+=== How Chronicle-Values Complements Chronicle-Bytes
+
+Chronicle-Values operates on top of Chronicle-Bytes, which provides the foundational layer for byte manipulation.
+While Values offers a higher-level, typed abstraction for _structured_ data, Chronicle-Bytes remains essential for:
+
+* Low-level, direct manipulation of byte sequences.
+* Implementing custom serialization or deserialization logic for arbitrary formats.
+* Parsing and constructing binary network protocols from scratch.
+* Handling dynamic, unstructured, or schema-less binary data.
+
+**Typical Workflow:**
+A common pattern is to use Chronicle-Bytes for initial I/O operations (e.g., reading from a network socket or a file) or to parse the outer envelope of a raw data stream.
+Once you've identified a segment of that stream that corresponds to a known, fixed structure defined by a value interface, you can then map a Chronicle-Values native reference (flyweight) over that region for typed, convenient, and performant access.
+
+=== Heap vs. Native (Flyweight) Implementations
+
+For every value interface, Chronicle-Values can generate two types of implementations:
+
+* **Native (Flyweight) References (`Values.newNativeReference(..)`):**
+** These are lightweight views onto a `BytesStore` (which can be on-heap or off-heap memory).
+** They provide maximum performance and are central to off-heap data strategies.
+** They do not store data themselves; they merely provide typed accessors to the underlying bytes.
+** Careful management of the backing `BytesStore`'s lifecycle is crucial (see section on Lifecycle Management).
+* **Heap Instances (`Values.newHeapInstance(..)`):**
+** These are standard Java objects (POJOs) that store their data on the Java heap.
+** Useful for interacting with other parts of your system that expect POJOs, or when off-heap performance is not the primary concern for a particular data structure.
+** Data can be easily copied between native and heap instances using the generated `copyFrom()` method (from the `Copyable` interface).

@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +18,12 @@ package net.openhft.chronicle.values;
 
 /*
  * Created by peter.lawrey on 03/03/2015.
+ */
+/**
+ * Extends {@link JavaBeanInterface} with two nested beans.
+ * The nested beans, {@code nestedA} and {@code nestedB}, are also
+ * {@link JavaBeanInterface} instances enabling hierarchical structures
+ * in tests.
  */
 public interface NestedInterface extends JavaBeanInterface {
     JavaBeanInterface getNestedA();

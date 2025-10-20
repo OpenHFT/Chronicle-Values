@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,25 +25,58 @@ import static java.lang.String.format;
 import static javax.lang.model.element.Modifier.*;
 import static net.openhft.chronicle.values.Utils.capitalize;
 
+/**
+ * Base for generators that emit heap-backed field accessors.
+ * <p>
+ * Subclasses provide conversions between the stored form and the value
+ * interface type and supply the appropriate {@code Unsafe} method names.
+ */
 abstract class HeapMemberGenerator extends MemberGenerator {
 
+    /** The field added to the generated class. */
     FieldSpec field;
+
+    /**
+     * Offset constant for {@link #field}. Created lazily and inserted once into
+     * the generated type for use by unsafe operations.
+     */
     private FieldSpec fieldAddress;
 
     HeapMemberGenerator(FieldModel fieldModel) {
         super(fieldModel);
     }
 
+    /**
+     * @return name of the Unsafe method used for a volatile write
+     */
     abstract String putVolatile();
 
+    /**
+     * @return name of the Unsafe ordered write method
+     */
     abstract String putOrdered();
 
+    /**
+     * @return name of the compare-and-swap Unsafe method
+     */
     abstract String compareAndSwap();
 
+    /**
+     * @return constant containing the base offset for an array of the stored type
+     */
     abstract String arrayBase();
 
+    /**
+     * @return constant containing the index scale for an array of the stored type
+     */
     abstract String arrayScale();
 
+    /**
+     * Ensures the field offset constant is generated and returns it.
+     *
+     * @param valueBuilder builder for the enclosing heap type
+     * @return field offset constant
+     */
     FieldSpec fieldOffset(ValueBuilder valueBuilder) {
         if (fieldAddress == null) {
             fieldAddress = FieldSpec.builder(long.class, fieldModel.name + "Address")
@@ -64,9 +95,15 @@ abstract class HeapMemberGenerator extends MemberGenerator {
         return fieldModel.type;
     }
 
+    /**
+     * Converts the raw stored value to the interface type.
+     */
     abstract String wrap(
             ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder, String rawStoredValue);
 
+    /**
+     * Converts a user-supplied value to its stored representation.
+     */
     abstract String unwrap(MethodSpec.Builder methodBuilder, String inputValue);
 
     @Override

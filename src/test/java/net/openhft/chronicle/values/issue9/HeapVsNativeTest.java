@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,15 +27,25 @@ import org.junit.Test;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * Tests that heap and native {@link Entity} values hold the same content but
+ * do not return the original {@link String} instance when read back.
+ */
 public class HeapVsNativeTest extends ValuesTestCommon {
     public static final String SYMBOL = "symbol";
 
+    /**
+     * Verifies the behaviour of a heap-backed {@link Entity} instance.
+     */
     @Test
     public void heap() {
         Entity entity = Values.newHeapInstance(Entity.class);
         check(entity);
     }
 
+    /**
+     * Exercises a native reference and checks it behaves like the heap variant.
+     */
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
     public void nativeRef() {
@@ -49,6 +57,10 @@ public class HeapVsNativeTest extends ValuesTestCommon {
         check(entity);
     }
 
+    /**
+     * Common test logic that sets the symbol and ensures the stored sequence
+     * is equal in content but not identical to the input String.
+     */
     private void check(Entity entity) {
         entity.setSymbol(SYMBOL);
         assertTrue(SYMBOL.contentEquals(entity.getSymbol()));

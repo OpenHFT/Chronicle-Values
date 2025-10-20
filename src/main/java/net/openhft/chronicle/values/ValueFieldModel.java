@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,21 +26,39 @@ import java.util.Objects;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 
+/**
+ * Field model for an embedded value interface. The nested value sits
+ * directly in the outer value's bytes. Its size and natural alignment are
+ * taken from the nested {@link ValueModel} and preserved. The enclosing
+ * value may therefore include padding to honour the nested alignment.
+ */
 class ValueFieldModel extends ScalarFieldModel {
     private final NativeMemberGenerator nativeGenerator = new NativeMemberGenerator();
     private ValueModel valueModel;
 
+    /**
+     * Lazily obtains the model of the nested value interface.
+     * The result is cached for the lifetime of this field model.
+     */
     private ValueModel valueModel() {
         if (valueModel == null)
             valueModel = ValueModel.acquire(type);
         return valueModel;
     }
 
+    /**
+     * Width of the nested value in bits. Delegates to
+     * {@link ValueModel#sizeInBytes()}.
+     */
     @Override
     int sizeInBits() {
         return valueModel().sizeInBytes() * 8;
     }
 
+    /**
+     * Alignment requirement in bytes. When unspecified the recommendation of
+     * the nested model is used. The value is at least byte aligned.
+     */
     @Override
     int offsetAlignmentInBytes() {
         if (offsetAlignment == Align.DEFAULT)
@@ -231,9 +247,16 @@ class ValueFieldModel extends ScalarFieldModel {
         };
     }
 
+    /**
+     * Generates native code for the embedded value field. Setters inspect the
+     * source object: if it is a native implementation its bytes are written
+     * directly, otherwise the data are copied via {@link #cachedValue}.
+     */
     final class NativeMemberGenerator extends MemberGenerator {
 
+        /** Temporary object reused when copying from heap implementations. */
         FieldSpec cachedValue;
+        /** Second object used during equality checks. */
         FieldSpec otherCachedValue;
         private Class<?> nativeType;
 

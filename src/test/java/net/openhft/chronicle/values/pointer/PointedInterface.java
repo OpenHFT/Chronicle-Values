@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +20,18 @@ import net.openhft.chronicle.bytes.Byteable;
 import net.openhft.chronicle.values.MaxUtf8Length;
 
 @SuppressWarnings("rawtypes")
+/**
+ * Target for pointer fields in {@link PointingInterface}. Holds text encoded in
+ * UTF-8.
+ */
 public interface PointedInterface extends Byteable {
 
     String getString();
 
+    /**
+     * Stores text with a maximum length of twenty UTF-8 bytes.
+     *
+     * @param s text to store
+     */
     void setString(@MaxUtf8Length(20) String s);
 }

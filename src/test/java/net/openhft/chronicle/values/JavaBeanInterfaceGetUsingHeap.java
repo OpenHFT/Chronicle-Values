@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +17,8 @@
 package net.openhft.chronicle.values;
 
 /**
- * User: peter.lawrey Date: 06/10/13 Time: 16:59
+ * Interface used by tests verifying the {@code getUsing} pattern on a
+ * heap backed implementation.
  */
 public interface JavaBeanInterfaceGetUsingHeap {
 

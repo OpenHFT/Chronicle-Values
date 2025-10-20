@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +31,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Predicate;
 
+/**
+ * Base class for values tests.
+ * <p>
+ * Enables reference tracing and starts exception recording before each test.
+ * At the end of a test it verifies that all resources have been released,
+ * no unexpected threads remain and only declared exceptions were logged.
+ */
+
 public class ValuesTestCommon {
 
     protected ThreadDump threadDump;
@@ -44,6 +50,10 @@ public class ValuesTestCommon {
         AbstractReferenceCounted.enableReferenceTracing();
     }
 
+    /**
+     * Fails the test if any {@code AbstractReferenceCounted} instances have not
+     * reached a reference count of zero.
+     */
     public void assertReferencesReleased() {
         AbstractReferenceCounted.assertReferencesReleased();
     }
@@ -62,18 +72,36 @@ public class ValuesTestCommon {
         exceptions = Jvm.recordExceptions();
     }
 
+    /**
+     * Registers an expected log entry containing the supplied message.
+     */
     public void expectException(String message) {
-        expectException(k -> k.message.contains(message) || (k.throwable != null && k.throwable.getMessage().contains(message)), message);
+        expectException(k -> k.message.contains(message) ||
+                (k.throwable != null &&
+                        k.throwable.getMessage().contains(message)), message);
     }
 
+    /**
+     * Registers an expected log entry that matches the given predicate.
+     *
+     * @param predicate test for matching exception keys
+     * @param description text used if the expected entry is missing
+     */
     public void expectException(Predicate<ExceptionKey> predicate, String description) {
         expectedExceptions.put(predicate, description);
     }
 
+    /**
+     * Verifies that only declared exceptions were recorded during the test.
+     * Any unexpected entry causes the test to fail after dumping the log.
+     */
     public void checkExceptions() {
-        for (Map.Entry<Predicate<ExceptionKey>, String> expectedException : expectedExceptions.entrySet()) {
-            if (!exceptions.keySet().removeIf(expectedException.getKey()))
-                Slf4jExceptionHandler.WARN.on(getClass(), "No error for " + expectedException.getValue());
+        for (Map.Entry<Predicate<ExceptionKey>, String> expectedException :
+                expectedExceptions.entrySet()) {
+            if (!exceptions.keySet().removeIf(expectedException.getKey())) {
+                Slf4jExceptionHandler.WARN.on(getClass(),
+                        "No error for " + expectedException.getValue());
+            }
         }
         expectedExceptions.clear();
         if (Jvm.hasException(exceptions)) {

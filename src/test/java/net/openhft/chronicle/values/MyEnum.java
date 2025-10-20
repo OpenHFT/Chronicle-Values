@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +16,22 @@
 
 package net.openhft.chronicle.values;
 
-/*
- * Created by pct25 on 6/4/2015.
+/**
+ * Enumeration with numeric codes for verifying enum handling in unit tests.
  */
 public enum MyEnum {
-    A(1), B(2), C(3);
+    /**
+     * Constant {@code A} mapped to {@code 1}.
+     */
+    A(1),
+    /**
+     * Constant {@code B} mapped to {@code 2}.
+     */
+    B(2),
+    /**
+     * Constant {@code C} mapped to {@code 3}.
+     */
+    C(3);
 
     private final int var;
 
@@ -30,6 +39,10 @@ public enum MyEnum {
         this.var = var;
     }
 
+    /**
+     * Returns the numeric value associated with this constant. The tests
+     * use this value as a custom encoding.
+     */
     public int getVar() {
         return this.var;
     }

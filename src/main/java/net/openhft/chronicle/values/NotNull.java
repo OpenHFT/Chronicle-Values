@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +23,11 @@ import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.PARAMETER;
 
+/**
+ * Marks a parameter as non-null. Value types are nullable by default
+ * and this annotation expresses that a null argument is forbidden.
+ * Validation code may inspect this annotation at run time.
+ */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({PARAMETER})

@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +28,26 @@ import static javax.lang.model.element.Modifier.*;
 import static net.openhft.chronicle.values.IntegerFieldModel.NORMAL_ACCESS_TYPE;
 import static net.openhft.chronicle.values.Nullability.NULLABLE;
 
+/**
+ * Models an enum reference backed by an {@code int} ordinal.
+ *
+ * <p>A static "universe" array caches the constants for each enum type. The
+ * array is initialised via {@link Enums#getUniverse(Class)} and stored as a
+ * {@code private static final} field so that ordinal to enum lookups never
+ * perform reflection.
+ *
+ * <p>When a field is nullable the sentinel ordinal {@code -1} encodes
+ * {@code null}. Non-nullable fields store the ordinal directly.
+ */
 class EnumFieldModel extends IntegerBackedFieldModel {
 
+    /** Metadata describing whether the field may be {@code null}. */
     final FieldNullability nullability = new FieldNullability(this);
+
+    /**
+     * Generates the native (off-heap) implementation. It also declares
+     * the universe array used for ordinal to enum conversion.
+     */
     final MemberGenerator nativeGenerator = new IntegerBackedNativeMemberGenerator(this, backend) {
 
         @Override
@@ -99,6 +114,13 @@ class EnumFieldModel extends IntegerBackedFieldModel {
         nullability.addInfo(m, template);
     }
 
+    /**
+     * Finalises the model once all type information is gathered.
+     * <p>
+     * The backing field is converted to an {@code int} range covering the
+     * enum constants. If the field is nullable the range includes {@code -1}
+     * for the {@code null} value.
+     */
     @Override
     void postProcess() {
         super.postProcess();
@@ -122,6 +144,13 @@ class EnumFieldModel extends IntegerBackedFieldModel {
         return name + "Universe";
     }
 
+    /**
+     * Adds a static array holding all enum constants to the generated class.
+     * <p>
+     * The array is initialised once using {@link Enums#getUniverse(Class)} and
+     * cached for every instance. It allows ordinal to enum conversion without
+     * repeated reflective calls.
+     */
     private void addUniverseField(ValueBuilder valueBuilder) {
         FieldSpec universe = FieldSpec
                 .builder(ArrayTypeName.of(type), universeName())
@@ -131,6 +160,16 @@ class EnumFieldModel extends IntegerBackedFieldModel {
         valueBuilder.typeBuilder.addField(universe);
     }
 
+    /**
+     * Converts an enum reference to the stored ordinal value.
+     *
+     * <p>Nullable fields use {@code -1} as the sentinel for {@code null};
+     * otherwise the enum's ordinal is returned unchanged.
+     *
+     * @param e expression yielding an enum instance
+     * @return ordinal or {@code -1} when {@code null} is permitted and the
+     * instance is {@code null}
+     */
     private String toOrdinalOrMinusOne(String e) {
         if (nullable()) {
             return format("(%s != null ? %s.ordinal() : -1)", e, e);
@@ -139,6 +178,17 @@ class EnumFieldModel extends IntegerBackedFieldModel {
         }
     }
 
+    /**
+     * Converts an ordinal previously stored in the backing field back to an
+     * enum constant or {@code null}.
+     *
+     * <p>The sentinel {@code -1} maps back to {@code null}; any other value is
+     * used as an index into the cached universe array.
+     *
+     * @param methodBuilder context used to declare temporary variables
+     * @param value         expression yielding the ordinal
+     * @return Java expression that evaluates to the enum value
+     */
     private String fromOrdinalOrMinusOne(MethodSpec.Builder methodBuilder, String value) {
         if (nullable()) {
             String ordinalVariableName = name() + "Ordinal";
@@ -149,11 +199,18 @@ class EnumFieldModel extends IntegerBackedFieldModel {
         }
     }
 
+    /**
+     * Returns the generator responsible for the native implementation.
+     */
     @Override
     MemberGenerator nativeGenerator() {
         return nativeGenerator;
     }
 
+    /**
+     * Builds the generator for heap-based implementations which mirrors the
+     * native behaviour while using on-heap storage.
+     */
     @Override
     MemberGenerator createHeapGenerator() {
         return new ObjectHeapMemberGenerator(this) {

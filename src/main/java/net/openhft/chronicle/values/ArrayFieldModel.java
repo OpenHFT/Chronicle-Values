@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +24,41 @@ import java.lang.reflect.Method;
 
 import static net.openhft.chronicle.values.Utils.roundUp;
 
+/**
+ * Metadata model for an array field.
+ *
+ * <p>The model pairs a {@link ScalarFieldModel} describing the element type
+ * with the {@link Array} annotation found on the value interface. The
+ * annotation supplies the fixed {@linkplain Array#length() length} and the
+ * optional alignment rules for individual elements.</p>
+ *
+ * <p>The declared length is used when generating loops and bounds checks and
+ * contributes directly to the size reported by {@link #sizeInBits()}. Any
+ * element offset alignment and <em>dont-cross</em> boundary specified via
+ * {@link Array#elementOffsetAlignment()} and
+ * {@link Array#elementDontCrossAlignment()} are applied to the element model so
+ * that accessors honour these constraints. The array field alignment is then
+ * derived from the element alignment in
+ * {@link #offsetAlignmentInBytes()}.</p>
+ *
+ * <p>Code generation routines rely on this metadata to compute element
+ * addresses, perform index validation and emit bulk operations such as copy or
+ * marshalling loops.</p>
+ *
+ * <p>Example value interface accessor:</p>
+ * <pre>{@code
+ * interface Order {
+ *     @Array(length = 8)
+ *     void setPriceAt(int index, long price);
+ *     long getPriceAt(int index);
+ * }
+ * }</pre>
+ */
 public class ArrayFieldModel extends FieldModel {
 
+    /** Model of the array element type. */
     private final ScalarFieldModel elemModel;
+    /** Annotation instance holding declared array properties. */
     Array array;
     private MemberGenerator nativeGenerator;
 
@@ -36,6 +66,16 @@ public class ArrayFieldModel extends FieldModel {
         this.elemModel = elemModel;
     }
 
+    /**
+     * Extracts {@link Array} metadata from the interface method and applies the
+     * declared alignment to the element model. The method guards against
+     * multiple declarations and validates that the length is greater than one.
+     *
+     * <p>The element offset and dont-cross constraints from the annotation are
+     * propagated to {@code elemModel}. This ensures that subsequent size and
+     * alignment computations use the same parameters as an equivalent scalar
+     * field.</p>
+     */
     @Override
     void addLayoutInfo(Method m, MethodTemplate template) {
         super.addLayoutInfo(m, template);
@@ -56,6 +96,12 @@ public class ArrayFieldModel extends FieldModel {
         }
     }
 
+    /**
+     * Returns the total storage requirement of the array in bits.
+     * The calculation honours element alignment and the declared
+     * {@link Array#elementDontCrossAlignment() dont-cross} boundary. The
+     * generated code relies on this value when computing element offsets.
+     */
     @Override
     int sizeInBits() {
         int elemSizeInBits = elemModel.sizeInBits();
@@ -73,10 +119,21 @@ public class ArrayFieldModel extends FieldModel {
         }
     }
 
+    /**
+     * Element bit extent rounded up to the element offset alignment. This value
+     * is used when laying out the array so that each element starts on a
+     * boundary compatible with the element model.
+     */
     int elemBitExtent() {
         return roundUp(elemModel.sizeInBits(), elemModel.offsetAlignmentInBits());
     }
 
+    /**
+     * Determines the alignment of the array field itself. The result must be a
+     * multiple of the element alignment. When no explicit offset is supplied the
+     * element alignment is reused. Generated accessors rely on this alignment to
+     * compute the base address of the array in the enclosing value.
+     */
     @Override
     int offsetAlignmentInBytes() {
         int elementAlignment = elemModel.maxAlignmentInBytes();
@@ -128,6 +185,11 @@ public class ArrayFieldModel extends FieldModel {
         return new ArrayMemberGenerator(this, elemModel.heapGenerator());
     }
 
+    /**
+     * Emits a bounds check for element access. The generated code throws an
+     * {@link ArrayIndexOutOfBoundsException} when the supplied index is outside
+     * {@link Array#length()}.
+     */
     void checkBounds(MethodSpec.Builder methodBuilder) {
         methodBuilder.beginControlFlow("if (index < 0 || index >= $L)", array.length());
         methodBuilder.addStatement("throw new $T(index + $S)",
@@ -140,6 +202,12 @@ public class ArrayFieldModel extends FieldModel {
         return array;
     }
 
+    /**
+     * Delegates generation of element accessors and bulk operations.
+     * The helper calls through to the element's own generator with the
+     * correct index calculations. Loop constructs emitted by this class rely on
+     * the fixed {@link Array#length()} recorded in the outer model.
+     */
     private class ArrayMemberGenerator extends MemberGenerator {
         private final MemberGenerator elemGenerator;
 

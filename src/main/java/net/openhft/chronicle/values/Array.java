@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,26 +24,29 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Specifies the properties of an array field: number of elements and their alignment. This
- * annotation <i>must</i> be put on a single method accessing the array elements: getter, or setter,
- * or adder, etc.
+ * Specifies the properties of an array field: declared length and element
+ * alignment. Index parameters in accessor methods are zero-based and operate in
+ * the range {@code [0, length)}. The annotation <i>must</i> be placed on the
+ * single accessor method which manipulates the array field, be that a getter,
+ * setter or adder.
  */
 @Target(METHOD)
 @Retention(RUNTIME)
 @Documented
 public @interface Array {
     /**
-     * Specifies the array length, {@code index} in accessor methods should be between 0 and {@code
-     * length - 1}, just like for vanilla Java arrays. This value should be positive.
+     * Number of elements in the array. Valid indexes are in the range
+     * {@code [0, length)}. The length must be greater than one.
      */
     int length();
 
     /**
-     * Specifies the alignment of offsets of the elements, see {@link Align} for more information.
-     * Elements' offsets alignment couldn't be more coarse than the offset alignment of the whole
-     * array field. The {@link Align#DEFAULT} value specifies the alignment dependent on the element
-     * type, if it is a Value generated interface, otherwise {@link Align#NO_ALIGNMENT}. Values less
-     * than -1 are not allowed.
+     * Specifies the alignment of element offsets, see {@link Align} for details.
+     * A "more coarse" alignment means a larger power-of-two step and cannot
+     * exceed the alignment of the array field itself. {@link Align#DEFAULT}
+     * resolves to the element's own alignment when the element type is another
+     * value interface; for primitive or reference elements it becomes
+     * {@link Align#NO_ALIGNMENT}. Values less than {@code -1} are not allowed.
      */
     int elementOffsetAlignment() default Align.DEFAULT;
 

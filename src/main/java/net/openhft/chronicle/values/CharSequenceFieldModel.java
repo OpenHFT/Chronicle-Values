@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +30,34 @@ import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static net.openhft.chronicle.values.Nullability.NULLABLE;
 
+/**
+ * Field model for {@code CharSequence}-based types.
+ *
+
+ * <p>One accessor parameter must carry {@link MaxUtf8Length}. The value
+ * denotes the maximum number of UTF-8 bytes reserved for the field. The native
+ * encoding stores a stop bit length prefix followed by the configured number of
+ * bytes, so {@link #sizeInBits()} includes both parts.</p>
+ *
+ * <p>{@link FieldNullability} inspects the accessor parameters to discover
+ * whether {@code null} is permitted. Native setters validate the UTF-8 length
+ * via {@code Bytes.writeUtf8Limited}; heap setters omit this check and overflow
+ * surfaces only when copying to a native instance.</p>
+ */
 class CharSequenceFieldModel extends ScalarFieldModel {
     final FieldNullability nullability = new FieldNullability(this);
+    /**
+     * Value from the {@code @MaxUtf8Length} annotation defining the maximum
+     * number of UTF-8 bytes this field may occupy.
+     */
     MaxUtf8Length maxUtf8Length;
+    /**
+     * Generates the off-heap implementation.
+     *
+     * <p>UTF-8 bytes are read and written via
+     * {@code Bytes.readUtf8Limited}. A cached {@code StringBuilder} is reused
+     * and null checks are emitted when required.</p>
+     */
     private final MemberGenerator nativeGenerator = new MemberGenerator(this) {
 
         @Override
@@ -356,6 +379,12 @@ class CharSequenceFieldModel extends ScalarFieldModel {
             methodBuilder.endControlFlow();
         }
     };
+    /**
+     * Generates the heap implementation when the field type is {@link String}.
+     *
+     * <p>The backing field is a {@code String}. A cached builder is reused when
+     * copying to or from the native representation.</p>
+     */
     private final MemberGenerator stringHeapGenerator = new ObjectHeapMemberGenerator(this) {
 
         @Override
@@ -579,6 +608,13 @@ class CharSequenceFieldModel extends ScalarFieldModel {
             return "net.openhft.chronicle.values.CharSequences.hashCode(" + field.name + "[index])";
         }
     };
+    /**
+     * Generates the heap implementation for {@link CharSequence} and
+     * {@link StringBuilder} fields.
+     *
+     * <p>The value is kept in a mutable {@code StringBuilder}. For nullable
+     * fields a boolean flag stores the null state.</p>
+     */
     private final MemberGenerator charSequenceHeapGenerator = new ObjectHeapMemberGenerator(this) {
 
         private String isNull() {
@@ -961,6 +997,10 @@ class CharSequenceFieldModel extends ScalarFieldModel {
         }
     };
 
+    /**
+     * Extracts {@code @MaxUtf8Length} and nullability information from the
+     * accessor methods of the interface.
+     */
     @Override
     void addTypeInfo(Method m, MethodTemplate template) {
         if (!template.regex.startsWith("getUsing"))
@@ -983,6 +1023,10 @@ class CharSequenceFieldModel extends ScalarFieldModel {
         }
     }
 
+    /**
+     * Computes the storage size including the stop bit prefix used to encode
+     * the UTF-8 length.
+     */
     @Override
     int sizeInBits() {
         if (maxUtf8Length == null)
@@ -1072,19 +1116,34 @@ class CharSequenceFieldModel extends ScalarFieldModel {
         }
     }
 
+    /**
+     * Returns the generator used for the off-heap implementation.
+     */
     @Override
     MemberGenerator nativeGenerator() {
         return nativeGenerator;
     }
 
+    /**
+     * Validates parameters for heap setters.
+     *
+     * <p>Nullity is checked when the field is not nullable. The UTF-8 length is
+     * not verified for performance; breaches surface only when the value is
+     * copied to a native instance.</p>
+     */
     private void checkHeapArgument(MethodSpec.Builder methodBuilder) {
         if (!nullable())
             checkArgumentNotNull(methodBuilder);
-        // Don't check the UTF-8 length, because this is an operation with linear complexity,
-        // while it adds only little extra safety - too long string will be found only when
-        // copied to native impl
+        // Don't check the UTF-8 length for performance; breaches surface only
+        // when copying to a native value.
     }
 
+    /**
+     * Returns the generator for heap-based implementations.
+     *
+     * <p>{@link String} fields use {@code stringHeapGenerator}; other
+     * {@code CharSequence} types use {@code charSequenceHeapGenerator}.</p>
+     */
     @Override
     MemberGenerator heapGenerator() {
         return type == String.class ? stringHeapGenerator : charSequenceHeapGenerator;

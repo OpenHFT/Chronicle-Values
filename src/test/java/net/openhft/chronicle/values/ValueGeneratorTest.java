@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +34,7 @@ import static org.junit.Assert.*;
 import static net.openhft.compiler.CompilerUtils.CACHED_COMPILER;
 
 /**
- * User: peter.lawrey Date: 06/10/13 Time: 20:13
+ * Tests code generation and serialisation routines.
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ValueGeneratorTest extends ValuesTestCommon {

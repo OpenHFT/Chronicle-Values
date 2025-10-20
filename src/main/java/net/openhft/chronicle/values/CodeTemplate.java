@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,14 +39,40 @@ import static net.openhft.chronicle.values.MethodTemplate.Type.ARRAY;
 import static net.openhft.chronicle.values.MethodTemplate.Type.SCALAR;
 import static net.openhft.chronicle.values.Primitives.isPrimitiveIntegerType;
 
+/**
+ * Holds the regular expression templates that recognise accessor method
+ * signatures. Templates are applied in order of specificity.
+ * <p>
+ * Each entry defines a method-name pattern, the expected argument count and
+ * the {@link FieldModel} operation to invoke. The first capture group of the
+ * pattern becomes the logical field name. Patterns may therefore match both
+ * scalar forms such as {@code getFoo()} and array forms like
+ * {@code getFooAt(int)}.
+ * <p>
+ * When {@link #createValueModel(Class)} analyses a value interface every
+ * abstract method is matched against these templates. The selected template
+ * determines the field type and records the accessor on the relevant
+ * {@link FieldModel}. This permits a plain interface to describe a value
+ * object purely through its methods.
+ */
 enum CodeTemplate {
     ; // none
 
     public static final Function<Method, Parameter> NO_ANNOTATED_PARAM = m -> null;
+
+    /**
+     * Interfaces whose methods must be ignored when scanning a value
+     * interface. Methods declared in these types do not form part of the
+     * value model.
+     */
     static final List<Class<?>> NON_MODEL_TYPES = asList(
             Object.class, Serializable.class, Externalizable.class, BytesMarshallable.class,
             Copyable.class, Byteable.class);
 
+    /**
+     * Repository of patterns used to match accessor methods. More specific
+     * templates are ordered before generic ones.
+     */
     private static final SortedSet<MethodTemplate> METHOD_TEMPLATES =
             new TreeSet<>(
                     comparing((MethodTemplate t) -> t.parameters)
@@ -100,6 +124,16 @@ enum CodeTemplate {
                 annotatedParameter, addMethodToModel));
     }
 
+    /**
+     * Creates a {@link ValueModel} from the supplied value interface.
+     * The interface is scanned for abstract methods which are matched
+     * against the registered templates to determine the fields and their
+     * accessors.
+     *
+     * @param valueType the interface describing the value
+     * @return a populated ValueModel
+     * @throws IllegalArgumentException if no fields can be derived
+     */
     static ValueModel createValueModel(Class<?> valueType) {
         List<FieldModel> fields = methodsAndTemplatesByField(valueType).entrySet().stream()
                 .map(e -> createAndConfigureModel(e.getKey(), e.getValue())).collect(toList());
@@ -195,6 +229,12 @@ enum CodeTemplate {
                 "or another value interface");
     }
 
+    /**
+     * Matches the abstract methods of {@code valueType} against the registered
+     * templates. For each recognised method a {@link MethodAndTemplate} is
+     * created, pairing the method with the template that matched it. The result
+     * is grouped by the field name extracted from the method.
+     */
     private static Map<String, List<MethodAndTemplate>> methodsAndTemplatesByField(
             Class<?> valueType) {
         return Stream.of(valueType.getMethods())
@@ -220,6 +260,11 @@ enum CodeTemplate {
                         Arrays.equals(m2.getParameterTypes(), m.getParameterTypes()));
     }
 
+    /**
+     * Decapitalises the first character of a method-derived field name
+     * unless the second character is already upper-case. This preserves
+     * common acronyms such as {@code URL}.
+     */
     static String convertFieldName(String name) {
         if (name.length() > 1 && Character.isUpperCase(name.charAt(1))) return name;
         if (Character.isLowerCase(name.charAt(0))) return name;

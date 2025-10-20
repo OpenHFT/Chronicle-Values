@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +24,8 @@ import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * The maximum length of a CharSequence/String/StringBuilder field in a Chronicle Value, in UTF-8
- * encoding.
+ * Defines the fixed UTF-8 byte size for a CharSequence/String/StringBuilder field.
+ * The {@code value()} method returns this maximum byte length.
  */
 @Target(PARAMETER)
 @Retention(RUNTIME)

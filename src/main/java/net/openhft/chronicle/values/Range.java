@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +24,23 @@ import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * The lowest to highest values allowed (inclusive)
+ * Declares that the annotated integer parameter must lie within a defined range.
+ * <p>
+ * Both {@link #min()} and {@link #max()} are inclusive. This is typically used
+ * to validate array lengths, numeric options or memory offsets where a value
+ * outside the range signals a bug.
  */
 @Target(PARAMETER)
 @Retention(RUNTIME)
 @Documented
 public @interface Range {
+    /**
+     * @return inclusive lower bound
+     */
     long min() default Long.MIN_VALUE;
 
+    /**
+     * @return inclusive upper bound
+     */
     long max() default Long.MAX_VALUE;
 }

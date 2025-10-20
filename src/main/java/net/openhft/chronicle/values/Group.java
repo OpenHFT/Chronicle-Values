@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,26 +24,27 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Changes the serialization order fields. Multiple fields can be in the same group and groups will
- * be ordered by their {@linkplain #value() values}, smallest first. This annotation should be put
- * on any single method accessing the field: getter, or setter, or adder, etc.
+ * Controls field layout ordering by assigning groups. Multiple fields may share the same group and
+ * groups are evaluated in ascending {@linkplain #value() order}. Apply this annotation to one of
+ * the accessor methods (getter, setter, adder, etc.) for the field.
  * <p>
- * If you don't provide a group for a field, it is considered to be a part of the "default
- * group", which is always the first group in the serialization order, regardless {@linkplain
- * #value() values} of other groups in the interface.
+ * Fields without {@code @Group} belong to the implicit default group, which is always processed
+ * before any explicit group regardless of the {@linkplain #value() values} used elsewhere in the
+ * interface.
  */
 @Target(METHOD)
 @Retention(RUNTIME)
 @Documented
 public @interface Group {
     /**
-     * The value is used to order groups within the interface. Groups with smaller values are
-     * serialized (and arranged in native implementation) before groups with bigger values.
+     * Determines the position of this group relative to others. Groups with equal values form a
+     * single ordering slot and their fields are arranged internally using alignment heuristics.
+     * The default group has an implicit order of {@code 0} and therefore precedes all explicit
+     * groups, even those with negative values.
      * <p>
-     * This field should be named "order", it is "value" to allow concise declaration form
-     * like {@code @Group(1) int getFoo();}.
+     * The property is named {@code value} to allow short syntax such as {@code @Group(1)}.
      *
-     * @return the group ordering value
+     * @return group ordering value
      */
     int value();
 }

@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +16,15 @@
 package net.openhft.chronicle.values;
 
 /**
- * User: peter.lawrey
- * Date: 08/10/13
- * Time: 10:11
+ * First level nested value containing a text {@code key} and two
+ * {@link NestedB} children named {@code one} and {@code two}.
+ *
+ * <p>Setter parameter names are:</p>
+ * <ul>
+ * <li>{@code key(String key)}</li>
+ * <li>{@code one(NestedB one)}</li>
+ * <li>{@code two(NestedB one)}</li>
+ * </ul>
  */
 public interface NestedA {
     void key(@MaxUtf8Length(64) String key);

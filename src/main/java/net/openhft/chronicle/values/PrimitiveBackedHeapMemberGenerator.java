@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +21,34 @@ import com.squareup.javapoet.MethodSpec;
 import static net.openhft.chronicle.values.Primitives.boxed;
 import static net.openhft.chronicle.values.Utils.capitalize;
 
+/**
+ * Chooses the underlying primitive type used for heap fields and
+ * emits the Unsafe access calls accordingly.  The actual storage
+ * primitive may be wider than the declared field type when
+ * compare-and-swap or ordered writes are required.  Unsafe operates
+ * directly on this primitive representation and the generator
+ * provides wrappers that convert between the stored and logical
+ * forms.
+ */
 class PrimitiveBackedHeapMemberGenerator extends HeapMemberGenerator {
 
+    /**
+     * Capitalised name of {@link #fieldType} used when building Unsafe method
+     * names such as {@code getIntVolatile}.
+     */
     final String capType;
+
+    /**
+     * Upper case name of {@link #fieldType}.  Required for the static
+     * array base and scale constants in {@code Unsafe}.
+     */
     private final String upperType;
+
+    /**
+     * Primitive type actually stored in the heap object.  May differ from
+     * {@code fieldModel.type} when atomic operations demand an int or long
+     * backing field.
+     */
     private final Class<?> fieldType;
 
     PrimitiveBackedHeapMemberGenerator(FieldModel fieldModel) {
@@ -50,6 +72,13 @@ class PrimitiveBackedHeapMemberGenerator extends HeapMemberGenerator {
         return fieldType;
     }
 
+    /**
+     * Determines the primitive type used for storing the field.  If the
+     * declared type is {@code long} or {@code int} it is used directly.
+     * Otherwise atomic operations require Unsafe to operate on an
+     * {@code int} or {@code long}.  Doubles therefore map to
+     * {@code long}, floats and smaller primitives map to {@code int}.
+     */
     private Class<?> determineFieldType() {
         Class<?> modelType = super.fieldType();
         if (modelType == long.class || modelType == int.class)
@@ -93,6 +122,12 @@ class PrimitiveBackedHeapMemberGenerator extends HeapMemberGenerator {
         return "ARRAY_" + upperType + "_INDEX_SCALE";
     }
 
+    /**
+     * Converts the raw value loaded from Unsafe into the logical field type.
+     * When {@link #fieldType()} differs from {@code fieldModel.type} this
+     * method performs the inverse of {@link #unwrap(MethodSpec.Builder, String)}
+     * using bit conversions or boolean mapping.
+     */
     @Override
     String wrap(
             ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder, String rawStoredValue) {
@@ -109,6 +144,12 @@ class PrimitiveBackedHeapMemberGenerator extends HeapMemberGenerator {
         return "((" + fieldModel.type.getSimpleName() + ") " + rawStoredValue + ")";
     }
 
+    /**
+     * Converts a value provided by user code into the primitive form stored in
+     * memory.  The transformation mirrors {@link #wrap(ValueBuilder,
+     * MethodSpec.Builder, String)} so that the binary representation round
+     * trips through Unsafe unchanged.
+     */
     @Override
     String unwrap(MethodSpec.Builder methodBuilder, String inputValue) {
         if (fieldType() == fieldModel.type)

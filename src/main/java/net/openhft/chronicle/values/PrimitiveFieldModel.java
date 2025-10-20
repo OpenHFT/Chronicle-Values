@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +22,16 @@ import java.lang.reflect.Method;
 
 import static net.openhft.chronicle.values.Primitives.widthInBits;
 
+/**
+ * Provides layout rules for primitive fields within a value interface. The
+ * calculations here take the raw primitive width and adjust it for
+ * {@code volatile} or ordered writes so that atomic operations are possible.
+ * <p>
+ * {@link IntegerBackedFieldModel} reuses this logic for domain types encoded as
+ * integers. Subclasses may override {@link #sizeInBits()} when the chosen
+ * storage type must be wider than the logical primitive, typically because of
+ * the concurrency semantics requested by the interface.
+ */
 abstract class PrimitiveFieldModel extends ScalarFieldModel {
 
     @Override
@@ -53,6 +61,11 @@ abstract class PrimitiveFieldModel extends ScalarFieldModel {
                 Maths.nextPower2(rawSizeInBits, minBits) : rawSizeInBits;
     }
 
+    /**
+     * Width of this primitive in bits. Volatile or ordered setters may force
+     * the value to align to at least a byte or word boundary so the returned
+     * size can be greater than the raw primitive width.
+     */
     @Override
     int sizeInBits() {
         return sizeInBitsConsideringVolatileOrOrderedPuts(widthInBits(type));

@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +16,14 @@
 
 package net.openhft.chronicle.values;
 
-/*
- * Created by peter.lawrey on 03/03/2015.
+/**
+ * Distinguishes the side of a trade used by the tests.
  */
 public enum BuySell {
-    BUY, SELL
+
+    /** Represents a purchase. */
+    BUY,
+
+    /** Represents a sale. */
+    SELL
 }

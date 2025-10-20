@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +16,26 @@
 
 package net.openhft.chronicle.values;
 
-/*
- * Created by pct25 on 6/4/2015.
+/**
+ * Accessors for storing a {@link MyEnum} value with Chronicle Values.
+ *
+ * <p>The generated implementation keeps the enumeration ordinal in the
+ * backing {@code BytesStore} so that the value may be shared between
+ * threads or processes.</p>
  */
 public interface JavaBeanInterfaceGetMyEnum {
 
+    /**
+     * Reads the enumeration value from the underlying bytes.
+     *
+     * @return the currently stored {@link MyEnum}
+     */
     MyEnum getMyEnum();
 
+    /**
+     * Writes the enumeration into the underlying bytes.
+     *
+     * @param myEnum the value to store, null is not permitted
+     */
     void setMyEnum(MyEnum myEnum);
 }

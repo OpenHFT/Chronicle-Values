@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +22,31 @@ import javax.tools.JavaFileObject;
 import java.io.*;
 import java.net.URI;
 import java.nio.CharBuffer;
+/**
+ * Lightweight {@link JavaFileObject} backed by a {@link URI}.
+ * <p>
+ * {@link MyJavaFileManager} creates instances so the Java compiler can read
+ * already compiled classes from the classpath. Only read operations are
+ * implemented.
+ */
 
 class SimpleURIClassObject implements JavaFileObject {
 
+    /**
+     * Location of the class bytecode.
+     */
     final URI uri;
+    /**
+     * The class being supplied to the compiler.
+     */
     final Class<?> c;
 
+    /**
+     * Creates a wrapper around the given class resource.
+     *
+     * @param uri location of the {@code .class} file
+     * @param c   the class being wrapped
+     */
     protected SimpleURIClassObject(URI uri, Class<?> c) {
         this.uri = uri;
         this.c = c;
@@ -45,6 +62,12 @@ class SimpleURIClassObject implements JavaFileObject {
         return this.toUri().toString();
     }
 
+    /**
+     * Opens the underlying resource for reading.
+     *
+     * @return stream supplying the class bytes
+     * @throws IOException if the resource cannot be opened
+     */
     @Override
     public InputStream openInputStream() throws IOException {
         return uri.toURL().openStream();
@@ -87,12 +110,15 @@ class SimpleURIClassObject implements JavaFileObject {
     public boolean delete() {
         return false;
     }
-
+    /**
+     * This object always represents a compiled class.
+     *
+     * @return {@link Kind#CLASS}
+     */
     @Override
     public Kind getKind() {
         return Kind.CLASS;
     }
-
     @Override
     public boolean isNameCompatible(String simpleName, Kind kind) {
         String baseName = simpleName + kind.extension;

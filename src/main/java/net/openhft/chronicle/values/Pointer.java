@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +23,15 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+/**
+ * Marks that the annotated parameter is a pointer to another value interface instance.
+ * The stored value is the memory address rather than embedded bytes.
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * void link(@Pointer OtherValue v);
+ * }</pre>
+ * The generator stores v's address as a long.
+ */
 @Target(PARAMETER)
 @Retention(RUNTIME)
 @Documented

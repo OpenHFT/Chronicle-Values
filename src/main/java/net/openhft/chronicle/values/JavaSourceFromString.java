@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,19 +21,22 @@ import org.jetbrains.annotations.NotNull;
 import javax.tools.SimpleJavaFileObject;
 import java.net.URI;
 
-/* A file object used to represent source coming from a string.
+/**
+ * Presents a snippet of Java source held in memory as a file object.
+ * The compiler can therefore treat dynamically generated code as if it
+ * were loaded from the file system.
  */
 class JavaSourceFromString extends SimpleJavaFileObject {
     /**
-     * The source code of this "file".
+     * The Java source that backs this pseudo file.
      */
     private final String code;
 
     /**
-     * Constructs a new JavaSourceFromString.
+     * Creates a new instance for the given compilation unit name.
      *
-     * @param name the name of the compilation unit represented by this file object
-     * @param code the source code for the compilation unit represented by this file object
+     * @param name logical name of the unit, used when forming the URI
+     * @param code source code for the unit
      */
     JavaSourceFromString(@NotNull String name, String code) {
         super(URI.create("string:///" + name.replace('.', '/') + Kind.SOURCE.extension),
@@ -43,6 +44,11 @@ class JavaSourceFromString extends SimpleJavaFileObject {
         this.code = code;
     }
 
+    /**
+     * Returns the stored source code.
+     * The {@code ignoreEncodingErrors} flag is ignored as the code is already a
+     * {@link String}.
+     */
     @Override
     public CharSequence getCharContent(boolean ignoreEncodingErrors) {
         return code;

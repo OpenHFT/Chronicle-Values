@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +20,24 @@ import com.squareup.javapoet.MethodSpec;
 
 import static java.lang.String.format;
 
+/**
+ * Model for a {@code boolean} stored as a single bit. The bit offset is
+ * derived from the owning {@link ValueModel} and only that bit of the backing
+ * {@code BytesStore} is accessed. Reads mask the containing byte and writes
+ * update the same byte so neighbouring fields remain untouched. As there is no
+ * natural byte boundary for a lone bit, callers must supply explicit alignment
+ * settings via {@link #offsetAlignmentInBytes()} and
+ * {@link #dontCrossAlignmentInBytes()}.
+ */
 class BooleanFieldModel extends PrimitiveFieldModel {
 
-    private MemberGenerator nativeGenerator = new MemberGenerator(BooleanFieldModel.this) {
+    /**
+     * Generates native accessors for this field. The code emitted by this
+     * generator uses plain or volatile {@code BytesStore} methods to read and
+     * write bytes and then applies bit masks and shifts to work with a single
+     * bit.
+     */
+    private final MemberGenerator nativeGenerator = new MemberGenerator(BooleanFieldModel.this) {
 
         @Override
         void generateArrayElementFields(
@@ -37,6 +50,13 @@ class BooleanFieldModel extends PrimitiveFieldModel {
             get(valueBuilder, methodBuilder, "");
         }
 
+        /**
+         * Emits code to read the bit using the requested {@code BytesStore}
+         * access type.
+         *
+         * @param readType suffix for the {@code readXByte} call (for example
+         *                 empty string or {@code "Volatile"})
+         */
         private void get(
                 ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder, String readType) {
             int bitOffset = valueBuilder.model.fieldBitOffset(BooleanFieldModel.this);
@@ -82,6 +102,13 @@ class BooleanFieldModel extends PrimitiveFieldModel {
             set(valueBuilder, methodBuilder, "", "");
         }
 
+        /**
+         * Emits code to modify this bit using the supplied read and write
+         * flavours of the {@code BytesStore} API.
+         *
+         * @param readType  suffix for the {@code readXByte} call
+         * @param writeType suffix for the {@code writeXByte} call
+         */
         private void set(
                 ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder,
                 String readType, String writeType) {
@@ -282,6 +309,13 @@ class BooleanFieldModel extends PrimitiveFieldModel {
         }
     };
 
+    /**
+     * Byte boundary for the start of this bit field. There is no natural
+     * alignment for a single-bit value so the caller must provide one. Using
+     * {@link Align#DEFAULT} would lead to unpredictable packing.
+     *
+     * @throws IllegalStateException if the alignment was left as {@link Align#DEFAULT}
+     */
     @Override
     int offsetAlignmentInBytes() {
         if (offsetAlignment == Align.DEFAULT) {
@@ -291,6 +325,13 @@ class BooleanFieldModel extends PrimitiveFieldModel {
         return offsetAlignment;
     }
 
+    /**
+     * Largest alignment boundary this bit field must not span. Like
+     * {@link #offsetAlignmentInBytes()}, this cannot be deduced automatically
+     * because the field only occupies one bit.
+     *
+     * @throws IllegalStateException if the alignment was left as {@link Align#DEFAULT}
+     */
     @Override
     int dontCrossAlignmentInBytes() {
         if (dontCrossAlignment == Align.DEFAULT) {

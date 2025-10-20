@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +21,16 @@ import com.squareup.javapoet.MethodSpec;
 import static java.lang.String.format;
 import static net.openhft.chronicle.values.IntegerFieldModel.*;
 
+/**
+ * Generates native accessors backed by an integer field. The actual
+ * field type is converted to and from this integer when reads and
+ * writes occur. Subclasses provide the conversion logic.
+ */
 abstract class IntegerBackedNativeMemberGenerator extends MemberGenerator {
 
+    /**
+     * Integer field used to hold the raw value in native memory.
+     */
     final IntegerFieldModel backingFieldModel;
 
     IntegerBackedNativeMemberGenerator(
@@ -33,11 +39,18 @@ abstract class IntegerBackedNativeMemberGenerator extends MemberGenerator {
         this.backingFieldModel = backingFieldModel;
     }
 
+    /**
+     * Adds code to convert the supplied integer expression to the accessor
+     * return type.
+     *
+     * @param value expression evaluating to the raw integer
+     */
     abstract void finishGet(
             ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder, String value);
 
     /**
-     * Returns integer value to write (as string)
+     * Converts the argument to its integer representation and returns the
+     * string to be written.
      */
     abstract String startSet(MethodSpec.Builder methodBuilder);
 

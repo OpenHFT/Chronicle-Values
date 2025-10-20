@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2021 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +17,20 @@
 package net.openhft.chronicle.values;
 
 /**
- * User: peter.lawrey Date: 06/10/13 Time: 16:59
+ * Interface for getUsing behaviour on a simple bean.
  */
 public interface JavaBeanInterfaceGetUsing {
 
     void setString(@MaxUtf8Length(8) String s);
 
+    /**
+     * Writes the stored value into the supplied builder.
+     * <p>
+     * Clears {@code b}, appends the last string set via
+     * {@link #setString(String)}, and returns the builder.
+     *
+     * @param b receptacle for the value; overwritten each call
+     * @return the provided builder for chaining
+     */
     StringBuilder getUsingString(StringBuilder b);
 }
