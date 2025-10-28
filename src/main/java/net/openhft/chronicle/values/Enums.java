@@ -27,29 +27,48 @@ import net.openhft.chronicle.core.Jvm;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.EnumSet;
 
 public final class Enums {
 
-    private static final Method getUniverse;
-
-    static {
-        try {
-            getUniverse = AccessController.doPrivileged(
-                    (PrivilegedExceptionAction<Method>) () -> {
-                        Method method = EnumSet.class.getDeclaredMethod("getUniverse", Class.class);
-                        method.setAccessible(true);
-                        return method;
-                    });
-        } catch (PrivilegedActionException e) {
-            throw new RuntimeException(e.getCause());
-        }
-    }
+    private static final Method getUniverse = initGetUniverse();
 
     private Enums() {
+    }
+
+    @SuppressWarnings({"removal", "deprecation"})
+    private static Method initGetUniverse() {
+        try {
+            PrivilegedExceptionAction<Method> action = () -> {
+                Method method = EnumSet.class.getDeclaredMethod("getUniverse", Class.class);
+                method.setAccessible(true);
+                return method;
+            };
+            try {
+                Class<?> accessController = Class.forName("java.security.AccessController");
+                Method doPrivileged = accessController.getMethod("doPrivileged", PrivilegedExceptionAction.class);
+                return (Method) doPrivileged.invoke(null, action);
+            } catch (ClassNotFoundException | NoSuchMethodException ex) {
+                return action.run();
+            } catch (InvocationTargetException ex) {
+                Throwable cause = ex.getTargetException();
+                if (cause instanceof PrivilegedActionException) {
+                    throw (PrivilegedActionException) cause;
+                }
+                if (cause instanceof Exception) {
+                    throw new RuntimeException(cause);
+                }
+                throw new RuntimeException(ex);
+            } catch (IllegalAccessException ex) {
+                throw new RuntimeException(ex);
+            }
+        } catch (PrivilegedActionException e) {
+            throw new RuntimeException(e.getCause());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

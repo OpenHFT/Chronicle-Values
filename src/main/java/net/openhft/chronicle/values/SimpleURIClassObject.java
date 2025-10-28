@@ -74,7 +74,7 @@ class SimpleURIClassObject implements JavaFileObject {
         String scheme = uri.getScheme();
         if (scheme != null) {
             String normalised = scheme.toLowerCase(Locale.ENGLISH);
-            if (!"file".equals(normalised) && !"jar".equals(normalised)) {
+            if (!"file".equals(normalised) && !"jar".equals(normalised) && !"jrt".equals(normalised)) {
                 throw new IOException("Unsupported URI scheme " + scheme + " for class resource");
             }
         }
