@@ -22,6 +22,7 @@ import javax.tools.JavaFileObject;
 import java.io.*;
 import java.net.URI;
 import java.nio.CharBuffer;
+import java.util.Locale;
 /**
  * Lightweight {@link JavaFileObject} backed by a {@link URI}.
  * <p>
@@ -70,6 +71,13 @@ class SimpleURIClassObject implements JavaFileObject {
      */
     @Override
     public InputStream openInputStream() throws IOException {
+        String scheme = uri.getScheme();
+        if (scheme != null) {
+            String normalised = scheme.toLowerCase(Locale.ENGLISH);
+            if (!"file".equals(normalised) && !"jar".equals(normalised)) {
+                throw new IOException("Unsupported URI scheme " + scheme + " for class resource");
+            }
+        }
         return uri.toURL().openStream();
     }
 
@@ -98,7 +106,7 @@ class SimpleURIClassObject implements JavaFileObject {
 
     @Override
     public Writer openWriter() throws IOException {
-        return new OutputStreamWriter(this.openOutputStream());
+        throw new UnsupportedOperationException("SimpleURIClassObject is read-only");
     }
 
     @Override

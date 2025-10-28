@@ -17,6 +17,7 @@
 package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.core.Jvm;
+import net.openhft.compiler.CachedCompiler;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -25,6 +26,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+import javax.tools.StandardJavaFileManager;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
@@ -77,12 +79,30 @@ public class ValueModel {
         this.valueType = valueType;
         orderedFields = new ArrayList<>();
         sizeInBytes = arrangeFields(fields);
-        CACHED_COMPILER.setFileManagerOverride(fm -> new MyJavaFileManager(valueType, fm));
+        Function<StandardJavaFileManager, net.openhft.compiler.MyJavaFileManager> override =
+                fm -> new MyJavaFileManager(valueType, fm);
+        if (!setFileManagerOverrideCompatible(override)) {
+            CACHED_COMPILER.fileManagerOverride = override;
+        }
         CACHED_COMPILER.updateFileManagerForClassLoader(valueType.getClassLoader(), fm -> {
             if (fm instanceof MyJavaFileManager) {
                 ((MyJavaFileManager) fm).addClassToFileObjects(valueType);
             }
         });
+    }
+
+    private static boolean setFileManagerOverrideCompatible(
+            Function<StandardJavaFileManager, net.openhft.compiler.MyJavaFileManager> override) {
+        try {
+            CachedCompiler.class
+                    .getMethod("setFileManagerOverride", Function.class)
+                    .invoke(CACHED_COMPILER, override);
+            return true;
+        } catch (NoSuchMethodException e) {
+            return false;
+        } catch (ReflectiveOperationException e) {
+            throw Jvm.rethrow(e);
+        }
     }
 
     /**
@@ -194,7 +214,7 @@ public class ValueModel {
                             .reversed());
             // Preserve holes to be sorted from smallest to highest, to fill smallest
             // by the subsequent fields
-            TreeSet<BitRange> holes = new TreeSet<>(comparing(BitRange::size).reversed());
+            TreeSet<BitRange> holes = new TreeSet<>(comparing(BitRange::size).reversed()); // NOPMD - VAL-PMD-320: scratch tree re-created per group to preserve ordering semantics
             iterFields:
             for (FieldModel field : groupFields) {
                 int fieldOffsetAlignment = field.offsetAlignmentInBits();
@@ -206,7 +226,7 @@ public class ValueModel {
                     int fieldEndInHole = fieldStartInHole + fieldSize;
                     if ((fieldEndInHole < hole.to) &&
                             dontCross(fieldStartInHole, fieldSize, fieldDontCrossAlignment)) {
-                        fieldData.put(field, new FieldData(fieldStartInHole, fieldSize));
+                        fieldData.put(field, new FieldData(fieldStartInHole, fieldSize)); // NOPMD - VAL-PMD-321: per-field layout descriptor must be allocated when placement succeeds
                         orderedFields.add(field);
                         fieldEnds.put(fieldEndInHole, field);
                         holes.remove(hole);
@@ -224,7 +244,7 @@ public class ValueModel {
                     fieldStart = roundUp(watermark, fieldDontCrossAlignment);
                     assert dontCross(fieldStart, fieldSize, fieldDontCrossAlignment);
                 }
-                fieldData.put(field, new FieldData(fieldStart, fieldSize));
+                fieldData.put(field, new FieldData(fieldStart, fieldSize)); // NOPMD - VAL-PMD-322: per-field layout descriptor must be allocated when placement succeeds
                 orderedFields.add(field);
                 int fieldEnd = fieldStart + fieldSize;
                 fieldEnds.put(fieldEnd, field);
@@ -360,7 +380,7 @@ public class ValueModel {
         }
     }
 
-    private static class FieldData {
+    private static final class FieldData {
         int bitOffset;
         int bitExtent;
 

@@ -20,6 +20,8 @@ import net.openhft.chronicle.bytes.Bytes;
 import net.openhft.chronicle.core.Jvm;
 import net.openhft.chronicle.core.util.WeakIdentityHashMap;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Modifier;
 import java.security.PrivilegedAction;
@@ -249,6 +251,8 @@ final class BytecodeGen {
 
     // initialization-on-demand...
     private static class SystemBridgeHolder {
+        @SuppressFBWarnings(value = "DP_CREATE_CLASSLOADER_INSIDE_DO_PRIVILEGED",
+                justification = "VAL-SPOT-304: static bridge loader initialises at JVM startup to interpose between system and user loaders")
         static final BridgeClassLoader SYSTEM_BRIDGE = new BridgeClassLoader();
     }
 
@@ -296,7 +300,8 @@ final class BytecodeGen {
                     }
                     return clazz;
                 } catch (Throwable e) {
-                    // fall-back to classic delegation
+                    Jvm.debug().on(BytecodeGen.class,
+                            "BridgeClassLoader falling back to classic delegation for " + name, e);
                 }
             }
 

@@ -208,7 +208,7 @@ public class ArrayFieldModel extends FieldModel {
      * correct index calculations. Loop constructs emitted by this class rely on
      * the fixed {@link Array#length()} recorded in the outer model.
      */
-    private class ArrayMemberGenerator extends MemberGenerator {
+    private final class ArrayMemberGenerator extends MemberGenerator {
         private final MemberGenerator elemGenerator;
 
         private ArrayMemberGenerator(FieldModel fieldModel, MemberGenerator elemGenerator) {

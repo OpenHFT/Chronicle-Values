@@ -18,6 +18,7 @@ package net.openhft.chronicle.values;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
+import java.util.Locale;
 
 /**
  * Describes whether a method parameter may be {@code null}.
@@ -59,7 +60,10 @@ enum Nullability {
      */
     static boolean hasNullableAnnotation(Parameter p) {
         for (Annotation a : p.getAnnotations()) {
-            if (a.annotationType().getSimpleName().equalsIgnoreCase("Nullable"))
+            String simpleName = a.annotationType()
+                    .getSimpleName()
+                    .toLowerCase(Locale.ENGLISH);
+            if ("nullable".equals(simpleName))
                 return true;
         }
         return false;
@@ -71,9 +75,10 @@ enum Nullability {
      */
     static boolean hasNotNullAnnotation(Parameter p) {
         for (Annotation a : p.getAnnotations()) {
-            String annotationName = a.annotationType().getSimpleName();
-            if (annotationName.equalsIgnoreCase("NotNull") ||
-                    annotationName.equalsIgnoreCase("Nonnull"))
+            String annotationName = a.annotationType()
+                    .getSimpleName()
+                    .toLowerCase(Locale.ENGLISH);
+            if ("notnull".equals(annotationName) || "nonnull".equals(annotationName))
                 return true;
         }
         return false;

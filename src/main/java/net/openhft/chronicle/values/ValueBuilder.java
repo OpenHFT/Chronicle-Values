@@ -50,7 +50,7 @@ class ValueBuilder {
     private MethodSpec.Builder defaultConstructorBuilder;
     private FieldSpec bytesStoreForPointers;
 
-    public ValueBuilder(ValueModel model, String className, TypeSpec.Builder typeBuilder) {
+    ValueBuilder(ValueModel model, String className, TypeSpec.Builder typeBuilder) {
         this.model = model;
         this.className = className;
         this.typeBuilder = typeBuilder;

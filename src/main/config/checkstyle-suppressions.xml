@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+<suppressions>
+    <!-- VAL-CST-201: Chronicle Values retains single-line control flow pending generator refactor (VAL-OPS-201). -->
+    <suppress checks="NeedBraces" files="net/openhft/chronicle/values/.*"/>
+
+    <!-- VAL-CST-202: Operator wrapping follows legacy formatting; align post-generator rewrite (VAL-OPS-201). -->
+    <suppress checks="OperatorWrap" files="net/openhft/chronicle/values/.*"/>
+
+    <!-- VAL-CST-203: Public fields expose value schema metadata; privacy audit tracked in VAL-RISK-203. -->
+    <suppress checks="VisibilityModifier" files="net/openhft/chronicle/values/.*"/>
+
+    <!-- VAL-CST-204: Nested blocks originate from code generation; restructure during VAL-FN-204. -->
+    <suppress checks="AvoidNestedBlocks" files="net/openhft/chronicle/values/.*"/>
+
+    <!-- VAL-CST-205: Wildcard imports remain until IDE templates updated (VAL-DOC-205). -->
+    <suppress checks="AvoidStarImport" files="net/openhft/chronicle/values/.*"/>
+
+    <!-- VAL-CST-206: Diagnostic println usage persists in tests for now; migrate to logging under VAL-OPS-206. -->
+    <suppress checks="Regexp" files="net/openhft/chronicle/values/.*"/>
+
+    <!-- VAL-CST-207: Legacy strings breach line length; wrap once generator supports soft breaks (VAL-DOC-207). -->
+    <suppress checks="LineLength" files="net/openhft/chronicle/values/.*"/>
+</suppressions>

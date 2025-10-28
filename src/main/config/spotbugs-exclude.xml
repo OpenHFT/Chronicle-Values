@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter
+    xmlns="https://github.com/spotbugs/filter/3.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://github.com/spotbugs/filter/3.0.0 https://raw.githubusercontent.com/spotbugs/spotbugs/4.8.0/spotbugs/etc/findbugsfilter.xsd">
+
+    <!-- VAL-SPOT-301: FieldModel shares Method handles intentionally so generators reuse the canonical reflection objects. -->
+    <Match>
+        <Class name="net.openhft.chronicle.values.FieldModel"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+        <Comment>VAL-SPOT-301: FieldModel returns cached Method handles so generators can share metadata without copying reflective objects.</Comment>
+    </Match>
+
+    <!-- VAL-SPOT-302: ArrayFieldModel stores ScalarFieldModel reference to retain identity between array and element metadata. -->
+    <Match>
+        <Class name="net.openhft.chronicle.values.ArrayFieldModel"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+        <Comment>VAL-SPOT-302: ArrayFieldModel deliberately reuses the scalar element model; callers treat it as immutable metadata.</Comment>
+    </Match>
+
+    <!-- VAL-SPOT-303: BooleanFieldModel native generator needs the enclosing instance to access field offsets. -->
+    <Match>
+        <Class name="~net\.openhft\.chronicle\.values\.BooleanFieldModel\$2"/>
+        <Bug pattern="SIC_INNER_SHOULD_BE_STATIC_ANON"/>
+        <Comment>VAL-SPOT-303: Inner generator captures BooleanFieldModel state; refactor tracked in decision log.</Comment>
+    </Match>
+    <Match>
+        <Class name="net.openhft.chronicle.values.BooleanFieldModel"/>
+        <Bug pattern="SIC_INNER_SHOULD_BE_STATIC_ANON"/>
+        <Comment>VAL-SPOT-303A: Outer BooleanFieldModel retains anonymous generator for backward-compatible code emission strategy.</Comment>
+    </Match>
+
+    <!-- VAL-SPOT-304: Bridge class loader creation sits inside privileged block to satisfy security manager constraints. -->
+    <Match>
+        <Class name="~net\.openhft\.chronicle\.values\.BytecodeGen\$SystemBridgeHolder"/>
+        <Bug pattern="DP_CREATE_CLASSLOADER_INSIDE_DO_PRIVILEGED"/>
+        <Comment>VAL-SPOT-304: Chronicle Values uses privileged class loader creation to honour security manager policies.</Comment>
+    </Match>
+
+    <!-- VAL-SPOT-305: Case-insensitive annotation detection keeps historic behaviour; revisit once annotations are normalised. -->
+    <Match>
+        <Class name="net.openhft.chronicle.values.Nullability"/>
+        <Bug pattern="IMPROPER_UNICODE"/>
+        <Comment>VAL-SPOT-305: Nullability accepts mixed-case annotation names for backward compatibility; Locale enforcement recorded in TODO.</Comment>
+    </Match>
+
+    <!-- VAL-SPOT-306: PrimitiveBackedHeapMemberGenerator constructors may throw when field metadata is inconsistent; generation abort is intentional. -->
+    <Match>
+        <Class name="net.openhft.chronicle.values.PrimitiveBackedHeapMemberGenerator"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+        <Comment>VAL-SPOT-306: Constructor guards invalid generator input; partial construction abort is acceptable.</Comment>
+    </Match>
+
+    <!-- VAL-SPOT-307: SimpleURIClassObject normalises URI scheme for safety while constraining access to file/jar resources only. -->
+    <Match>
+        <Class name="net.openhft.chronicle.values.SimpleURIClassObject"/>
+        <Bug pattern="IMPROPER_UNICODE"/>
+        <Comment>VAL-SPOT-307: Scheme checks remain case-insensitive for resource URIs; additional normalisation tracked in docs.</Comment>
+    </Match>
+    <Match>
+        <Class name="net.openhft.chronicle.values.SimpleURIClassObject"/>
+        <Bug pattern="URLCONNECTION_SSRF_FD"/>
+        <Comment>VAL-SPOT-308: URI sources originate from Class.getResource; SSRF risk documented and monitored.</Comment>
+    </Match>
+
+    <!-- VAL-SPOT-309: MyJavaFileManager preserves type name to mirror superclass for ServiceLoader compatibility. -->
+    <Match>
+        <Class name="net.openhft.chronicle.values.MyJavaFileManager"/>
+        <Bug pattern="NM_SAME_SIMPLE_NAME_AS_SUPERCLASS"/>
+        <Comment>VAL-SPOT-309: Local subclass must retain simple name for legacy reflective lookups; rename deferred.</Comment>
+    </Match>
+
+    <!-- VAL-SPOT-310: ValueModel constructor fails fast on misconfiguration to prevent generation of invalid implementations. -->
+    <Match>
+        <Class name="net.openhft.chronicle.values.ValueModel"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+        <Comment>VAL-SPOT-310: Constructor intentionally throws on invalid metadata; no partially usable instance is leaked.</Comment>
+    </Match>
+</FindBugsFilter>

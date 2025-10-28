@@ -27,6 +27,9 @@ import net.openhft.chronicle.core.Jvm;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.EnumSet;
 
 public final class Enums {
@@ -35,10 +38,14 @@ public final class Enums {
 
     static {
         try {
-            getUniverse = EnumSet.class.getDeclaredMethod("getUniverse", Class.class);
-            getUniverse.setAccessible(true);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
+            getUniverse = AccessController.doPrivileged(
+                    (PrivilegedExceptionAction<Method>) () -> {
+                        Method method = EnumSet.class.getDeclaredMethod("getUniverse", Class.class);
+                        method.setAccessible(true);
+                        return method;
+                    });
+        } catch (PrivilegedActionException e) {
+            throw new RuntimeException(e.getCause());
         }
     }
 

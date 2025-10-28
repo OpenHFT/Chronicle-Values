@@ -253,10 +253,10 @@ public class ValueGeneratorTest extends ValuesTestCommon {
         StringInterface si2 = newNativeReference(StringInterface.class);
         BytesStore<?, ByteBuffer> bytes = BytesStore.wrap(ByteBuffer.allocate(192));
         ((Byteable) si2).bytesStore(bytes, 0L, ((Byteable) si2).maxSize());
-        si2.setString("Hello world £€");
-        si2.setText("Hello world £€");
-        assertEquals("Hello world £€", si2.getString());
-        assertEquals("Hello world £€", si2.getText());
+        si2.setString("Hello world \u00A3\u20AC");
+        si2.setText("Hello world \u00A3\u20AC");
+        assertEquals("Hello world \u00A3\u20AC", si2.getString());
+        assertEquals("Hello world \u00A3\u20AC", si2.getText());
     }
 
     @Test

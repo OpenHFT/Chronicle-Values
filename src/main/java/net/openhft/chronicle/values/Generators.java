@@ -17,6 +17,7 @@
 package net.openhft.chronicle.values;
 
 import com.squareup.javapoet.*;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.openhft.chronicle.bytes.*;
 import net.openhft.chronicle.core.Jvm;
 
@@ -281,6 +282,8 @@ final class Generators {
         return methodBuilder.build();
     }
 
+    @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
+            justification = "VAL-SPOT-210: retained for planned toString generation once equals/hashCode parity is reviewed")
     private static MethodSpec toStringMethod(ValueBuilder valueBuilder, ImplType implType) {
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("toString")
                 .addAnnotation(Override.class)

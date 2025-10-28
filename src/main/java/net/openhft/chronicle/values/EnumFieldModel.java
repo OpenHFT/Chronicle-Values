@@ -19,8 +19,6 @@ package net.openhft.chronicle.values;
 import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
-import net.openhft.chronicle.core.Jvm;
-
 import java.lang.reflect.Method;
 
 import static java.lang.String.format;
