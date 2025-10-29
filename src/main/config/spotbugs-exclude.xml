@@ -30,6 +30,13 @@
         <Comment>VAL-SPOT-303A: Outer BooleanFieldModel retains anonymous generator for backward-compatible code emission strategy.</Comment>
     </Match>
 
+    <!-- VAL-SPOT-210: Retain toString template until equals/hashCode parity review completes. -->
+    <Match>
+        <Class name="net.openhft.chronicle.values.Generators"/>
+        <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD"/>
+        <Comment>VAL-SPOT-210: retained for planned toString generation once equals/hashCode parity is reviewed.</Comment>
+    </Match>
+
     <!-- VAL-SPOT-304: Bridge class loader creation sits inside privileged block to satisfy security manager constraints. -->
     <Match>
         <Class name="~net\.openhft\.chronicle\.values\.BytecodeGen\$SystemBridgeHolder"/>

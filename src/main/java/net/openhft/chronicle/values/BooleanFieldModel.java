@@ -17,7 +17,6 @@
 package net.openhft.chronicle.values;
 
 import com.squareup.javapoet.MethodSpec;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import static java.lang.String.format;
 
@@ -38,8 +37,6 @@ class BooleanFieldModel extends PrimitiveFieldModel {
      * write bytes and then applies bit masks and shifts to work with a single
      * bit.
      */
-    @SuppressFBWarnings(value = "SIC_INNER_SHOULD_BE_STATIC_ANON",
-            justification = "VAL-SPOT-303: generator must capture enclosing field metadata for bit offsets")
     private final MemberGenerator nativeGenerator = new MemberGenerator(BooleanFieldModel.this) {
 
         @Override
