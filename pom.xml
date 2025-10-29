@@ -83,13 +83,6 @@
             <artifactId>annotations</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.github.spotbugs</groupId>
-            <artifactId>spotbugs-annotations</artifactId>
-            <version>${spotbugs.annotations.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
         <!-- test dependencies -->
         <dependency>
             <groupId>junit</groupId>
@@ -109,7 +102,6 @@
       <checkstyle.version>3.6.0</checkstyle.version>
       <puppycrawl.version>8.45.1</puppycrawl.version>
       <spotbugs.version>4.8.6.6</spotbugs.version>
-      <spotbugs.annotations.version>4.8.6</spotbugs.annotations.version>
       <findsecbugs.version>1.14.0</findsecbugs.version>
       <maven-pmd-plugin.version>3.28.0</maven-pmd-plugin.version>
       <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
