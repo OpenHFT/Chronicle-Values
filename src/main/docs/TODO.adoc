@@ -1,7 +1,0 @@
-= Chronicle Values Follow-Up Tasks
-
-* [ ] VAL-SPOT-301: Rework FieldModel metadata exposure so SpotBugs EI_EXPOSE_REP suppressions can be removed.
-* [ ] VAL-SPOT-303: Replace anonymous BooleanFieldModel generator with a named static helper without changing generated signatures.
-* [ ] VAL-SPOT-304: Investigate bridge class loader bootstrap sequence and evaluate whether privileged creation can be isolated from application runtime.
-* [ ] VAL-SPOT-307: Normalise URI scheme handling in SimpleURIClassObject without case folding to revisit IMPROPER_UNICODE suppression.
-* [ ] VAL-TEST-401: Raise JaCoCo thresholds above 0.0 once dedicated unit coverage for generator pipeline is available (current build reports 69% line, 58% branch).
