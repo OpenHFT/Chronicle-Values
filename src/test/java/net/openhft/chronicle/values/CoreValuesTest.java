@@ -1,3 +1,7 @@
+//
+// Copyright 2013-2025 chronicle.software; SPDX-License-Identifier: Apache-2.0
+//
+
 /*
  * Copyright 2016-2025 chronicle.software
  *
@@ -52,7 +56,7 @@ public class CoreValuesTest extends ValuesTestCommon {
     /**
      * Shared assertions for any {@link IntValue} implementation.
      */
-    public void testIntValue(IntValue v) {
+    private void testIntValue(IntValue v) {
         assertEquals(0, v.getValue());
 
         v.setValue(1);
@@ -97,7 +101,7 @@ public class CoreValuesTest extends ValuesTestCommon {
     /**
      * Helper for unsigned integer operations across heap and native values.
      */
-    public void testUnsignedIntValue(UnsignedIntValue v) {
+    private void testUnsignedIntValue(UnsignedIntValue v) {
         assertEquals(0, v.getValue());
 
         v.setValue(1);
@@ -131,7 +135,7 @@ public class CoreValuesTest extends ValuesTestCommon {
     /**
      * Core checks for {@link ByteValue} implementations.
      */
-    public void testByteValue(ByteValue v) {
+    private void testByteValue(ByteValue v) {
         assertEquals(0, v.getValue());
 
         v.setValue((byte) 1);
@@ -165,7 +169,7 @@ public class CoreValuesTest extends ValuesTestCommon {
     /**
      * Helper for verifying {@link CharValue} semantics.
      */
-    public void testCharValue(CharValue v) {
+    private void testCharValue(CharValue v) {
         assertEquals(0, v.getValue());
 
         v.setValue((char) 1);
@@ -198,7 +202,7 @@ public class CoreValuesTest extends ValuesTestCommon {
     /**
      * Common logic for both heap and native {@link LongValue} checks.
      */
-    public void testLongValue(LongValue v) {
+    private void testLongValue(LongValue v) {
         assertEquals(0, v.getValue());
 
         v.setValue(1L);
@@ -243,7 +247,7 @@ public class CoreValuesTest extends ValuesTestCommon {
     /**
      * Assertions shared by heap and native {@link FloatValue} tests.
      */
-    public void testFloatValue(FloatValue v) {
+    private void testFloatValue(FloatValue v) {
         assertTrue(0.0f == v.getValue());
 
         v.setValue(1.0f);
@@ -303,7 +307,7 @@ public class CoreValuesTest extends ValuesTestCommon {
     /**
      * Common set of assertions for {@link DoubleValue} instances.
      */
-    public void testDoubleValue(DoubleValue v) {
+    private void testDoubleValue(DoubleValue v) {
         assertTrue(0.0 == v.getValue());
 
         v.setValue(1.0);
@@ -344,7 +348,7 @@ public class CoreValuesTest extends ValuesTestCommon {
     /**
      * Helper for {@link ShortValue} arithmetic tests.
      */
-    public void testShortValue(ShortValue v) {
+    private void testShortValue(ShortValue v) {
         assertEquals(0, v.getValue());
 
         v.setValue((short) 1);
@@ -378,7 +382,7 @@ public class CoreValuesTest extends ValuesTestCommon {
     /**
      * Helper used by both heap and native boolean tests.
      */
-    public void testBooleanValue(BooleanValue v) {
+    private void testBooleanValue(BooleanValue v) {
         assertFalse(v.getValue());
 
         v.setValue(true);

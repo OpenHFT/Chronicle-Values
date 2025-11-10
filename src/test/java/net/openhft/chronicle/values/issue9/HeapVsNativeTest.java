@@ -1,3 +1,7 @@
+//
+// Copyright 2013-2025 chronicle.software; SPDX-License-Identifier: Apache-2.0
+//
+
 /*
  * Copyright 2016-2025 chronicle.software
  *
@@ -32,7 +36,7 @@ import static org.junit.Assert.assertTrue;
  * do not return the original {@link String} instance when read back.
  */
 public class HeapVsNativeTest extends ValuesTestCommon {
-    public static final String SYMBOL = "symbol";
+    private static final String SYMBOL = "symbol";
 
     /**
      * Verifies the behaviour of a heap-backed {@link Entity} instance.

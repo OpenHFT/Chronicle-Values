@@ -1,3 +1,7 @@
+//
+// Copyright 2013-2025 chronicle.software; SPDX-License-Identifier: Apache-2.0
+//
+
 /*
  * Copyright 2016-2025 chronicle.software
  *
@@ -22,5 +26,5 @@ package net.openhft.chronicle.values.issue10;
  * <p>Extends {@link ChronicleValueType} so the tests can verify that heap and
  * native implementations are generated correctly.</p>
  */
-public interface ChronicleValueDate extends ChronicleValueType<ChronicleValueDate> {
+interface ChronicleValueDate extends ChronicleValueType<ChronicleValueDate> {
 }
