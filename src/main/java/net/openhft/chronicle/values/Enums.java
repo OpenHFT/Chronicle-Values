@@ -1,15 +1,7 @@
-//
-// Copyright 2013-2025 chronicle.software; SPDX-License-Identifier: Apache-2.0
-//
-
-package net.openhft.chronicle.values;
-
-/**
- * Utility methods used by generated code for enum fields. The generator caches
- * the array of constants for each enum so that values can be marshalled by
- * ordinal. The constants array is obtained by reflectively invoking the
- * package-private {@code EnumSet.getUniverse(Class)} method.
+/*
+ * Copyright 2013-2025 chronicle.software; SPDX-License-Identifier: Apache-2.0
  */
+package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.core.Jvm;
 
@@ -17,6 +9,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.EnumSet;
 
+/**
+ * Utility methods used by generated code for enum fields. The generator caches
+ * the array of constants for each enum so that values can be marshalled by
+ * ordinal. The constants array is obtained by reflectively invoking the
+ * package-private {@code EnumSet.getUniverse(Class)} method.
+ */
 public final class Enums {
 
     private static final Method getUniverse;

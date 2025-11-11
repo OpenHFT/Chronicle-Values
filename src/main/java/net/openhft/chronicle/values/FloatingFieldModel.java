@@ -1,7 +1,6 @@
-//
-// Copyright 2013-2025 chronicle.software; SPDX-License-Identifier: Apache-2.0
-//
-
+/*
+ * Copyright 2013-2025 chronicle.software; SPDX-License-Identifier: Apache-2.0
+ */
 package net.openhft.chronicle.values;
 
 import com.squareup.javapoet.MethodSpec;
@@ -246,11 +245,11 @@ class FloatingFieldModel extends PrimitiveFieldModel {
         return nativeGenerator;
     }
 
-    @Override
     /**
      * Creates a heap generator that uses {@code Unsafe} and loops with
      * compare-and-swap for atomic add operations.
      */
+    @Override
     MemberGenerator createHeapGenerator() {
         return new NumberHeapMemberGenerator(this) {
 
