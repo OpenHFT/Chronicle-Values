@@ -30,12 +30,12 @@ public class AlignTest extends ValuesTestCommon {
         bs.releaseLast();
     }
 
-    @SuppressWarnings("rawtypes")
     /**
      * Minimal order definition used to check alignment constraints.
      * <p>
      * The order quantity field must be aligned for atomic updates.
      */
+    @SuppressWarnings("rawtypes")
     interface DemoOrderVOInterface extends Byteable {
         /**
          * Instrument symbol for the order.

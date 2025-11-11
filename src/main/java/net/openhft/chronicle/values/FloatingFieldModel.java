@@ -245,11 +245,11 @@ class FloatingFieldModel extends PrimitiveFieldModel {
         return nativeGenerator;
     }
 
-    @Override
     /**
      * Creates a heap generator that uses {@code Unsafe} and loops with
      * compare-and-swap for atomic add operations.
      */
+    @Override
     MemberGenerator createHeapGenerator() {
         return new NumberHeapMemberGenerator(this) {
 

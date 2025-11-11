@@ -19,7 +19,7 @@ import static org.junit.Assert.assertTrue;
  * do not return the original {@link String} instance when read back.
  */
 public class HeapVsNativeTest extends ValuesTestCommon {
-    public static final String SYMBOL = "symbol";
+    private static final String SYMBOL = "symbol";
 
     /**
      * Verifies the behaviour of a heap-backed {@link Entity} instance.

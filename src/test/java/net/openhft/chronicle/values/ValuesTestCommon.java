@@ -28,8 +28,8 @@ import java.util.function.Predicate;
 
 public class ValuesTestCommon {
 
-    protected ThreadDump threadDump;
-    protected Map<ExceptionKey, Integer> exceptions;
+    private ThreadDump threadDump;
+    private Map<ExceptionKey, Integer> exceptions;
     private final Map<Predicate<ExceptionKey>, String> expectedExceptions = new LinkedHashMap<>();
 
     @Before
@@ -41,7 +41,7 @@ public class ValuesTestCommon {
      * Fails the test if any {@code AbstractReferenceCounted} instances have not
      * reached a reference count of zero.
      */
-    public void assertReferencesReleased() {
+    private void assertReferencesReleased() {
         AbstractReferenceCounted.assertReferencesReleased();
     }
 
@@ -50,7 +50,7 @@ public class ValuesTestCommon {
         threadDump = new ThreadDump();
     }
 
-    public void checkThreadDump() {
+    private void checkThreadDump() {
         threadDump.assertNoNewThreads();
     }
 
@@ -74,7 +74,7 @@ public class ValuesTestCommon {
      * @param predicate test for matching exception keys
      * @param description text used if the expected entry is missing
      */
-    public void expectException(Predicate<ExceptionKey> predicate, String description) {
+    private void expectException(Predicate<ExceptionKey> predicate, String description) {
         expectedExceptions.put(predicate, description);
     }
 
@@ -82,7 +82,7 @@ public class ValuesTestCommon {
      * Verifies that only declared exceptions were recorded during the test.
      * Any unexpected entry causes the test to fail after dumping the log.
      */
-    public void checkExceptions() {
+    private void checkExceptions() {
         for (Map.Entry<Predicate<ExceptionKey>, String> expectedException :
                 expectedExceptions.entrySet()) {
             if (!exceptions.keySet().removeIf(expectedException.getKey())) {
