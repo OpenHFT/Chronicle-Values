@@ -120,9 +120,9 @@ class BooleanFieldModel extends PrimitiveFieldModel {
             arrayElementSet(arrayFieldModel, valueBuilder, methodBuilder, "", "");
         }
 
-        private void arrayElementSet
-                (ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
-                 MethodSpec.Builder methodBuilder, String readType, String writeType) {
+        private void arrayElementSet(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+                MethodSpec.Builder methodBuilder, String readType, String writeType) {
             int arrayBitOffset = valueBuilder.model.fieldBitOffset(arrayFieldModel);
             methodBuilder.addStatement("int bitOffset = $L + index", arrayBitOffset);
             methodBuilder.addStatement("int byteOffset = bitOffset / 8");

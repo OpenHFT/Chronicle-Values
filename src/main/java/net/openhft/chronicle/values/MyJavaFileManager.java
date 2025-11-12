@@ -33,14 +33,14 @@ import java.util.*;
  */
 public class MyJavaFileManager extends net.openhft.compiler.MyJavaFileManager {
 
-    /**
+    /*
      * Cache of classes required by generated code, keyed by package name.
      * Populated once in the static block below and shared across all
      * instances.
      */
     private static final Map<String, Set<JavaFileObject>> dependencyFileObjects = new HashMap<>();
 
-    /**
+    /*
      * Preloads {@code dependencyFileObjects} with Chronicle classes used by
      * generated code.
      */
