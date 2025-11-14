@@ -1,4 +1,7 @@
 = Decision Log: Chronicle Libraries Usage
+:toc:
+:lang: en-GB
+:source-highlighter: rouge
 
 This log records key decisions regarding the selection and use of Chronicle libraries, based on the "A Deep Dive into Chronicle Values versus Chronicle Bytes for Project Requirements Analysis" report.
 Identifiers use the `CV` project scope and relevant Nine-Box tags.
