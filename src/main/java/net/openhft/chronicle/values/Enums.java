@@ -7,6 +7,8 @@ import net.openhft.chronicle.core.Jvm;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.EnumSet;
 
 /**
@@ -21,10 +23,15 @@ public final class Enums {
 
     static {
         try {
-            getUniverse = EnumSet.class.getDeclaredMethod("getUniverse", Class.class);
-            getUniverse.setAccessible(true);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
+            getUniverse = doPrivileged(
+                    (PrivilegedExceptionAction<Method>) () -> {
+                        Method method =
+                                EnumSet.class.getDeclaredMethod("getUniverse", Class.class);
+                        method.setAccessible(true);
+                        return method;
+                    });
+        } catch (PrivilegedActionException e) {
+            throw new IllegalStateException("Unable to access EnumSet#getUniverse", e.getCause());
         }
     }
 
@@ -44,7 +51,7 @@ public final class Enums {
             //noinspection unchecked
             return Jvm.uncheckedCast(getUniverse.invoke(null, enumType));
         } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("Unable to access enum constants", e);
         }
     }
 
@@ -57,5 +64,11 @@ public final class Enums {
      */
     public static <E extends Enum<E>> int numberOfConstants(Class<E> enumType) {
         return getUniverse(enumType).length;
+    }
+
+    @SuppressWarnings({"deprecation", "removal"})
+    private static <T> T doPrivileged(PrivilegedExceptionAction<T> action)
+            throws PrivilegedActionException {
+        return java.security.AccessController.doPrivileged(action);
     }
 }

@@ -8,6 +8,7 @@ import net.openhft.chronicle.core.Maths;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 import static net.openhft.chronicle.values.Utils.roundUp;
 
@@ -50,7 +51,7 @@ public class ArrayFieldModel extends FieldModel {
     private MemberGenerator nativeGenerator;
 
     public ArrayFieldModel(ScalarFieldModel elemModel) {
-        this.elemModel = elemModel;
+        this.elemModel = Objects.requireNonNull(elemModel);
     }
 
     /**

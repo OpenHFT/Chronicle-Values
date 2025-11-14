@@ -236,7 +236,7 @@ final class BytecodeGen {
 
     // initialization-on-demand...
     private static class SystemBridgeHolder {
-        static final BridgeClassLoader SYSTEM_BRIDGE = new BridgeClassLoader();
+        static final BridgeClassLoader SYSTEM_BRIDGE = doPrivileged(BridgeClassLoader::new);
     }
 
     /**

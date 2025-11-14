@@ -9,10 +9,11 @@ import javax.tools.JavaFileObject;
 import java.io.*;
 import java.net.URI;
 import java.nio.CharBuffer;
+import java.nio.charset.StandardCharsets;
 /**
  * Lightweight {@link JavaFileObject} backed by a {@link URI}.
  * <p>
- * {@link MyJavaFileManager} creates instances so the Java compiler can read
+ * {@link ValuesJavaFileManager} creates instances so the Java compiler can read
  * already compiled classes from the classpath. Only read operations are
  * implemented.
  */
@@ -85,7 +86,7 @@ class SimpleURIClassObject implements JavaFileObject {
 
     @Override
     public Writer openWriter() throws IOException {
-        return new OutputStreamWriter(this.openOutputStream());
+        return new OutputStreamWriter(this.openOutputStream(), StandardCharsets.UTF_8);
     }
 
     @Override
