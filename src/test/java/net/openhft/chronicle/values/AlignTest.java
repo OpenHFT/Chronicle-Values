@@ -33,15 +33,15 @@ public class AlignTest extends ValuesTestCommon {
     /**
      * Minimal order definition used to check alignment constraints.
      * <p>
-     * The order quantity field must be aligned for atomic updates.
-     */
+         * The order quantity field must be aligned for atomic updates.
+         */
     @SuppressWarnings("rawtypes")
     interface DemoOrderVOInterface extends Byteable {
         /**
          * Instrument symbol for the order.
          */
         CharSequence getSymbol();
-//    public StringBuilder getUsingSymbol(StringBuilder sb);
+        //    public StringBuilder getUsingSymbol(StringBuilder sb);
 
         /**
          * Stores the instrument symbol.

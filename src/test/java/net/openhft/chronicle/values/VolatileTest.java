@@ -14,28 +14,11 @@ import static net.openhft.chronicle.values.Values.newNativeReference;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-/*
- * Created by daniel on 11/06/2014.
- */
 public class VolatileTest extends ValuesTestCommon {
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
     public void testGenerateJavaCode() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
 
-   /*     try{
-            BadInterface1 jbi = dvg.heapInstance(BadInterface1.class);
-            assertFalse("Should have thrown an IllegalArgumentException", true);
-        }catch(AssertionError e){
-            assertTrue("Throws an IllegalArgumentException", true);
-        }
-
-        try{
-            BadInterface2 jbi = dvg.heapInstance(BadInterface2.class);
-            assertFalse("Should have thrown an IllegalArgumentException", true);
-        }catch(AssertionError e){
-            assertTrue("Throws an IllegalArgumentException", true);
-        }
-*/
         //Test the heap interface
         try {
             GoodInterface jbi = newHeapInstance(GoodInterface.class);

@@ -26,7 +26,7 @@ public class ValueInterfaceWithEnumTest extends ValuesTestCommon {
         SimpleValueInterface nativeValue = Values.newNativeReference(SimpleValueInterface.class);
         int modelSize = ValueModel.acquire(SimpleValueInterface.class).sizeInBytes();
         ((Byteable) nativeValue).bytesStore(BytesStore.wrap(new byte[modelSize]), 0, modelSize);
-        SimpleValueInterface heapValue = Values.newHeapInstance(SimpleValueInterface.class);
+        final SimpleValueInterface heapValue = Values.newHeapInstance(SimpleValueInterface.class);
 
         nativeValue.setId(1);
         nativeValue.setTruth(true);

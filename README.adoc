@@ -25,6 +25,13 @@ If the generation from the value interface (according to spec) doesn't work, ple
 All classes in the package `net.openhft.chronicle.values.internal` and its subpackages are internal implementation details.
 They may change without notice and must not be referenced directly.
 
+== Quality and static analysis
+
+Chronicle-Values uses the shared Chronicle quality configuration via its parent POMs.
+
+* From an aggregator that includes this module, run `mvn -P quality clean verify` to execute Checkstyle and SpotBugs with coverage checks.
+* For a module-focused SpotBugs run on Java 11 or newer, run `mvn -P module-quality clean verify` in the `Chronicle-Values` project.
+
 === Value interface specification
 
 Value interfaces must belong to a non-empty package (they cannot sit in the default package).

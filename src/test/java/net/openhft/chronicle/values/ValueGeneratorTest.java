@@ -108,9 +108,9 @@ public class ValueGeneratorTest extends ValuesTestCommon {
     @Test
     public void testGenerateNativeWithGetUsingAt() throws IllegalAccessException, InstantiationException {
         JavaBeanInterfaceGetUsingAt jbi = loadNativeTypeAndCreateValue(JavaBeanInterfaceGetUsingAt.class);
-        JavaBeanInterfaceGetUsingAt jbi2 = loadNativeTypeAndCreateValue(JavaBeanInterfaceGetUsingAt.class);
+        final JavaBeanInterfaceGetUsingAt jbi2 = loadNativeTypeAndCreateValue(JavaBeanInterfaceGetUsingAt.class);
 
-        LongValue val = Values.newHeapInstance(LongValue.class);
+        final LongValue val = Values.newHeapInstance(LongValue.class);
         val.setValue(2L);
         jbi.setItemAt(0, val);
 
@@ -129,9 +129,9 @@ public class ValueGeneratorTest extends ValuesTestCommon {
     @Test
     public void testGenerateHeapWithGetUsingAt() throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         JavaBeanInterfaceGetUsingAt jbi = loadHeapTypeAndCreateValue(JavaBeanInterfaceGetUsingAt.class);
-        JavaBeanInterfaceGetUsingAt jbi2 = loadHeapTypeAndCreateValue(JavaBeanInterfaceGetUsingAt.class);
+        final JavaBeanInterfaceGetUsingAt jbi2 = loadHeapTypeAndCreateValue(JavaBeanInterfaceGetUsingAt.class);
 
-        LongValue val = Values.newHeapInstance(LongValue.class);
+        final LongValue val = Values.newHeapInstance(LongValue.class);
         val.setValue(2L);
         jbi.setItemAt(0, val);
 
@@ -150,9 +150,9 @@ public class ValueGeneratorTest extends ValuesTestCommon {
     @Test
     public void testGenerateNativeWithGetAt() throws IllegalAccessException, InstantiationException {
         JavaBeanInterfaceGetAt jbi = loadNativeTypeAndCreateValue(JavaBeanInterfaceGetAt.class);
-        JavaBeanInterfaceGetAt jbi2 = loadNativeTypeAndCreateValue(JavaBeanInterfaceGetAt.class);
+        final JavaBeanInterfaceGetAt jbi2 = loadNativeTypeAndCreateValue(JavaBeanInterfaceGetAt.class);
 
-        LongValue val = Values.newHeapInstance(LongValue.class);
+        final LongValue val = Values.newHeapInstance(LongValue.class);
         val.setValue(2L);
         jbi.setItemAt(0, val);
 
@@ -169,9 +169,9 @@ public class ValueGeneratorTest extends ValuesTestCommon {
     @Test
     public void testGenerateHeapWithGetAt() throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         JavaBeanInterfaceGetAt jbi = loadHeapTypeAndCreateValue(JavaBeanInterfaceGetAt.class);
-        JavaBeanInterfaceGetAt jbi2 = loadHeapTypeAndCreateValue(JavaBeanInterfaceGetAt.class);
+        final JavaBeanInterfaceGetAt jbi2 = loadHeapTypeAndCreateValue(JavaBeanInterfaceGetAt.class);
 
-        LongValue val = Values.newHeapInstance(LongValue.class);
+        final LongValue val = Values.newHeapInstance(LongValue.class);
         val.setValue(2L);
         jbi.setItemAt(0, val);
 

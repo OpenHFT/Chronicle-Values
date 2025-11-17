@@ -31,16 +31,14 @@ public class PointerTest extends ValuesTestCommon {
 
     @Test
     public void testPointer() {
-//        System.setProperty("chronicle.values.dumpCode", "true");
-
         PointedInterface pointedFoo = getPointed();
         assertTrue(pointedFoo.offset() < 10_000);
         pointedFoo.setString("foo");
-        long fooAddress = pointedFoo.address();
+        final long fooAddress = pointedFoo.address();
         PointedInterface pointedBar = getPointed();
         assertTrue(pointedBar.offset() < 10_000);
         pointedBar.setString("bar");
-        long barAddress = pointedBar.address();
+        final long barAddress = pointedBar.address();
 
         PointingInterface heapPointing = Values.newHeapInstance(PointingInterface.class);
         assertNull(heapPointing.getPoint());
