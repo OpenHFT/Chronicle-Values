@@ -100,15 +100,18 @@ public class ValuesTestCommon {
 
     @After
     public void afterChecks() {
-        SystemTimeProvider.CLOCK = SystemTimeProvider.INSTANCE;
-        CleaningThread.performCleanup(Thread.currentThread());
+        try {
+            CleaningThread.performCleanup(Thread.currentThread());
 
-        // find any discarded resources.
-        System.gc();
-        AbstractCloseable.waitForCloseablesToClose(100);
+            // find any discarded resources.
+            System.gc();
+            AbstractCloseable.waitForCloseablesToClose(100);
 
-        assertReferencesReleased();
-        checkThreadDump();
-        checkExceptions();
+            assertReferencesReleased();
+            checkThreadDump();
+            checkExceptions();
+        } finally {
+            SystemTimeProvider.CLOCK = SystemTimeProvider.INSTANCE;
+        }
     }
 }

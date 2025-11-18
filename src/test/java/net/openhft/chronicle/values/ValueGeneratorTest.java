@@ -27,24 +27,24 @@ import static net.openhft.compiler.CompilerUtils.CACHED_COMPILER;
 public class ValueGeneratorTest extends ValuesTestCommon {
     @Test
     public void testGenerateJavaCode() {
-//        JavaBeanInterface jbi = Values.newHeapInstance(JavaBeanInterface.class);
-//        jbi.setByte((byte) 1);
-//        jbi.setChar('2');
-//        jbi.setShort((short) 3);
-//        jbi.setInt(4);
-//        jbi.setFloat(5);
-//        jbi.setLong(6);
-//        jbi.setDouble(7);
-//        jbi.setFlag(true);
-//
-//        assertEquals(1, jbi.getByte());
-//        assertEquals('2', jbi.getChar());
-//        assertEquals(3, jbi.getShort());
-//        assertEquals(4, jbi.getInt());
-//        assertEquals(5.0, jbi.getFloat(), 0);
-//        assertEquals(6, jbi.getLong());
-//        assertEquals(7.0, jbi.getDouble(), 0.0);
-//        assertTrue(jbi.getFlag());
+    //        JavaBeanInterface jbi = Values.newHeapInstance(JavaBeanInterface.class);
+    //        jbi.setByte((byte) 1);
+    //        jbi.setChar('2');
+    //        jbi.setShort((short) 3);
+    //        jbi.setInt(4);
+    //        jbi.setFloat(5);
+    //        jbi.setLong(6);
+    //        jbi.setDouble(7);
+    //        jbi.setFlag(true);
+    //
+    //        assertEquals(1, jbi.getByte());
+    //        assertEquals('2', jbi.getChar());
+    //        assertEquals(3, jbi.getShort());
+    //        assertEquals(4, jbi.getInt());
+    //        assertEquals(5.0, jbi.getFloat(), 0);
+    //        assertEquals(6, jbi.getLong());
+    //        assertEquals(7.0, jbi.getDouble(), 0.0);
+    //        assertTrue(jbi.getFlag());
     }
 
     @Test
