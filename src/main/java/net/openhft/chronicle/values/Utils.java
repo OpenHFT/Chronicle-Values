@@ -3,8 +3,6 @@
  */
 package net.openhft.chronicle.values;
 
-import java.util.Locale;
-
 /**
  * Miscellaneous helper methods used during code generation.
  *

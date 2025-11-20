@@ -246,7 +246,7 @@ See the Javadocs of `@Align` and `@Array` for details.
 
 == Using Chronicle Values
 
-[source,java]
+[source,java,opts=novalidate]
 ----
 // Flyweight
 Point offHeapPoint = Values.newNativeReference(Point.class);
@@ -272,9 +272,9 @@ This provides a simple way to shuttle data between the two representations.
 
 You may extend these in the interface to avoid casting:
 
-[source,java]
+[source,java,opts=novalidate]
 ----
-interface Point extends Byteable, BytesMarshallable, Copyable<Point> { ... }
+interface Point extends Byteable, BytesMarshallable, Copyable<Point> { /* code */ }
 
 Point offHeapPoint = Values.newNativeReference(Point.class);
 // no cast required

@@ -231,20 +231,20 @@ public class CoreValuesTest extends ValuesTestCommon {
      * Assertions shared by heap and native {@link FloatValue} tests.
      */
     private void testFloatValue(FloatValue v) {
-        assertTrue(0.0f == v.getValue());
+        assertEquals(0.0f, v.getValue(), 0.0);
 
         v.setValue(1.0f);
-        assertTrue(1.0f == v.getValue());
+        assertEquals(1.0f, v.getValue(), 0.0);
 
         v.addValue(1.0f);
-        assertTrue(1.0f + 1.0f == v.getValue());
+        assertEquals(1.0f + 1.0f, v.getValue(), 0.0);
         float v2 = v.getValue();
 
         v.addAtomicValue(-1.0f);
-        assertTrue(v2 + (-1.0f) == v.getValue());
+        assertEquals(v2 + (-1.0f), v.getValue(), 0.0);
 
         v.setOrderedValue(3.0f);
-        assertTrue(3.0f == v.getValue());
+        assertEquals(3.0f, v.getValue(), 0.0);
     }
 
     /**
@@ -291,20 +291,20 @@ public class CoreValuesTest extends ValuesTestCommon {
      * Common set of assertions for {@link DoubleValue} instances.
      */
     private void testDoubleValue(DoubleValue v) {
-        assertTrue(0.0 == v.getValue());
+        assertEquals(0.0, v.getValue(), 0.0);
 
         v.setValue(1.0);
-        assertTrue(1.0 == v.getValue());
+        assertEquals(1.0, v.getValue(), 0.0);
 
         v.addValue(1.0);
-        assertTrue(1.0 + 1.0 == v.getValue());
+        assertEquals(1.0 + 1.0, v.getValue(), 0.0);
         double v2 = v.getValue();
 
         v.addAtomicValue(-1.0);
-        assertTrue(v2 + (-1.0) == v.getValue());
+        assertEquals(v2 + (-1.0), v.getValue(), 0.0);
 
         v.setOrderedValue(3.0);
-        assertTrue(3.0 == v.getValue());
+        assertEquals(3.0, v.getValue(), 0.0);
     }
 
     /**

@@ -5,6 +5,7 @@ package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.bytes.Byteable;
 import net.openhft.chronicle.bytes.BytesStore;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Default {@link Byteable} behaviour for heap-backed values. Each method
@@ -21,7 +22,7 @@ public interface HeapByteable extends Byteable {
      * @throws UnsupportedOperationException always
      */
     @Override
-    default void bytesStore(BytesStore bytesStore, long l, long l1) {
+    default void bytesStore(@NotNull BytesStore bytesStore, long l, long l1) {
         throw new UnsupportedOperationException(getClass() + " doesn't support Byteable interface");
     }
 

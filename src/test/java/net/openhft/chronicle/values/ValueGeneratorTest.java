@@ -26,28 +26,6 @@ import static net.openhft.compiler.CompilerUtils.CACHED_COMPILER;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ValueGeneratorTest extends ValuesTestCommon {
     @Test
-    public void testGenerateJavaCode() {
-//        JavaBeanInterface jbi = Values.newHeapInstance(JavaBeanInterface.class);
-//        jbi.setByte((byte) 1);
-//        jbi.setChar('2');
-//        jbi.setShort((short) 3);
-//        jbi.setInt(4);
-//        jbi.setFloat(5);
-//        jbi.setLong(6);
-//        jbi.setDouble(7);
-//        jbi.setFlag(true);
-//
-//        assertEquals(1, jbi.getByte());
-//        assertEquals('2', jbi.getChar());
-//        assertEquals(3, jbi.getShort());
-//        assertEquals(4, jbi.getInt());
-//        assertEquals(5.0, jbi.getFloat(), 0);
-//        assertEquals(6, jbi.getLong());
-//        assertEquals(7.0, jbi.getDouble(), 0.0);
-//        assertTrue(jbi.getFlag());
-    }
-
-    @Test
     public void testGenerateJavaCode2() {
         MinimalInterface mi = newHeapInstance(MinimalInterface.class);
 
@@ -96,7 +74,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
         Class<?> aClass = CACHED_COMPILER.loadFromJava(
                 BytecodeGen.getClassLoader(JavaBeanInterfaceGetUsing.class),
                 JavaBeanInterfaceGetUsing.class.getName() + "$$Native", actual);
-        JavaBeanInterfaceGetUsing jbi = (JavaBeanInterfaceGetUsing) aClass.asSubclass(JavaBeanInterfaceGetUsing.class).getDeclaredConstructor().newInstance();
+        JavaBeanInterfaceGetUsing jbi = aClass.asSubclass(JavaBeanInterfaceGetUsing.class).getDeclaredConstructor().newInstance();
         BytesStore<?, ByteBuffer> bytes = BytesStore.wrap(ByteBuffer.allocate(64));
         ((Byteable) jbi).bytesStore(bytes, 0L, ((Byteable) jbi).maxSize());
 
@@ -192,7 +170,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
         Class<?> aClass = Values.nativeClassFor(type);
         T jbi;
         try {
-            jbi = (T) aClass.asSubclass(type).getConstructor().newInstance();
+            jbi = aClass.asSubclass(type).getConstructor().newInstance();
         } catch (NoSuchMethodException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
@@ -206,8 +184,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
                 ValueModel.simpleName(type) + "$$Heap");
         System.out.println(actual);
         Class<T> aClass = Values.heapClassFor(type);
-        T jbi = (T) aClass.asSubclass(type).getDeclaredConstructor().newInstance();
-        return jbi;
+        return (T) aClass.asSubclass(type).getDeclaredConstructor().newInstance();
     }
 
     @Test
