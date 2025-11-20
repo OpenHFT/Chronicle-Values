@@ -140,8 +140,8 @@ final class Generators {
                 .addMethod(writeMarshallableMethod(valueBuilder, implType))
                 .addMethod(readMarshallableMethod(valueBuilder, implType))
                 .addMethod(equalsMethod(valueBuilder, implType))
-                .addMethod(hashCodeMethod(valueBuilder, implType));
-//                .addMethod(toStringMethod(valueBuilder, implType));
+                .addMethod(hashCodeMethod(valueBuilder, implType))
+                .addMethod(toStringMethod(valueBuilder, implType));
     }
 
     /**

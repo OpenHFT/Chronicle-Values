@@ -5,6 +5,8 @@ package net.openhft.chronicle.values;
 
 import com.squareup.javapoet.MethodSpec;
 
+import java.util.Locale;
+
 import static net.openhft.chronicle.values.Primitives.boxed;
 import static net.openhft.chronicle.values.Utils.capitalize;
 
@@ -43,7 +45,7 @@ class PrimitiveBackedHeapMemberGenerator extends HeapMemberGenerator {
         fieldType = determineFieldType();
         assert fieldType.isPrimitive();
         capType = capitalize(fieldType.getName());
-        upperType = fieldType.getName().toUpperCase();
+        upperType = fieldType.getName().toUpperCase(Locale.ROOT);
     }
 
     PrimitiveBackedHeapMemberGenerator(FieldModel fieldModel, Class<?> fieldType) {
@@ -51,7 +53,7 @@ class PrimitiveBackedHeapMemberGenerator extends HeapMemberGenerator {
         this.fieldType = fieldType;
         assert fieldType.isPrimitive();
         capType = capitalize(fieldType.getName());
-        upperType = fieldType.getName().toUpperCase();
+        upperType = fieldType.getName().toUpperCase(Locale.ROOT);
     }
 
     @Override

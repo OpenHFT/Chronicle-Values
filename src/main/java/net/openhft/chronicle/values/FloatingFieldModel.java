@@ -302,7 +302,7 @@ class FloatingFieldModel extends PrimitiveFieldModel {
             @Override
             void generateEquals(ValueBuilder valueBuilder, MethodSpec.Builder methodBuilder) {
                 methodBuilder.addCode(
-                        format("if ($N(%s) != $N(other.$N())) return false;\n",
+                        format("if ($N(%s) != $N(other.$N())) return false;%n",
                                 wrap(valueBuilder, methodBuilder, "$N")),
                         toBits(), field, toBits(), getOrGetVolatile().getName());
             }
@@ -312,7 +312,7 @@ class FloatingFieldModel extends PrimitiveFieldModel {
                     ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
                     MethodSpec.Builder methodBuilder) {
                 methodBuilder.addCode(
-                        format("if ($N(%s) != $N(other.$N(index))) return false;\n",
+                        format("if ($N(%s) != $N(other.$N(index))) return false;%n",
                                 wrap(valueBuilder, methodBuilder, "$N[index]")),
                         toBits(), field, toBits(), arrayFieldModel.getOrGetVolatile().getName());
             }

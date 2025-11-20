@@ -120,8 +120,8 @@ class BooleanFieldModel extends PrimitiveFieldModel {
             arrayElementSet(arrayFieldModel, valueBuilder, methodBuilder, "", "");
         }
 
-        private void arrayElementSet
-                (ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
+        private void arrayElementSet(
+                ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
                  MethodSpec.Builder methodBuilder, String readType, String writeType) {
             int arrayBitOffset = valueBuilder.model.fieldBitOffset(arrayFieldModel);
             methodBuilder.addStatement("int bitOffset = $L + index", arrayBitOffset);
@@ -335,8 +335,14 @@ class BooleanFieldModel extends PrimitiveFieldModel {
 
     @Override
     MemberGenerator createHeapGenerator() {
-        return new PrimitiveBackedHeapMemberGenerator(this) {
+        return new BooleanHeapMemberGenerator(this);
+    }
 
-        };
+    private static final class BooleanHeapMemberGenerator
+            extends PrimitiveBackedHeapMemberGenerator {
+
+        private BooleanHeapMemberGenerator(FieldModel fieldModel) {
+            super(fieldModel);
+        }
     }
 }

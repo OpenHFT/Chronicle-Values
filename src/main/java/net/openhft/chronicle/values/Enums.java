@@ -44,7 +44,7 @@ public final class Enums {
             //noinspection unchecked
             return Jvm.uncheckedCast(getUniverse.invoke(null, enumType));
         } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("Unable to access enum constants", e);
         }
     }
 

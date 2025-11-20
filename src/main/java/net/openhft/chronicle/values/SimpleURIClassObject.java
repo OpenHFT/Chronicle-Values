@@ -9,6 +9,7 @@ import javax.tools.JavaFileObject;
 import java.io.*;
 import java.net.URI;
 import java.nio.CharBuffer;
+import java.nio.charset.StandardCharsets;
 /**
  * Lightweight {@link JavaFileObject} backed by a {@link URI}.
  * <p>
@@ -85,7 +86,7 @@ class SimpleURIClassObject implements JavaFileObject {
 
     @Override
     public Writer openWriter() throws IOException {
-        return new OutputStreamWriter(this.openOutputStream());
+        return new OutputStreamWriter(this.openOutputStream(), StandardCharsets.UTF_8);
     }
 
     @Override
