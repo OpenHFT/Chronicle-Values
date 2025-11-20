@@ -1,10 +1,16 @@
 = Project Requirements: Chronicle Values
+:toc:
+:lang: en-GB
+:sectnums:
+:source-highlighter: rouge
 
 This document outlines the requirements for utilizing Chronicle Values.
 The requirements are tagged using the company-wide Nine-Box taxonomy with the project scope `CV` (Chronicle Values).
 
 See `AGENTS.md` for the global policy on tag usage.
 The Nine-Box scheme covers `FN` for functional behaviour, `NF-P`, `NF-S` and `NF-O` for performance, security and operability, `TEST` and `DOC` for testing and documentation, `OPS` for operational concerns, `UX` for user experience and `RISK` for compliance.
+
+See link:decision-log.adoc[Decision Log: Chronicle Libraries Usage] and link:../docs/decision-log.adoc[Chronicle Values - Decision Log] for related architectural decisions.
 
 == Functional Requirements (FN)
 

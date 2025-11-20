@@ -1,0 +1,40 @@
+= Chronicle Values - Functional Requirements
+:toc:
+:lang: en-GB
+:source-highlighter: rouge
+
+== Purpose
+
+This document summarises the core functional behaviours required when using Chronicle Values alongside Chronicle Bytes.
+It organises the `CV-FN-*` requirements from `src/main/adoc/project-requirements.adoc` into domains and links them to supporting verification and documentation.
+The full catalogue, including non-functional, operational and risk requirements, remains in `project-requirements.adoc`.
+
+== Domain Overview
+
+[cols="1,3,3",options="header"]
+|===
+| Tag range | Domain | Notes
+| CV-FN-001 .. CV-FN-008 | Library selection and data modelling | When to apply Chronicle Values versus Chronicle Bytes; integration with Map and Queue.
+|===
+
+== Functional Requirements (CV-FN-001 .. CV-FN-008)
+
+[cols="1,4,3",options="header"]
+|===
+| ID | Requirement (summary) | Verification and references
+| CV-FN-001 | Support representation and manipulation of highly structured data with a fixed, compile-time known schema, expressed using Chronicle Values interfaces. | Examples and tests that define value interfaces, generate flyweights and exercise field access; see `project-requirements.adoc` and the Chronicle Values decision logs for usage guidance.
+| CV-FN-002 | Support handling of unstructured, raw binary data or data with dynamically determined or evolving schemas via Chronicle Bytes. | Tests and examples that use Chronicle Bytes directly for raw buffers, together with documentation comparing Bytes and Values usage.
+| CV-FN-003 | Provide mechanisms for defining and accessing complex, nested data structures. | Tests demonstrating nested value interfaces and corresponding flyweights; documentation in `project-requirements.adoc` on nested structures and layout annotations.
+| CV-FN-004 | Support efficient inter-process communication for structured data using Chronicle Values flyweights mapped over shared memory. | Integration tests where value flyweights are shared between processes or threads via Chronicle Queue or Chronicle Map; documentation in the decision logs explaining inter-process communication patterns.
+| CV-FN-005 | Support efficient inter-process communication for raw byte streams using Chronicle Bytes. | Examples and tests that use Bytes over memory-mapped files or network transports to exchange unstructured data.
+| CV-FN-006 | Provide mechanisms for efficient serialisation and deserialisation between Java objects and byte representations using both Chronicle Values and Bytes. | Tests covering `BytesMarshallable` implementations and generated serialisation for values, along with any benchmarks referenced in `project-requirements.adoc`.
+| CV-FN-007 | Allow data definition using Java interfaces for structured data types, with generated implementations providing flyweight access. | Annotation-processing tests and examples that compile interface definitions into generated classes or bytecode; build configuration following `CV-OPS-024`.
+| CV-FN-008 | Support interaction with Chronicle Map and Chronicle Queue using efficiently represented keys and values, especially for fixed-size structured data. | Integration tests that store value-based keys or values in Chronicle Map or publish them through Chronicle Queue; documentation sections that describe mapping between Value interfaces and storage layouts.
+|===
+
+== Traceability
+
+- The authoritative definitions of `CV-FN-*` requirements are in `src/main/adoc/project-requirements.adoc`.
+- Decision records in `src/main/adoc/decision-log.adoc` and `src/main/docs/decision-log.adoc` describe how Chronicle Values and Chronicle Bytes are combined to satisfy these requirements in concrete designs.
+- Tests and examples that exercise Chronicle Values should reference the relevant `CV-FN-*` identifiers where practical to make requirement coverage easy to audit.
+

@@ -1,0 +1,26 @@
+= Chronicle Values System Properties
+:toc:
+:lang: en-GB
+:source-highlighter: rouge
+
+== System Properties
+
+Chronicle Values has a minimal set of system properties, primarily aimed at debugging generated code.
+Set each property on the Java command line using `-Dkey=value`.
+
+NOTE: Boolean properties are read via `Jvm.getBoolean` and follow the usual Chronicle convention where an empty value, `true` or `yes` all enable the flag.
+
+.System properties
+[cols="2a,1,3a,2a",options="header"]
+|===
+| Property Key
+| Default Value
+| Description
+| Java Variable Name (Type)
+
+| `chronicle.values.dumpCode`
+| `false`
+| When enabled, prints the generated Java source for native and heap implementations of value interfaces to standard output during code generation. Intended for debugging generator behaviour and not for normal production use.
+| Used in `Generators.generateNativeClass` and `Generators.generateHeapClass` (`boolean`)
+|===
+
