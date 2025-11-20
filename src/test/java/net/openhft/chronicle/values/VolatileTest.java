@@ -20,22 +20,8 @@ import static org.junit.Assert.assertFalse;
 public class VolatileTest extends ValuesTestCommon {
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
-    public void testGenerateJavaCode() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    public void testGenerateJavaCode() {
 
-   /*     try{
-            BadInterface1 jbi = dvg.heapInstance(BadInterface1.class);
-            assertFalse("Should have thrown an IllegalArgumentException", true);
-        }catch(AssertionError e){
-            assertTrue("Throws an IllegalArgumentException", true);
-        }
-
-        try{
-            BadInterface2 jbi = dvg.heapInstance(BadInterface2.class);
-            assertFalse("Should have thrown an IllegalArgumentException", true);
-        }catch(AssertionError e){
-            assertTrue("Throws an IllegalArgumentException", true);
-        }
-*/
         //Test the heap interface
         try {
             GoodInterface jbi = newHeapInstance(GoodInterface.class);
