@@ -1,0 +1,30 @@
+= Chronicle Values Architecture Overview
+:toc:
+:sectnums:
+:lang: en-GB
+:source-highlighter: rouge
+
+This document provides a brief architectural overview of Chronicle Values and its relationship to Chronicle Bytes and other Chronicle components.
+It complements the detailed requirements and decision logs under `src/main/adoc`.
+
+== Context and Role
+
+Chronicle Values provides code-generated, off-heap-capable value types defined as Java interfaces.
+It is typically used alongside Chronicle Bytes, Chronicle Map and Chronicle Queue to represent structured data with low allocation and predictable layout.
+
+Chronicle Values is a Foundation (Zone C) module in the Chronicle stack and underpins higher-level Core modules that use fixed-layout value types for keys and values.
+
+== Core Abstractions
+
+Key abstractions include:
+
+* value interfaces that describe structured data types;
+* generated implementations and flyweights that provide field access over on-heap or off-heap memory;
+* integration points with Chronicle Bytes for serialisation and with Chronicle Map/Queue for persistence and messaging.
+
+More detailed requirements and domain-specific behaviours are documented in:
+
+* `src/main/adoc/project-requirements.adoc`
+* `src/main/adoc/decision-log.adoc`
+* `src/main/docs/functional-requirements.adoc`
+
