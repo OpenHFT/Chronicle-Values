@@ -62,7 +62,7 @@ class SimpleURIClassObject implements JavaFileObject {
     }
 
     @Override
-    public OutputStream openOutputStream() throws IOException {
+    public OutputStream openOutputStream() {
         throw new UnsupportedOperationException();
     }
 
@@ -80,7 +80,7 @@ class SimpleURIClassObject implements JavaFileObject {
     }
 
     @Override
-    public CharSequence getCharContent(boolean ignoreEncodingErrors) throws IOException {
+    public CharSequence getCharContent(boolean ignoreEncodingErrors) {
         throw new UnsupportedOperationException();
     }
 

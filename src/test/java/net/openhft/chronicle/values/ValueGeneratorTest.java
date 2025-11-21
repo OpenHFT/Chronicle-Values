@@ -206,8 +206,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
                 ValueModel.simpleName(type) + "$$Heap");
         System.out.println(actual);
         Class<T> aClass = Values.heapClassFor(type);
-        T jbi = (T) aClass.asSubclass(type).getDeclaredConstructor().newInstance();
-        return jbi;
+        return (T) aClass.asSubclass(type).getDeclaredConstructor().newInstance();
     }
 
     @Test

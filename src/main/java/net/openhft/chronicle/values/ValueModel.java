@@ -349,7 +349,7 @@ public class ValueModel {
     }
 
     private static class FieldData {
-        int bitOffset;
+        final int bitOffset;
         int bitExtent;
 
         private FieldData(int bitOffset, int bitExtent) {
@@ -359,8 +359,8 @@ public class ValueModel {
     }
 
     private static class BitRange {
-        int from;
-        int to;
+        final int from;
+        final int to;
 
         BitRange(int from, int to) {
             this.from = from;

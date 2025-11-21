@@ -11,13 +11,12 @@ import java.nio.ByteBuffer;
 
 import static net.openhft.chronicle.values.Values.newHeapInstance;
 import static net.openhft.chronicle.values.Values.newNativeReference;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 public class VolatileTest extends ValuesTestCommon {
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
-    public void testGenerateJavaCode() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    public void testGenerateJavaCode() {
 
         //Test the heap interface
         try {
@@ -36,7 +35,7 @@ public class VolatileTest extends ValuesTestCommon {
             assertEquals(3, jbi.getVolatileIntAt(3));
         } catch (AssertionError e) {
             e.printStackTrace();
-            assertFalse("Throws an IllegalArgumentException", true);
+            fail("Throws an IllegalArgumentException");
         }
 
         //Test the native interface
@@ -58,7 +57,7 @@ public class VolatileTest extends ValuesTestCommon {
             assertEquals(3, jbi.getVolatileIntAt(3));
         } catch (AssertionError e) {
             e.printStackTrace();
-            assertFalse("Throws an IllegalArgumentException", true);
+            fail("Throws an IllegalArgumentException");
         }
     }
 

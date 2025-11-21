@@ -99,7 +99,7 @@ final class BytecodeGen {
         String value = null;
         try {
             value = doPrivileged(() -> Jvm.getProperty(name));
-            return (value != null && value.length() > 0) ? Enum.valueOf(enumType, value) :
+            return (value != null && !value.isEmpty()) ? Enum.valueOf(enumType, value) :
                     defaultValue;
         } catch (SecurityException e) {
             return secureValue;
