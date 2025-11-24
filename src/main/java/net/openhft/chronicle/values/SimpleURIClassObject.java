@@ -17,7 +17,6 @@ import java.nio.charset.StandardCharsets;
  * already compiled classes from the classpath. Only read operations are
  * implemented.
  */
-
 class SimpleURIClassObject implements JavaFileObject {
 
     /**

@@ -6,7 +6,7 @@
 == Purpose
 
 This document summarises the core functional behaviours required when using Chronicle Values alongside Chronicle Bytes.
-It organises the `CV-FN-*` requirements from `src/main/adoc/project-requirements.adoc` into domains and links them to supporting verification and documentation.
+It organises the `CV-FN-*` requirements from `src/main/docs/project-requirements.adoc` into domains and links them to supporting verification and documentation.
 The full catalogue, including non-functional, operational and risk requirements, remains in `project-requirements.adoc`.
 
 == Domain Overview
@@ -34,7 +34,7 @@ The full catalogue, including non-functional, operational and risk requirements,
 
 == Traceability
 
-- The authoritative definitions of `CV-FN-*` requirements are in `src/main/adoc/project-requirements.adoc`.
-- Decision records in `src/main/adoc/decision-log.adoc` and `src/main/docs/decision-log.adoc` describe how Chronicle Values and Chronicle Bytes are combined to satisfy these requirements in concrete designs.
+- The authoritative definitions of `CV-FN-*` requirements are in `src/main/docs/project-requirements.adoc`.
+- Decision records in `src/main/docs/decision-log.adoc` and `src/main/docs/decision-log.adoc` describe how Chronicle Values and Chronicle Bytes are combined to satisfy these requirements in concrete designs.
 - Tests and examples that exercise Chronicle Values should reference the relevant `CV-FN-*` identifiers where practical to make requirement coverage easy to audit.
 

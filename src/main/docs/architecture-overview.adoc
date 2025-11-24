@@ -24,7 +24,7 @@ Key abstractions include:
 
 More detailed requirements and domain-specific behaviours are documented in:
 
-* `src/main/adoc/project-requirements.adoc`
-* `src/main/adoc/decision-log.adoc`
+* `src/main/docs/project-requirements.adoc`
+* `src/main/docs/decision-log.adoc`
 * `src/main/docs/functional-requirements.adoc`
 

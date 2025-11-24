@@ -12,7 +12,6 @@ package net.openhft.chronicle.values;
  * <p>The {@link #boxed(Class)} helper returns the wrapper type for a primitive
  * and is used in generated code that requires a boxed reference.</p>
  */
-
 final class Primitives {
 
     private Primitives() {

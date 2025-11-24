@@ -25,7 +25,6 @@ import java.util.function.Predicate;
  * At the end of a test it verifies that all resources have been released,
  * no unexpected threads remain and only declared exceptions were logged.
  */
-
 public class ValuesTestCommon {
 
     private ThreadDump threadDump;

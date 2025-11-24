@@ -151,5 +151,4 @@ public class ValuesJavaFileManager extends net.openhft.compiler.MyJavaFileManage
         }
         return super.inferBinaryName(location, file);
     }
-
 }

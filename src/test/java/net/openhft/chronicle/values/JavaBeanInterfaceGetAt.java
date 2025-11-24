@@ -8,7 +8,6 @@ import net.openhft.chronicle.core.values.LongValue;
  * Minimal bean exposing a two element array of {@link LongValue}.
  * Each element is accessed as a flyweight for test purposes.
  */
-
 public interface JavaBeanInterfaceGetAt {
 
     /**
