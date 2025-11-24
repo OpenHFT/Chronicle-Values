@@ -10,4 +10,3 @@
  * values on-heap, off-heap or in byte buffers.
  */
 package net.openhft.chronicle.values;
-
