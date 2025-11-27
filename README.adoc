@@ -34,7 +34,6 @@ They may change without notice and must not be referenced directly.
 Chronicle-Values uses the shared Chronicle quality configuration via its parent POMs.
 
 * From an aggregator that includes this module, run `mvn -P quality clean verify` to execute Checkstyle and SpotBugs with coverage checks.
-* For a module-focused SpotBugs run on Java 11 or newer, run `mvn -P module-quality clean verify` in the `Chronicle-Values` project.
 
 === Value interface specification
 
