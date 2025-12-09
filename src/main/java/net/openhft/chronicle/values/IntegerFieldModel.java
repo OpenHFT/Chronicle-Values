@@ -74,11 +74,11 @@ class IntegerFieldModel extends PrimitiveFieldModel {
         @NotNull
         private String checkCondition(String value, Range range) {
             Range defaultRange = defaultRange();
-            String cond = " || ";
+            StringBuilder cond = new StringBuilder(" || ");
             if (range.min() != defaultRange.min())
-                cond += value + " < " + formatIntOrLong(range.min());
+                cond.append(value).append(" < ").append(formatIntOrLong(range.min()));
             if (range.max() != defaultRange.max())
-                cond += " || " + value + " > " + formatIntOrLong(range.max());
+                cond.append(" || ").append(value).append(" > ").append(formatIntOrLong(range.max()));
             return cond.substring(4);
         }
 
