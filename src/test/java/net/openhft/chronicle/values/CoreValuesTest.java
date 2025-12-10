@@ -39,6 +39,7 @@ public class CoreValuesTest extends ValuesTestCommon {
     /**
      * Shared assertions for any {@link IntValue} implementation.
      */
+    // CPD-OFF - shared lifecycle assertions between int/long values
     private void testIntValue(IntValue v) {
         assertEquals(0, v.getValue());
 
@@ -205,6 +206,7 @@ public class CoreValuesTest extends ValuesTestCommon {
         v.setOrderedValue(3);
         assertEquals(3, v.getValue());
     }
+    // CPD-ON
 
     /**
      * Verifies {@link FloatValue} behaviour in heap form.

@@ -104,6 +104,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
         assertEquals(jbi, jbi2);
     }
 
+    // CPD-OFF - heap/native variants intentionally mirror each other
     @Test
     public void testGenerateHeapWithGetUsingAt() throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         JavaBeanInterfaceGetUsingAt jbi = loadHeapTypeAndCreateValue(JavaBeanInterfaceGetUsingAt.class);
@@ -124,6 +125,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
         jbi2.setItemAt(0, val);
         assertEquals(jbi, jbi2);
     }
+    // CPD-ON
 
     @Test
     public void testGenerateNativeWithGetAt() throws IllegalAccessException, InstantiationException {
@@ -184,7 +186,7 @@ public class ValueGeneratorTest extends ValuesTestCommon {
                 ValueModel.simpleName(type) + "$$Heap");
         System.out.println(actual);
         Class<T> aClass = Values.heapClassFor(type);
-        return (T) aClass.asSubclass(type).getDeclaredConstructor().newInstance();
+        return aClass.asSubclass(type).getDeclaredConstructor().newInstance();
     }
 
     @Test
