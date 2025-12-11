@@ -22,11 +22,15 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 public @interface Range {
     /**
+     * Inclusive lower bound for the parameter.
+     *
      * @return inclusive lower bound
      */
     long min() default Long.MIN_VALUE;
 
     /**
+     * Inclusive upper bound for the parameter.
+     *
      * @return inclusive upper bound
      */
     long max() default Long.MAX_VALUE;

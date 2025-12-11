@@ -18,5 +18,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 @Documented
 public @interface MaxUtf8Length {
+    /**
+     * Maximum allowed length in UTF-8 bytes.
+     *
+     * @return maximum UTF-8 byte length allowed for the annotated parameter
+     */
     int value();
 }

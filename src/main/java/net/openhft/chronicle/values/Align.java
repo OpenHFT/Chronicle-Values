@@ -54,6 +54,8 @@ public @interface Align {
     int NO_ALIGNMENT = 0;
 
     /**
+     * Specifies alignment in bytes for the field start.
+     *
      * @return alignment in bytes for the field start. {@link #DEFAULT} applies
      * the type-specific rule. If the resolved value or the explicit value is
      * {@link #NO_ALIGNMENT} the generator does not check the start offset.
@@ -61,6 +63,8 @@ public @interface Align {
     int offset() default DEFAULT;
 
     /**
+     * Specifies a boundary that the field should not cross.
+     *
      * @return boundary in bytes that the field should not cross. {@link #DEFAULT}
      * follows the type rule. {@link #NO_ALIGNMENT} disables this check.
      */

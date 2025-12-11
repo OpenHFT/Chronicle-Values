@@ -23,6 +23,12 @@ public final class Values {
     private Values() {
     }
 
+    /**
+     * Determines whether the type is a value interface or its generated implementation.
+     *
+     * @param valueTypeOrImplClass candidate type
+     * @return {@code true} if the type is a value interface or generated impl
+     */
     public static boolean isValueInterfaceOrImplClass(Class<?> valueTypeOrImplClass) {
         return ValueModel.isValueInterfaceOrImplClass(valueTypeOrImplClass);
     }
@@ -32,6 +38,9 @@ public final class Values {
      * Creates a stand-alone heap object whose state lives in ordinary Java memory.
      * This instance is not thread-safe unless the interface specifies otherwise.
      *
+     * @param valueType value interface to instantiate
+     * @param <T>       value type
+     * @return heap instance
      * @throws IllegalArgumentException      if the given {@code valueType} is not a value interface
      * @throws ImplGenerationFailedException if generation of a heap implementation failed
      */
@@ -48,6 +57,9 @@ public final class Values {
      * Creates a flyweight reference to off-heap memory. Point it at a {@code BytesStore} before use
      * and do not share between threads without external synchronisation.
      *
+     * @param valueType value interface to instantiate
+     * @param <T>       value type
+     * @return native reference instance
      * @throws IllegalArgumentException      if the given {@code valueType} is not a value interface
      * @throws ImplGenerationFailedException if generation of a native implementation failed
      */

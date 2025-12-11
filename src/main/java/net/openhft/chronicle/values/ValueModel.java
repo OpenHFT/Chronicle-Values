@@ -239,6 +239,11 @@ public class ValueModel {
         return byteRoundedWatermark / 8;
     }
 
+    /**
+     * Stream of fields in layout order.
+     *
+     * @return ordered field models
+     */
     public Stream<FieldModel> fields() {
         return orderedFields.stream();
     }
@@ -265,6 +270,11 @@ public class ValueModel {
         return Math.max(fields().mapToInt(FieldModel::maxAlignmentInBytes).max().getAsInt(), 1);
     }
 
+    /**
+     * Total size of the value model in bytes, including padding.
+     *
+     * @return byte size of the generated value
+     */
     public int sizeInBytes() {
         return sizeInBytes;
     }

@@ -24,6 +24,8 @@ public @interface Array {
     /**
      * Number of elements in the array. Valid indexes are in the range
      * {@code [0, length)}. The length must be greater than one.
+     *
+     * @return declared array length
      */
     int length();
 
@@ -34,12 +36,16 @@ public @interface Array {
      * resolves to the element's own alignment when the element type is another
      * value interface; for primitive or reference elements it becomes
      * {@link Align#NO_ALIGNMENT}. Values less than {@code -1} are not allowed.
+     *
+     * @return alignment for element offsets
      */
     int elementOffsetAlignment() default Align.DEFAULT;
 
     /**
      * Specifies boundary which elements' bytes shouldn't cross, see {@link Align#dontCross()}.
      * Default is {@link Align#NO_ALIGNMENT}.
+     *
+     * @return alignment boundary that elements must not cross
      */
     int elementDontCrossAlignment() default Align.NO_ALIGNMENT;
 }

@@ -76,6 +76,9 @@ public class MyJavaFileManager extends net.openhft.compiler.MyJavaFileManager {
     /**
      * Creates a manager that serves the given {@code valueType} and all
      * dependencies from memory.
+     *
+     * @param valueType   target value interface
+     * @param fileManager delegate file manager to wrap
      */
     public MyJavaFileManager(Class<?> valueType, StandardJavaFileManager fileManager) {
         super(fileManager);
@@ -88,6 +91,8 @@ public class MyJavaFileManager extends net.openhft.compiler.MyJavaFileManager {
 
     /**
      * Adds the class so later compilations can reference it.
+     *
+     * @param c class to cache for future compilations
      */
     public void addClassToFileObjects(Class<?> c) {
         addFileObjects(fileObjects, c);

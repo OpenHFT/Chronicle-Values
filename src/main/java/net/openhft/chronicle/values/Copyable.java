@@ -9,6 +9,8 @@ package net.openhft.chronicle.values;
  * Generated value interfaces exist in both heap and native forms. Invoking
  * {@code copyFrom} allows an on-heap instance to copy the contents of an
  * off-heap reference or the other way round.
+ *
+ * @param <T> concrete value type
  */
 @FunctionalInterface
 public interface Copyable<T> {
