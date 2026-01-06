@@ -5,9 +5,10 @@ package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.bytes.Byteable;
 import net.openhft.chronicle.bytes.BytesStore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static net.openhft.chronicle.values.Values.newNativeReference;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Verifies that native values honour alignment rules.
@@ -25,7 +26,8 @@ public class AlignTest extends ValuesTestCommon {
         long size = value.maxSize();
         BytesStore<?, Void> bs = BytesStore.nativeStore(size);
         value.bytesStore(bs, 0, size);
-        value.addAtomicOrderQty(10.0);
+        assertEquals(10.0, value.addAtomicOrderQty(10.0), 0.0, "align: addAtomicOrderQty returns updated value");
+        assertEquals(10.0, value.getOrderQty(), 0.0, "align: getOrderQty reflects atomic update");
         System.out.println(value);
         bs.releaseLast();
     }

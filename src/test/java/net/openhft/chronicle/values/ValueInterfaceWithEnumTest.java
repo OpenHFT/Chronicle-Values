@@ -5,10 +5,10 @@ package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.bytes.Byteable;
 import net.openhft.chronicle.bytes.BytesStore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static net.openhft.chronicle.values.ValueInterfaceWithEnumTest.SimpleValueInterface.SVIEnum.SIX;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author ges
@@ -34,9 +34,9 @@ public class ValueInterfaceWithEnumTest extends ValuesTestCommon {
 
         heapValue.copyFrom(nativeValue);
 
-        assertEquals(1, heapValue.getId());
-        assertTrue(heapValue.getTruth());
-        assertEquals(SIX, heapValue.getSVIEnum());
+        assertEquals(1, heapValue.getId(), "heapValue: id copied from native");
+        assertTrue(heapValue.getTruth(), "heapValue: truth copied from native");
+        assertEquals(SIX, heapValue.getSVIEnum(), "heapValue: enum copied from native");
 
         heapValue.setId(2);
         heapValue.setTruth(false);
@@ -44,9 +44,9 @@ public class ValueInterfaceWithEnumTest extends ValuesTestCommon {
 
         nativeValue.copyFrom(heapValue);
 
-        assertEquals(2, nativeValue.getId());
-        assertFalse(nativeValue.getTruth());
-        assertNull(nativeValue.getSVIEnum());
+        assertEquals(2, nativeValue.getId(), "nativeValue: id copied from heap");
+        assertFalse(nativeValue.getTruth(), "nativeValue: truth copied from heap");
+        assertNull(nativeValue.getSVIEnum(), "nativeValue: enum copied from heap");
     }
 
     public interface SimpleValueInterface extends Copyable<SimpleValueInterface> {

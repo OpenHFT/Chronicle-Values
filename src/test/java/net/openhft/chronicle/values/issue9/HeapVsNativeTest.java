@@ -9,10 +9,10 @@ import net.openhft.chronicle.values.MaxUtf8Length;
 import net.openhft.chronicle.values.NotNull;
 import net.openhft.chronicle.values.Values;
 import net.openhft.chronicle.values.ValuesTestCommon;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests that heap and native {@link Entity} values hold the same content but
@@ -50,8 +50,8 @@ public class HeapVsNativeTest extends ValuesTestCommon {
      */
     private void check(Entity entity) {
         entity.setSymbol(SYMBOL);
-        assertTrue(SYMBOL.contentEquals(entity.getSymbol()));
-        assertNotEquals(SYMBOL, entity.getSymbol());
+        assertTrue(SYMBOL.contentEquals(entity.getSymbol()), "entity: symbol content matches");
+        assertNotEquals(SYMBOL, entity.getSymbol(), "entity: symbol is not the original String instance");
     }
 
     public interface Entity {

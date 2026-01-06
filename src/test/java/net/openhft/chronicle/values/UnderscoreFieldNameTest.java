@@ -3,13 +3,15 @@
  */
 package net.openhft.chronicle.values;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class UnderscoreFieldNameTest extends ValuesTestCommon {
 
     @Test
     public void testUnderscoreFieldName() {
-        Values.heapClassFor(UnderscoreFieldNameInterface.class);
-        Values.nativeClassFor(UnderscoreFieldNameInterface.class);
+        assertNotNull(Values.heapClassFor(UnderscoreFieldNameInterface.class), "underscore: heap class generated");
+        assertNotNull(Values.nativeClassFor(UnderscoreFieldNameInterface.class), "underscore: native class generated");
     }
 }

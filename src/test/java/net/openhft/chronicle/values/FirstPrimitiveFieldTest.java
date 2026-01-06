@@ -5,9 +5,9 @@ package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.core.values.IntValue;
 import net.openhft.chronicle.core.values.LongValue;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Interface holding a five element array of {@code long} values for field type tests.
@@ -79,16 +79,16 @@ public class FirstPrimitiveFieldTest extends ValuesTestCommon {
 
     @Test
     public void firstPrimitiveFieldTest() {
-        assertEquals(int.class, ValueModel.acquire(IntValue.class).firstPrimitiveFieldType());
-        assertEquals(long.class, ValueModel.acquire(LongValue.class).firstPrimitiveFieldType());
+        assertEquals(int.class, ValueModel.acquire(IntValue.class).firstPrimitiveFieldType(), "IntValue: first primitive field");
+        assertEquals(long.class, ValueModel.acquire(LongValue.class).firstPrimitiveFieldType(), "LongValue: first primitive field");
         assertEquals(long.class,
                 ValueModel.acquire(Values.nativeClassFor(LongValue.class))
-                        .firstPrimitiveFieldType());
+                        .firstPrimitiveFieldType(), "native LongValue: first primitive field");
         assertEquals(long.class,
-                ValueModel.acquire(FiveLongValues.class).firstPrimitiveFieldType());
+                ValueModel.acquire(FiveLongValues.class).firstPrimitiveFieldType(), "FiveLongValues: first primitive field");
         assertEquals(boolean.class,
-                ValueModel.acquire(FiveBooleanValues.class).firstPrimitiveFieldType());
+                ValueModel.acquire(FiveBooleanValues.class).firstPrimitiveFieldType(), "FiveBooleanValues: first primitive field");
         assertEquals(long.class,
-                ValueModel.acquire(FiveLongAndBooleanValues.class).firstPrimitiveFieldType());
+                ValueModel.acquire(FiveLongAndBooleanValues.class).firstPrimitiveFieldType(), "FiveLongAndBooleanValues: first primitive field");
     }
 }
