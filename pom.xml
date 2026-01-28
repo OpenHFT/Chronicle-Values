@@ -17,7 +17,7 @@
     </parent>
 
     <artifactId>chronicle-values</artifactId>
-    <version>2026.1-SNAPSHOT</version>
+    <version>2026.1</version>
     <name>OpenHFT/Chronicle-Values</name>
     <description>Chronicle-Values</description>
     <packaging>bundle</packaging>
@@ -215,7 +215,7 @@
         <connection>scm:git:git@github.com:OpenHFT/Chronicle-Values.git</connection>
         <developerConnection>scm:git:git@github.com:OpenHFT/Chronicle-Values.git
         </developerConnection>
-        <tag>master</tag>
+        <tag>chronicle-values-2026.1</tag>
     </scm>
 
 </project>
