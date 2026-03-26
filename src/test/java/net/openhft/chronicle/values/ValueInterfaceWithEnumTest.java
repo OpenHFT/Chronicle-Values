@@ -5,10 +5,10 @@ package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.bytes.Byteable;
 import net.openhft.chronicle.bytes.BytesStore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static net.openhft.chronicle.values.ValueInterfaceWithEnumTest.SimpleValueInterface.SVIEnum.SIX;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author ges

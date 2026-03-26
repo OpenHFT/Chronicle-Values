@@ -11,8 +11,8 @@ import net.openhft.chronicle.core.onoes.Slf4jExceptionHandler;
 import net.openhft.chronicle.core.threads.CleaningThread;
 import net.openhft.chronicle.core.threads.ThreadDump;
 import net.openhft.chronicle.core.time.SystemTimeProvider;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -32,7 +32,13 @@ public class ValuesTestCommon {
     private Map<ExceptionKey, Integer> exceptions;
     private final Map<Predicate<ExceptionKey>, String> expectedExceptions = new LinkedHashMap<>();
 
-    @Before
+    @BeforeEach
+    public void beforeEachValuesTestCommon() {
+        enableReferenceTracing();
+        threadDump();
+        recordExceptions();
+    }
+
     public void enableReferenceTracing() {
         AbstractReferenceCounted.enableReferenceTracing();
     }
@@ -45,7 +51,6 @@ public class ValuesTestCommon {
         AbstractReferenceCounted.assertReferencesReleased();
     }
 
-    @Before
     public void threadDump() {
         threadDump = new ThreadDump();
     }
@@ -54,7 +59,6 @@ public class ValuesTestCommon {
         threadDump.assertNoNewThreads();
     }
 
-    @Before
     public void recordExceptions() {
         exceptions = Jvm.recordExceptions();
     }
@@ -98,7 +102,7 @@ public class ValuesTestCommon {
         }
     }
 
-    @After
+    @AfterEach
     public void afterChecks() {
         SystemTimeProvider.CLOCK = SystemTimeProvider.INSTANCE;
         CleaningThread.performCleanup(Thread.currentThread());

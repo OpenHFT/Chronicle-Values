@@ -5,9 +5,9 @@ package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.core.values.IntValue;
 import net.openhft.chronicle.core.values.LongValue;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Interface holding a five element array of {@code long} values for field type tests.
@@ -58,16 +58,24 @@ interface FiveBooleanValues {
  * generated proxy.
  */
 interface FiveLongAndBooleanValues {
-    /** Returns the long array view. */
+    /**
+     * Returns the long array view.
+     */
     FiveLongValues getLongValues();
 
-    /** Assigns the long array view. */
+    /**
+     * Assigns the long array view.
+     */
     void setLongValues(FiveLongValues values);
 
-    /** Returns the boolean array view. */
+    /**
+     * Returns the boolean array view.
+     */
     FiveBooleanValues getBooleanValues();
 
-    /** Assigns the boolean array view. */
+    /**
+     * Assigns the boolean array view.
+     */
     void setBooleanValues(FiveBooleanValues values);
 }
 
@@ -79,16 +87,12 @@ public class FirstPrimitiveFieldTest extends ValuesTestCommon {
 
     @Test
     public void firstPrimitiveFieldTest() {
-        assertEquals(int.class, ValueModel.acquire(IntValue.class).firstPrimitiveFieldType());
-        assertEquals(long.class, ValueModel.acquire(LongValue.class).firstPrimitiveFieldType());
-        assertEquals(long.class,
-                ValueModel.acquire(Values.nativeClassFor(LongValue.class))
-                        .firstPrimitiveFieldType());
-        assertEquals(long.class,
-                ValueModel.acquire(FiveLongValues.class).firstPrimitiveFieldType());
-        assertEquals(boolean.class,
-                ValueModel.acquire(FiveBooleanValues.class).firstPrimitiveFieldType());
-        assertEquals(long.class,
-                ValueModel.acquire(FiveLongAndBooleanValues.class).firstPrimitiveFieldType());
+        assertSame(int.class, ValueModel.acquire(IntValue.class).firstPrimitiveFieldType());
+        assertSame(long.class, ValueModel.acquire(LongValue.class).firstPrimitiveFieldType());
+        assertSame(long.class, ValueModel.acquire(Values.nativeClassFor(LongValue.class))
+                .firstPrimitiveFieldType());
+        assertSame(long.class, ValueModel.acquire(FiveLongValues.class).firstPrimitiveFieldType());
+        assertSame(boolean.class, ValueModel.acquire(FiveBooleanValues.class).firstPrimitiveFieldType());
+        assertSame(long.class, ValueModel.acquire(FiveLongAndBooleanValues.class).firstPrimitiveFieldType());
     }
 }
