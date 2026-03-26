@@ -35,7 +35,7 @@ public class ValueInterfaceWithEnumTest extends ValuesTestCommon {
         heapValue.copyFrom(nativeValue);
 
         assertEquals(1, heapValue.getId());
-        assertEquals(true, heapValue.getTruth());
+        assertTrue(heapValue.getTruth());
         assertEquals(SIX, heapValue.getSVIEnum());
 
         heapValue.setId(2);
@@ -45,7 +45,7 @@ public class ValueInterfaceWithEnumTest extends ValuesTestCommon {
         nativeValue.copyFrom(heapValue);
 
         assertEquals(2, nativeValue.getId());
-        assertEquals(false, nativeValue.getTruth());
+        assertFalse(nativeValue.getTruth());
         assertEquals(null, nativeValue.getSVIEnum());
     }
 
