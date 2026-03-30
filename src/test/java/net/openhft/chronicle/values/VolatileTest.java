@@ -17,8 +17,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * Created by daniel on 11/06/2014.
  */
 public class VolatileTest extends ValuesTestCommon {
-    @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public void testGenerateJavaCode() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
 
    /*     try{

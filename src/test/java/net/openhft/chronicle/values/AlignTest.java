@@ -18,8 +18,8 @@ import static net.openhft.chronicle.values.Values.newNativeReference;
  * correctly.</p>
  */
 public class AlignTest extends ValuesTestCommon {
-    @SuppressWarnings("unchecked")
     @Test
+    @SuppressWarnings("unchecked")
     public void testAlign() {
         DemoOrderVOInterface value = newNativeReference(DemoOrderVOInterface.class);
         long size = value.maxSize();

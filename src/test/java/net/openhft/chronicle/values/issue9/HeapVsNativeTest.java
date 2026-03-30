@@ -32,8 +32,8 @@ public class HeapVsNativeTest extends ValuesTestCommon {
     /**
      * Exercises a native reference and checks it behaves like the heap variant.
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public void nativeRef() {
         Entity entity = Values.newNativeReference(Entity.class);
         byte[] bytes = new byte[7];
