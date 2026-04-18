@@ -31,7 +31,7 @@ The Nine-Box scheme covers `FN` for functional behaviour, `NF-P`, `NF-S` and `NF
 ** _Source:_ Core design goal of both Chronicle Bytes and Values.
 * *CV-NFP-010:* The system *must* support high throughput for data processing.
 ** _Source:_ Core design goal of both Chronicle Bytes and Values.
-* *CV-NFP-011:* The system *must* minimize Garbage Collection (GC) impact by extensive use of off-heap memory for data storage.
+* *CV-NFP-011:* The system *must* minimise Garbage Collection (GC) impact by extensive use of off-heap memory for data storage.
 ** _Source:_ Key feature of Chronicle Bytes and Chronicle Values flyweights.
 * *CV-NFP-012:* The system *must* provide "zero-deserialization" access for structured data where appropriate, avoiding hydration into heap objects for reads.
 ** _Source:_ Chronicle Values flyweights.
@@ -39,7 +39,7 @@ The Nine-Box scheme covers `FN` for functional behaviour, `NF-P`, `NF-S` and `NF
 ** _Source:_ Fixed-layout nature of Chronicle Values; controlled access in Bytes.
 * *CV-NFP-014:* The system *must* support atomic operations for concurrent, lock-free programming paradigms.
 ** _Source:_ Chronicle Bytes (e.g., compareAndSwapInt) and Chronicle Values (generated atomic methods).
-* *CV-NFP-015:* The system *must* allow for efficient memory alignment of data fields to optimize access, especially for atomic operations and cache performance.
+* *CV-NFP-015:* The system *must* allow for efficient memory alignment of data fields to optimise access, especially for atomic operations and cache performance.
 ** _Source:_ Chronicle Values (@Align annotation); manual management in Chronicle Bytes.
 
 == Non-Functional Requirements - Operability (NF-O)
@@ -72,7 +72,7 @@ The Nine-Box scheme covers `FN` for functional behaviour, `NF-P`, `NF-S` and `NF
 
 == Operational / DevOps Concerns (OPS)
 
-* *CV-OPS-024:* The project build system *must* be configured to support Java annotation processing if Chronicle Values is utilized.
+* *CV-OPS-024:* The project build system *must* be configured to support Java annotation processing if Chronicle Values is utilised.
 ** _Source:_ Chronicle Values build process requirement.
 * *CV-OPS-025:* Strategies for managing schema evolution and data format compatibility across application versions *must* be defined and documented.
 ** _Source:_ Implied by analysis of schema evolution for Values and Bytes.

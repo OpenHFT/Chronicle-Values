@@ -343,7 +343,7 @@ class IntegerFieldModel extends PrimitiveFieldModel {
 
         // "Unsigned" value. This is a special case of the next next block, but treated
         // differently, because `readByte() & 0xFF` looks more familiar than `readByte() + 128`,
-        // also the first form is optimized on assembly level by HotSpot (unsigned treatment of
+        // also the first form is optimised on assembly level by HotSpot (unsigned treatment of
         // the value, no actual `& 0xFF` op), not sure about the second form.
         long readRange = readMax - readMin;
         if (range.min() == 0 &&

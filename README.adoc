@@ -289,7 +289,7 @@ It achieves this by generating efficient data accessors from Java interfaces.
 Chronicle-Values is designed to provide:
 
 * **High Performance & Low Latency:** Access and manipulate data with minimal overhead, crucial for systems where every microsecond counts. This is particularly true when using its "native" (off-heap) implementations.
-* **Minimized GC Impact:** Through the use of off-heap 'flyweight' objects, which act as lightweight views onto raw byte data. This significantly reduces garbage collection pressure by avoiding the creation of numerous heap objects.
+* **Minimised GC Impact:** Through the use of off-heap 'flyweight' objects, which act as lightweight views onto raw byte data. This significantly reduces garbage collection pressure by avoiding the creation of numerous heap objects.
 * **Type Safety:** Define your data structures using standard Java interfaces. This provides compile-time checking, clear API contracts, and reduces runtime errors.
 * **Developer Convenience:** The library automatically generates the necessary accessor boilerplate (getters, setters, etc.) based on your interface definition and intuitive annotations. This saves development time and reduces manual coding errors.
 * **"Zero-Deserialization" Access:** Read data directly from memory without the traditional cost of hydrating full heap objects, allowing for faster processing.

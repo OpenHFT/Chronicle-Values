@@ -10,14 +10,14 @@ The requirement tags referenced here originate from link:project-requirements.ad
 * Date: 2025-05-26
 * Context:
 ** Need for a type-safe, efficient, and developer-friendly way to represent and manipulate data with well-defined, fixed-size schemas (e.g., financial messages, event payloads).
-** Desire to minimize GC impact and integrate smoothly with other Chronicle libraries like Map and Queue.
+** Desire to minimise GC impact and integrate smoothly with other Chronicle libraries like Map and Queue.
 ** Requirements: CV-FN-001, CV-FN-003, CV-FN-007, CV-FN-008, CV-NFP-011, CV-NFP-012, CV-UX-026.
 * Decision Statement:
 ** Chronicle Values *will be adopted* as the primary mechanism for modeling and accessing structured, fixed-size data, particularly when type safety, developer convenience, and integration with Chronicle Map/Queue are priorities.
 * **Alternatives Considered:**
 ** _Direct use of Chronicle Bytes for all structured data_:
 *** *Description:* Manually managing offsets and data interpretation within Chronicle Bytes buffers for all structured data.
-*** *Pros:* Maximum control over memory layout; potentially the absolute lowest latency if hand-optimized perfectly.
+*** *Pros:* Maximum control over memory layout; potentially the absolute lowest latency if hand-optimised perfectly.
 *** *Cons:* Higher development complexity; error-prone (offset miscalculations, type misinterpretations); poor type safety at compile time; more boilerplate code.
 ** _Using third-party serialization libraries (e.g., Protocol Buffers, Avro) on top of Chronicle Bytes_:
 *** *Description:* Employing external libraries for defining structures and serializing/deserializing them into/from Bytes buffers.
