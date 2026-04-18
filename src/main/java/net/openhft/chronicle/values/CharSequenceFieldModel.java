@@ -791,7 +791,7 @@ class CharSequenceFieldModel extends ScalarFieldModel {
                 ArrayFieldModel arrayFieldModel, ValueBuilder valueBuilder,
                 MethodSpec.Builder methodBuilder) {
             if (get != null) {
-                // if 1) type of field is not String (i. e. CharSequence or StringBuilder)
+                // if 1) type of field is not String (i.e. CharSequence or StringBuilder)
                 // and 2) there is a getUsing() method
                 // the shortcut copy: this.setField(from.getField()) (*), when the from object is
                 // a native impl, does double contents copy: from native memory to from's cached SB,

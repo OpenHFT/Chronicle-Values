@@ -242,7 +242,7 @@ public abstract class FieldModel {
 
     /**
      * Field name as variable name. Not equal to field name, because it could clash with Java
-     * keyword or type name, e. g. getInt()/setInt()
+     * keyword or type name, e.g. getInt()/setInt()
      */
     String varName() {
         return "_" + name;
