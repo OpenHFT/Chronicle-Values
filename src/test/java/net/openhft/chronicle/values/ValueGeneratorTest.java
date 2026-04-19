@@ -7,7 +7,7 @@ import net.openhft.chronicle.bytes.Byteable;
 import net.openhft.chronicle.bytes.Bytes;
 import net.openhft.chronicle.bytes.BytesStore;
 import net.openhft.chronicle.core.values.LongValue;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
@@ -17,8 +17,8 @@ import static net.openhft.chronicle.values.Generators.generateHeapClass;
 import static net.openhft.chronicle.values.Generators.generateNativeClass;
 import static net.openhft.chronicle.values.Values.newHeapInstance;
 import static net.openhft.chronicle.values.Values.newNativeReference;
-import static org.junit.Assert.*;
 import static net.openhft.compiler.CompilerUtils.CACHED_COMPILER;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests code generation and serialisation routines.

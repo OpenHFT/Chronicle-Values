@@ -5,7 +5,7 @@ package net.openhft.chronicle.values.issue10;
 
 import net.openhft.chronicle.values.Values;
 import net.openhft.chronicle.values.ValuesTestCommon;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ChronicleValueTypeTest extends ValuesTestCommon {
 

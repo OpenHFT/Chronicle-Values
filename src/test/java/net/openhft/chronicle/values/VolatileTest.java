@@ -5,14 +5,14 @@ package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.bytes.Byteable;
 import net.openhft.chronicle.bytes.BytesStore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
 
 import static net.openhft.chronicle.values.Values.newHeapInstance;
 import static net.openhft.chronicle.values.Values.newNativeReference;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /*
  * Created by daniel on 11/06/2014.
@@ -53,7 +53,7 @@ public class VolatileTest extends ValuesTestCommon {
             assertEquals(3, jbi.getVolatileIntAt(3));
         } catch (AssertionError e) {
             e.printStackTrace();
-            assertFalse("Throws an IllegalArgumentException", true);
+            assertFalse(true, "Throws an IllegalArgumentException");
         }
 
         //Test the native interface
@@ -75,7 +75,7 @@ public class VolatileTest extends ValuesTestCommon {
             assertEquals(3, jbi.getVolatileIntAt(3));
         } catch (AssertionError e) {
             e.printStackTrace();
-            assertFalse("Throws an IllegalArgumentException", true);
+            assertFalse(true, "Throws an IllegalArgumentException");
         }
     }
 

@@ -5,7 +5,7 @@ package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.bytes.Byteable;
 import net.openhft.chronicle.bytes.BytesStore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 import static net.openhft.chronicle.values.Values.newHeapInstance;
 import static net.openhft.chronicle.values.Values.newNativeReference;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ComplexValueTest extends ValuesTestCommon {
 
@@ -44,13 +44,13 @@ public class ComplexValueTest extends ValuesTestCommon {
             Map<String, FieldModel> byName = model.fields()
                     .collect(Collectors.toMap(FieldModel::name, Function.identity()));
 
-            assertTrue("label field present", byName.containsKey("label"));
-            assertTrue("mirrorEnabled field present", byName.containsKey("mirrorEnabled"));
-            assertTrue("label offset should be resolved",
-                    model.fieldBitOffset(byName.get("label")) >= 0);
-            assertTrue("history should allocate extent per element",
-                    model.fieldBitExtent(byName.get("history"))
-                            >= 3 * Long.SIZE);
+            assertTrue(byName.containsKey("label"), "label field present");
+            assertTrue(byName.containsKey("mirrorEnabled"), "mirrorEnabled field present");
+            assertTrue(model.fieldBitOffset(byName.get("label")) >= 0,
+                    "label offset should be resolved");
+            assertTrue(model.fieldBitExtent(byName.get("history"))
+                            >= 3 * Long.SIZE,
+                    "history should allocate extent per element");
 
             // behaviour assertions
             assertEquals(ComplexValue.Status.ACTIVE, nativeValue.getStatus());
