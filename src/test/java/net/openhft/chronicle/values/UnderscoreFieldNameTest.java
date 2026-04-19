@@ -3,7 +3,7 @@
  */
 package net.openhft.chronicle.values;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class UnderscoreFieldNameTest extends ValuesTestCommon {
 

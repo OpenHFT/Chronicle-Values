@@ -8,10 +8,10 @@ import net.openhft.chronicle.bytes.Bytes;
 import net.openhft.chronicle.values.Values;
 import net.openhft.chronicle.values.ValuesTestCommon;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static java.util.Objects.requireNonNull;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class PointerTest extends ValuesTestCommon {
 
