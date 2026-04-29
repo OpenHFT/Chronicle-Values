@@ -4,6 +4,7 @@
 package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.core.Jvm;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -45,7 +46,7 @@ public class ValueModel {
     public static final String $$HEAP = "$$Heap";
     private static final ClassValue<Object> classValueModel = new ClassValue<Object>() {
         @Override
-        protected Object computeValue(Class<?> valueType) {
+        protected Object computeValue(@NotNull Class<?> valueType) {
             try {
                 return CodeTemplate.createValueModel(valueType);
             } catch (Exception e) {
@@ -64,7 +65,8 @@ public class ValueModel {
         this.valueType = valueType;
         orderedFields = new ArrayList<>();
         sizeInBytes = arrangeFields(fields);
-        CACHED_COMPILER.fileManagerOverride = (fm) -> new MyJavaFileManager(valueType, fm);
+        CACHED_COMPILER.fileManagerOverride =
+                (fm) -> new MyJavaFileManager(valueType, fm);
         CACHED_COMPILER.updateFileManagerForClassLoader(valueType.getClassLoader(), fm -> {
             if (fm instanceof MyJavaFileManager) {
                 ((MyJavaFileManager) fm).addClassToFileObjects(valueType);
@@ -348,7 +350,7 @@ public class ValueModel {
     }
 
     private static class FieldData {
-        int bitOffset;
+        final int bitOffset;
         int bitExtent;
 
         private FieldData(int bitOffset, int bitExtent) {
@@ -358,8 +360,8 @@ public class ValueModel {
     }
 
     private static class BitRange {
-        int from;
-        int to;
+        final int from;
+        final int to;
 
         BitRange(int from, int to) {
             this.from = from;

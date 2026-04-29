@@ -33,14 +33,14 @@ import java.util.*;
  */
 public class MyJavaFileManager extends net.openhft.compiler.MyJavaFileManager {
 
-    /**
+    /*
      * Cache of classes required by generated code, keyed by package name.
      * Populated once in the static block below and shared across all
      * instances.
      */
     private static final Map<String, Set<JavaFileObject>> dependencyFileObjects = new HashMap<>();
 
-    /**
+    /*
      * Preloads {@code dependencyFileObjects} with Chronicle classes used by
      * generated code.
      */
@@ -118,7 +118,7 @@ public class MyJavaFileManager extends net.openhft.compiler.MyJavaFileManager {
             URI uri = c.getResource(className.substring(lastDotIndex + 1) + ".class").toURI();
             return new SimpleURIClassObject(uri, c);
         } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("Unable to resolve class URI for " + c.getName(), e);
         }
     }
 

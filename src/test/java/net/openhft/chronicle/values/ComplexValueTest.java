@@ -22,9 +22,9 @@ public class ComplexValueTest extends ValuesTestCommon {
         ComplexValue heap = newHeapInstance(ComplexValue.class);
         ComplexValue nativeValue = newNativeReference(ComplexValue.class);
         BytesStore<?, ?> store =
-                BytesStore.nativeStoreWithFixedCapacity(((Byteable) nativeValue).maxSize());
+                BytesStore.nativeStoreWithFixedCapacity(nativeValue.maxSize());
         try {
-            ((Byteable) nativeValue).bytesStore(store, 0, ((Byteable) nativeValue).maxSize());
+            nativeValue.bytesStore(store, 0, nativeValue.maxSize());
             mutateComplexValue(heap);
             mutateComplexValue(nativeValue);
 
