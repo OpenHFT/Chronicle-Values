@@ -55,6 +55,12 @@ public class MyJavaFileManager extends net.openhft.compiler.MyJavaFileManager {
                 Align.class, Array.class, Group.class, MaxUtf8Length.class,
                 net.openhft.chronicle.values.NotNull.class, Range.class,
 
+                // JetBrains annotations referenced on inherited chronicle
+                // signatures; JDK 25+ javac fails symbol completion without
+                // these on the compiler classpath (see #177).
+                org.jetbrains.annotations.NotNull.class,
+                org.jetbrains.annotations.Nullable.class,
+
                 // Bytes classes and interfaces
                 Bytes.class, BytesStore.class, BytesUtil.class,
                 Byteable.class, BytesMarshallable.class,
