@@ -39,7 +39,7 @@ public class MyJavaFileManager extends net.openhft.compiler.MyJavaFileManager {
      * Populated once in the static block below and shared across all
      * instances.
      */
-    private static final Map<String, Set<JavaFileObject>> dependencyFileObjects = new HashMap<>();
+    private static final Map<String, Map<Class<?>, JavaFileObject>> dependencyFileObjects = new HashMap<>();
 
     /*
      * Preloads {@code dependencyFileObjects} with Chronicle classes used by
@@ -72,7 +72,7 @@ public class MyJavaFileManager extends net.openhft.compiler.MyJavaFileManager {
      * {@code dependencyFileObjects}.  Additional classes for the target
      * interface are recorded here so they are visible to the compiler.
      */
-    private final Map<String, Set<JavaFileObject>> fileObjects;
+    private final Map<String, Map<Class<?>, JavaFileObject>> fileObjects;
 
     /**
      * Creates a manager that serves the given {@code valueType} and all
@@ -80,20 +80,17 @@ public class MyJavaFileManager extends net.openhft.compiler.MyJavaFileManager {
      */
     public MyJavaFileManager(Class<?> valueType, StandardJavaFileManager fileManager) {
         super(fileManager);
-        //! Registrations can overlap on a shared manager, so both the package map and its sets must be concurrent.
-        //! Copy each dependency set so registering a class cannot mutate another manager's preloaded registry.
+        //! Registrations can overlap on a shared manager, so both map levels must be concurrent.
+        //! Copy each package map so registering a class cannot mutate another manager's preloaded registry.
         fileObjects = new ConcurrentHashMap<>(dependencyFileObjects);
-        fileObjects.replaceAll((p, objects) -> {
-            Set<JavaFileObject> copy = ConcurrentHashMap.newKeySet();
-            copy.addAll(objects);
-            return copy;
-        });
+        fileObjects.replaceAll((p, objects) -> new ConcurrentHashMap<>(objects));
         // enrich with valueType's fileObjects
         addFileObjects(fileObjects, valueType);
     }
 
     /**
-     * Adds the class so later compilations can reference it.
+     * Adds the class and its inherited interfaces, retaining one object per class identity.
+     * Concurrent calls may resolve the same resource before either publishes it.
      */
     public void addClassToFileObjects(Class<?> c) {
         addFileObjects(fileObjects, c);
@@ -102,17 +99,36 @@ public class MyJavaFileManager extends net.openhft.compiler.MyJavaFileManager {
     /**
      * Records the class and any interfaces it implements under their packages.
      */
-    private static void addFileObjects(Map<String, Set<JavaFileObject>> fileObjects, Class<?> c) {
-        //! Class-resource lookup invokes class-loader code and may block or re-enter registration.
-        //! Keep it outside map callbacks so resource resolution does not hold the cache's remapping locks.
-        JavaFileObject fileObject = classFileObject(c);
-        fileObjects.computeIfAbsent(Jvm.getPackageName(c), p -> ConcurrentHashMap.newKeySet())
-                .add(fileObject);
+    private static void addFileObjects(Map<String, Map<Class<?>, JavaFileObject>> fileObjects, Class<?> c) {
+        addFileObjects(fileObjects, c, new HashSet<>());
+    }
 
+    private static void addFileObjects(Map<String, Map<Class<?>, JavaFileObject>> fileObjects,
+                                       Class<?> c, Set<Class<?>> visited) {
+        //! A diamond reaches shared ancestors through several paths; tracking a visit per call bounds
+        //! traversal by distinct classes and inheritance edges rather than the number of paths.
+        if (!visited.add(c))
+            return;
+
+        //! Fresh wrappers have identity equality, so a wrapper set retains duplicates of the same class.
+        //! Class keys deduplicate registrations without merging equal binary names from different defining loaders.
+        String packageName = Jvm.getPackageName(c);
+        Map<Class<?>, JavaFileObject> packageObjects = fileObjects.get(packageName);
+        if (packageObjects == null || !packageObjects.containsKey(c)) {
+            //! Class-resource lookup invokes class-loader code and may block or re-enter registration.
+            //! Keep it outside map callbacks so resource resolution does not hold the cache's remapping locks.
+            //! Concurrent cold lookups may overlap; putIfAbsent retains just one wrapper for this class.
+            JavaFileObject fileObject = classFileObject(c);
+            fileObjects.computeIfAbsent(packageName, p -> new ConcurrentHashMap<>())
+                    .putIfAbsent(c, fileObject);
+        }
+
+        //! A cached child can belong to an incomplete or failed registration; it is not a completion marker.
+        //! Traverse its parents even on a cache hit so this call can complete the inherited dependency closure.
         Type[] interfaces = c.getGenericInterfaces();
         for (Type superInterface : interfaces) {
             Class<?> rawInterface = ValueModel.rawInterface(superInterface);
-            addFileObjects(fileObjects, rawInterface);
+            addFileObjects(fileObjects, rawInterface, visited);
         }
     }
 
@@ -136,11 +152,11 @@ public class MyJavaFileManager extends net.openhft.compiler.MyJavaFileManager {
             throws IOException {
         Iterable<JavaFileObject> delegateFileObjects =
                 super.list(location, packageName, kinds, recurse);
-        Collection<JavaFileObject> packageFileObjects;
-        if ((packageFileObjects = fileObjects.get(packageName)) != null) {
+        Map<Class<?>, JavaFileObject> packageObjects = fileObjects.get(packageName);
+        if (packageObjects != null) {
             //! Copy registry entries so later registrations cannot change an already returned listing.
             //! Iteration is weakly consistent; this does not make multi-class registration atomic.
-            packageFileObjects = new ArrayList<>(packageFileObjects);
+            Collection<JavaFileObject> packageFileObjects = new ArrayList<>(packageObjects.values());
             delegateFileObjects.forEach(packageFileObjects::add);
             return packageFileObjects;
         } else {
