@@ -18,6 +18,7 @@ import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Supplies in-memory {@link JavaFileObject} instances to the compiler.
@@ -79,9 +80,14 @@ public class MyJavaFileManager extends net.openhft.compiler.MyJavaFileManager {
      */
     public MyJavaFileManager(Class<?> valueType, StandardJavaFileManager fileManager) {
         super(fileManager);
-        // deep clone dependencyFileObjects
-        fileObjects = new HashMap<>(dependencyFileObjects);
-        fileObjects.replaceAll((p, objects) -> new HashSet<>(objects));
+        //! Registrations can overlap on a shared manager, so both the package map and its sets must be concurrent.
+        //! Copy each dependency set so registering a class cannot mutate another manager's preloaded registry.
+        fileObjects = new ConcurrentHashMap<>(dependencyFileObjects);
+        fileObjects.replaceAll((p, objects) -> {
+            Set<JavaFileObject> copy = ConcurrentHashMap.newKeySet();
+            copy.addAll(objects);
+            return copy;
+        });
         // enrich with valueType's fileObjects
         addFileObjects(fileObjects, valueType);
     }
@@ -97,12 +103,11 @@ public class MyJavaFileManager extends net.openhft.compiler.MyJavaFileManager {
      * Records the class and any interfaces it implements under their packages.
      */
     private static void addFileObjects(Map<String, Set<JavaFileObject>> fileObjects, Class<?> c) {
-        fileObjects.compute(Jvm.getPackageName(c), (p, objects) -> {
-            if (objects == null)
-                objects = new HashSet<>();
-            objects.add(classFileObject(c));
-            return objects;
-        });
+        //! Class-resource lookup invokes class-loader code and may block or re-enter registration.
+        //! Keep it outside map callbacks so resource resolution does not hold the cache's remapping locks.
+        JavaFileObject fileObject = classFileObject(c);
+        fileObjects.computeIfAbsent(Jvm.getPackageName(c), p -> ConcurrentHashMap.newKeySet())
+                .add(fileObject);
 
         Type[] interfaces = c.getGenericInterfaces();
         for (Type superInterface : interfaces) {
@@ -133,6 +138,8 @@ public class MyJavaFileManager extends net.openhft.compiler.MyJavaFileManager {
                 super.list(location, packageName, kinds, recurse);
         Collection<JavaFileObject> packageFileObjects;
         if ((packageFileObjects = fileObjects.get(packageName)) != null) {
+            //! Copy registry entries so later registrations cannot change an already returned listing.
+            //! Iteration is weakly consistent; this does not make multi-class registration atomic.
             packageFileObjects = new ArrayList<>(packageFileObjects);
             delegateFileObjects.forEach(packageFileObjects::add);
             return packageFileObjects;
