@@ -1,5 +1,6 @@
 = Chronicle Values - Decision Log
 :toc:
+:sectnums:
 :lang: en-GB
 :source-highlighter: rouge
 
@@ -11,6 +12,8 @@ Identifiers follow the `<Scope>-<Tag>-NNN` pattern; numbers are unique within th
 * link:#VAL-FN-101[VAL-FN-101 Value Interfaces as Single Source of Truth]
 * link:#VAL-NFP-111[VAL-NFP-111 Constant-Size Flyweights Backed by Chronicle Bytes]
 * link:#VAL-SPOT-301[VAL-SPOT-301 Code-Review Profile Suppressions for Legacy Generators]
+* link:#VAL-TEST-402[VAL-TEST-402 Concurrent File-Manager Registration]
+* link:#VAL-NFP-112[VAL-NFP-112 Bounded Interface Registration]
 
 [[VAL-FN-101]]
 == VAL-FN-101 Value Interfaces as Single Source of Truth
@@ -92,3 +95,41 @@ Rationale for Decision::
 Impact & Consequences::
 * `TODO.adoc` records follow-up tasks tied to the suppression tags and coverage gap.
 * Future generator and testing work must revisit the tagged areas to retire the suppressions and restore standard coverage goals.
+
+[[VAL-TEST-402]]
+== VAL-TEST-402 Concurrent File-Manager Registration
+
+Date:: 2026-09-08
+Context::
+* Chronicle Map's Mac build reported `ConcurrentModificationException` while registering the `LongValue` interface in a shared file manager. Model acquisition caches construction failures, so later consumers can fail too.
+* Requirements: CV-FN-008, CV-TEST-020.
+Decision::
+* Use a concurrent package map and concurrent per-package sets in `MyJavaFileManager`. Resolve class resources outside map remapping callbacks and retain independent snapshots for compiler listings.
+* Test overlapping registration in the same and different packages with latch-controlled class-resource lookup; propagate worker failures to the owning test.
+Alternatives::
+* Making only the outer map concurrent leaves its mutable sets exposed to concurrent registration and listing.
+* Serialising registration around class-resource lookup holds a cache lock while invoking class-loader code.
+Impact::
+* This protects the class-file registry, not every operation of the runtime compiler. Value layouts, public APIs and the model-failure caching policy are unchanged.
+* The additional concurrent collections are used during class registration and compilation, not generated value access.
+
+[[VAL-NFP-112]]
+== VAL-NFP-112 Bounded Interface Registration
+
+Date:: 2026-09-08
+Context::
+* Registering a layered diamond with 26 distinct interfaces retained 12,287 class-file wrappers. Repeated registration also retained fresh wrappers for the same class.
+* Requirements: CV-NFP-011, CV-NFP-013, CV-TEST-020, CV-TEST-021.
+Decision::
+* Key each package's concurrent registry by Class identity, including its defining loader. Retain one class-file wrapper per class per manager.
+* Track visited classes within each call, bounding traversal by distinct reachable classes and inheritance edges rather than inheritance paths.
+* Reuse already resolved entries but still traverse their parents. Another caller may have published a child before completing its parents, or failed while resolving a parent.
+Alternatives::
+* Deduplicate wrappers only :: Retention improves, but repeated traversal and resource lookup remain.
+* Return immediately for a cached child :: A concurrent or previously failed registration can leave its parents unavailable when the later call returns.
+* Share a global visited set or key by binary name :: This can mix managers or defining class loaders.
+Impact::
+* Each call allocates a temporary visited set. Resource lookup remains outside cache callbacks; overlapping callers may resolve the same missing resource, but retain only one wrapper.
+* Both mutable cache levels remain concurrent and independently copied per manager. Returned listings remain copies, not atomic snapshots of concurrent multi-class registration.
+* Tests cover retained entries and lookup counts, bounded cache operations, seeded valid inheritance graphs, class-loader identity, retry, snapshot stability and concurrent completion.
+* This is separate from the race repair in PR #180. Public APIs, value layouts, model-failure caching and the POM are unchanged.
