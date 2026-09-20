@@ -1,0 +1,23 @@
+# Static FIX-292 isolation snapshot, 2026-09-20. Provisional entries require review before removal.
+# Open PRs #176
+net/openhft/chronicle/values/AlignTest.java
+# Open PRs #176
+net/openhft/chronicle/values/ComplexValueTest.java
+# Open PRs #176
+net/openhft/chronicle/values/CoreValuesTest.java
+# Open PRs #176
+net/openhft/chronicle/values/FirstPrimitiveFieldTest.java
+# Open PRs #176
+net/openhft/chronicle/values/UnderscoreFieldNameTest.java
+# Open PRs #176
+net/openhft/chronicle/values/ValueGeneratorTest.java
+# Open PRs #176
+net/openhft/chronicle/values/ValueInterfaceWithEnumTest.java
+# Open PRs #176
+net/openhft/chronicle/values/VolatileTest.java
+# Open PRs #176
+net/openhft/chronicle/values/issue10/ChronicleValueTypeTest.java
+# Open PRs #176
+net/openhft/chronicle/values/issue9/HeapVsNativeTest.java
+# Open PRs #176
+net/openhft/chronicle/values/pointer/PointerTest.java
