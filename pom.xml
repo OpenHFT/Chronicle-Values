@@ -76,6 +76,14 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
+            <!--
+                Override parent's `provided` scope: MyJavaFileManager loads
+                NotNull.class and Nullable.class at static init so the runtime
+                compiler can resolve them on inherited chronicle signatures
+                (see #177). The class files must be available to consumers at
+                runtime, not just at compile time.
+            -->
+            <scope>compile</scope>
         </dependency>
 
         <!-- test dependencies -->
