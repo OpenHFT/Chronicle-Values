@@ -76,6 +76,8 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
+            <!-- Runtime compilation preloads these class files; consumers need them at runtime. -->
+            <scope>compile</scope>
         </dependency>
 
         <!-- test dependencies -->

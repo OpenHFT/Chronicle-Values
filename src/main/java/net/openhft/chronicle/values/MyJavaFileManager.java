@@ -56,6 +56,10 @@ public class MyJavaFileManager extends net.openhft.compiler.MyJavaFileManager {
                 Align.class, Array.class, Group.class, MaxUtf8Length.class,
                 net.openhft.chronicle.values.NotNull.class, Range.class,
 
+                // Resolve annotations from this library's loader when javac cannot see its classpath.
+                org.jetbrains.annotations.NotNull.class,
+                org.jetbrains.annotations.Nullable.class,
+
                 // Bytes classes and interfaces
                 Bytes.class, BytesStore.class, BytesUtil.class,
                 Byteable.class, BytesMarshallable.class,
