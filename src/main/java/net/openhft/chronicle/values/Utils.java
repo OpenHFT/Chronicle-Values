@@ -3,6 +3,8 @@
  */
 package net.openhft.chronicle.values;
 
+import java.util.Locale;
+
 /**
  * Miscellaneous helper methods used during code generation.
  *
@@ -43,13 +45,14 @@ final class Utils {
     }
 
     /**
-     * Capitalises the first character of {@code s}.
+     * Capitalises the first character of a generated identifier independently
+     * of the process locale.
      *
      * @param s the string to alter
      * @return {@code s} with the first character converted to upper case
      */
     static String capitalize(String s) {
-        return s.substring(0, 1).toUpperCase() + s.substring(1);
+        return s.substring(0, 1).toUpperCase(Locale.ROOT) + s.substring(1);
     }
 
     /**
