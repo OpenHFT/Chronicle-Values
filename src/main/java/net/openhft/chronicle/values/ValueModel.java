@@ -4,11 +4,17 @@
 package net.openhft.chronicle.values;
 
 import net.openhft.chronicle.core.Jvm;
+import net.openhft.chronicle.core.OS;
+import net.openhft.compiler.CachedCompiler;
+import net.openhft.compiler.CompilerUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -19,7 +25,6 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static net.openhft.chronicle.values.Align.NO_ALIGNMENT;
 import static net.openhft.chronicle.values.Utils.roundUp;
-import static net.openhft.compiler.CompilerUtils.CACHED_COMPILER;
 
 /**
  * Encapsulates metadata of a value interface. The metadata describes the
@@ -60,14 +65,16 @@ public class ValueModel {
     private final int sizeInBytes;
     private volatile Class<?> nativeClass;
     private volatile Class<?> heapClass;
+    private final CachedCompiler compiler;
 
     ValueModel(Class<?> valueType, Stream<FieldModel> fields) {
         this.valueType = valueType;
         orderedFields = new ArrayList<>();
         sizeInBytes = arrangeFields(fields);
-        CACHED_COMPILER.fileManagerOverride =
+        compiler = compilerFor(generatedSourceDir());
+        compiler.fileManagerOverride =
                 (fm) -> new MyJavaFileManager(valueType, fm);
-        CACHED_COMPILER.updateFileManagerForClassLoader(valueType.getClassLoader(), fm -> {
+        compiler.updateFileManagerForClassLoader(valueType.getClassLoader(), fm -> {
             if (fm instanceof MyJavaFileManager) {
                 ((MyJavaFileManager) fm).addClassToFileObjects(valueType);
             }
@@ -332,6 +339,47 @@ public class ValueModel {
         return simpleName(valueType);
     }
 
+    /**
+     * When {@code true} (set via {@code -Dchronicle.values.dumpCode=true}), the
+     * generated heap/native Java source is written to disk and compiled from the
+     * file, so the generated code can be stepped through in a debugger. It is also
+     * enabled automatically when {@link Jvm#isDebug()} reports a debugger is attached.
+     */
+    static final String DUMP_CODE_PROPERTY = "chronicle.values.dumpCode";
+
+    /**
+     * Directory the generated source is dumped to when dumping is enabled. Defaults
+     * to {@code <target>/generated-sources} under the build directory.
+     */
+    static final String GENERATED_SOURCE_DIR_PROPERTY = "chronicle.values.generatedSourceDir";
+
+    // Compilers are cached per source directory; the shared in-memory compiler is
+    // used when dumping is disabled so the fast path keeps its class cache.
+    private static final Map<File, CachedCompiler> COMPILERS = new ConcurrentHashMap<>();
+
+    /**
+     * Returns the directory generated source should be written to so it can be
+     * stepped through in a debugger, or {@code null} when in-memory compilation
+     * should be used. Mirrors the opt-in dump approach used by Chronicle Wire.
+     *
+     * @return the dump directory, or {@code null} to compile in memory
+     */
+    @Nullable
+    static File generatedSourceDir() {
+        if (!Jvm.getBoolean(DUMP_CODE_PROPERTY) && !Jvm.isDebug())
+            return null;
+        final String dir = System.getProperty(GENERATED_SOURCE_DIR_PROPERTY);
+        return dir != null && !dir.isEmpty()
+                ? new File(dir)
+                : new File(OS.getTarget(), "generated-sources");
+    }
+
+    private static CachedCompiler compilerFor(@Nullable File sourceDir) {
+        if (sourceDir == null)
+            return CompilerUtils.CACHED_COMPILER;
+        return COMPILERS.computeIfAbsent(sourceDir, dir -> new CachedCompiler(dir, null));
+    }
+
     private Class<?> createClass(
             String className, BiFunction<ValueModel, String, String> generateClass) {
         String classNameWithPackage = Jvm.getPackageName(valueType) + "." + className;
@@ -341,7 +389,7 @@ public class ValueModel {
         } catch (ClassNotFoundException ignored) {
             String javaCode = generateClass.apply(this, className);
             try {
-                return CACHED_COMPILER.loadFromJava(cl, classNameWithPackage, javaCode);
+                return compiler.loadFromJava(cl, classNameWithPackage, javaCode);
             } catch (ClassNotFoundException e) {
                 Jvm.warn().on(ValueModel.class, "Failed to compile " + e + "\n" + javaCode);
                 throw new ImplGenerationFailedException(e);
