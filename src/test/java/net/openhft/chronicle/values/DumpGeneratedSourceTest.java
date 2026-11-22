@@ -4,7 +4,9 @@
 package net.openhft.chronicle.values;
 
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,6 +24,9 @@ import static org.junit.Assert.*;
  * through in a debugger.
  */
 public class DumpGeneratedSourceTest {
+
+    @Rule
+    public final TemporaryFolder temporary = TemporaryFolder.builder().assureDeletion().build();
 
     private String savedDump;
     private String savedDir;
@@ -62,7 +67,7 @@ public class DumpGeneratedSourceTest {
         savedDump = System.getProperty(ValueModel.DUMP_CODE_PROPERTY);
         savedDir = System.getProperty(ValueModel.GENERATED_SOURCE_DIR_PROPERTY);
 
-        final Path dumpDir = Files.createTempDirectory("chronicle-values-dump");
+        final Path dumpDir = temporary.newFolder("generated-source").toPath();
         System.setProperty(ValueModel.DUMP_CODE_PROPERTY, "true");
         System.setProperty(ValueModel.GENERATED_SOURCE_DIR_PROPERTY, dumpDir.toString());
 
