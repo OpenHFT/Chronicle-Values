@@ -66,6 +66,8 @@
         <dependency>
             <groupId>net.openhft</groupId>
             <artifactId>compiler</artifactId>
+            <!-- JRC #189 closes generated-source streams before fixture cleanup. -->
+            <version>2026.3-SNAPSHOT</version>
         </dependency>
 
         <dependency>
