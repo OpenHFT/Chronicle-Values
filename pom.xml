@@ -196,6 +196,32 @@
 
     <profiles>
         <profile>
+            <id>pr-dependencies</id>
+            <activation>
+                <property>
+                    <name>chronicle.pr.dependencies</name>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>net.openhft</groupId>
+                    <artifactId>compiler</artifactId>
+                    <version>${chronicle.pr.dependencies}</version>
+                </dependency>
+            </dependencies>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>net.openhft</groupId>
+                        <artifactId>chronicle-bom</artifactId>
+                        <version>${chronicle.pr.dependencies}</version>
+                        <type>pom</type>
+                        <scope>import</scope>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+        <profile>
             <id>pre-java9</id>
             <activation>
                 <jdk>1.8</jdk>
