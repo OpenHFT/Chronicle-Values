@@ -73,7 +73,7 @@ public class ValueModel {
         sizeInBytes = arrangeFields(fields);
         compiler = compilerFor(generatedSourceDir());
         compiler.fileManagerOverride =
-                (fm) -> new MyJavaFileManager(valueType, fm);
+                fm -> new MyJavaFileManager(valueType, fm);
         compiler.updateFileManagerForClassLoader(valueType.getClassLoader(), fm -> {
             if (fm instanceof MyJavaFileManager) {
                 ((MyJavaFileManager) fm).addClassToFileObjects(valueType);
