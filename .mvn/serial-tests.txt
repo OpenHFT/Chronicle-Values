@@ -1,0 +1,3 @@
+# FIX-292: qualify ordinary test classes in the eight-worker pool.
+# Only demonstrated exceptions belong here. This non-matching sentinel keeps an empty serial execution empty.
+%regex[^$]
